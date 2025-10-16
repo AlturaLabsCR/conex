@@ -56,7 +56,7 @@ p {
 }
 
 .conex-banner {
-  height: 30vh;
+  height: 28vh;
 
   @apply
   relative
@@ -131,9 +131,68 @@ input, select, button {
   focus:border-gray-400
   focus:dark:border-white
 
-  transition-all duration-300
+  transition-all
+  duration-300
 }
 
 ::placeholder {
   color: var(--conex-color-fg-unemph);
+}
+
+.conex-cards {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+
+  @apply
+  grid
+  gap-3
+}
+
+.conex-card {
+  border-color: var(--conex-color-fg-border);
+
+  @apply
+  flex
+  max-h-28
+  border
+  items-stretch
+  rounded-2xl
+  overflow-hidden
+
+  transition-all
+  duration-300
+}
+
+.conex-card:hover {
+  @apply
+  bg-slate-600/10
+  dark:bg-slate-400/10
+  border-gray-400
+  dark:border-white
+  shadow-md
+}
+
+.conex-card img {
+  @apply
+  max-w-24
+  h-full
+  object-cover
+  block
+}
+
+.conex-content {
+  @apply
+  p-3
+}
+
+.conex-content h1 {
+  @apply
+  font-semibold
+  text-base
+}
+
+.conex-content p {
+  @apply
+  text-sm
+  text-black/60
+  dark:text-white/60
 }
