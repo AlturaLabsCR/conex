@@ -2,6 +2,7 @@
 
 :root {
   font-size: 1.1rem;
+  line-height: 1.55rem;
   font-family: Inter, sans-serif;
   font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
 }
@@ -12,7 +13,7 @@
 
 :root {
   --conex-color-fg: black;
-  --conex-color-fg-unemph: #00000070;
+  --conex-color-fg-unemph: #00000085;
   --conex-color-fg-border: #00000030;
 
   --conex-color-bg: white;
@@ -20,7 +21,7 @@
 
 [data-theme="forest"] {
   --conex-color-fg: brown;
-  --conex-color-fg-unemph: #00000070;
+  --conex-color-fg-unemph: #00000085;
   --conex-color-fg-border: #00000030;
 
   --conex-color-bg: green;
@@ -29,16 +30,16 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --conex-color-fg: white;
-    --conex-color-fg-unemph: #f9f9f970;
-    --conex-color-fg-border: #f9f9f930;
+    --conex-color-fg-unemph: #ffffff60;
+    --conex-color-fg-border: #ffffff30;
 
     --conex-color-bg: black;
   }
 
   [data-theme="forest"] {
     --conex-color-fg: green;
-    --conex-color-fg-unemph: #f9f9f970;
-    --conex-color-fg-border: #f9f9f930;
+    --conex-color-fg-unemph: #ffffff60;
+    --conex-color-fg-border: #ffffff30;
 
     --conex-color-bg: brown;
   }
@@ -49,23 +50,59 @@ body {
   background: var(--conex-color-bg);
 }
 
-#conex-banner img {
-  max-height: 40vh;
+p {
+  @apply
+  pb-4
+}
+
+.conex-banner {
+  height: 30vh;
 
   @apply
+  relative
+}
+
+.conex-banner img {
+  @apply
   w-full
+  h-full
   object-cover
 }
 
-#conex-banner h1 {
-  font-size: 2.5em;
+.conex-banner .content {
+  @apply
+  absolute
+  flex
+  flex-col
+  justify-center
+  text-center
+  inset-0
+}
+
+.conex-banner:has(img) .content {
+  background: #00000055;
 
   @apply
-  font-extrabold
-  text-center
+  text-white
+}
+
+.conex-banner h1,
+.conex-banner p {
+  @apply
   w-full
-  m-0
-  p-4
+  max-w-7xl
+  mx-auto
+}
+
+.conex-banner h1 {
+  @apply
+  text-4xl
+  font-extrabold
+}
+
+.conex-banner p {
+  @apply
+  font-light
 }
 
 main {
@@ -81,9 +118,20 @@ input, select, button {
 
   @apply
   w-full
-  p-4
+  py-2.5 px-4
   border
   rounded-full
+
+  font-light
+
+  hover:shadow-md
+
+  focus:shadow-md
+  focus:outline-none
+  focus:border-gray-400
+  focus:dark:border-white
+
+  transition-all duration-300
 }
 
 ::placeholder {
