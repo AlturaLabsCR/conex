@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+:root {
+  font-size: 1.1rem;
+  font-family: Inter, sans-serif;
+  font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+}
+
+@supports (font-variation-settings: normal) {
+  :root { font-family: InterVariable, sans-serif; }
+}
+
+:root {
+  --conex-color-fg: black;
+  --conex-color-fg-unemph: #00000070;
+  --conex-color-fg-border: #00000030;
+
+  --conex-color-bg: white;
+}
+
+[data-theme="forest"] {
+  --conex-color-fg: brown;
+  --conex-color-fg-unemph: #00000070;
+  --conex-color-fg-border: #00000030;
+
+  --conex-color-bg: green;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --conex-color-fg: white;
+    --conex-color-fg-unemph: #f9f9f970;
+    --conex-color-fg-border: #f9f9f930;
+
+    --conex-color-bg: black;
+  }
+
+  [data-theme="forest"] {
+    --conex-color-fg: green;
+    --conex-color-fg-unemph: #f9f9f970;
+    --conex-color-fg-border: #f9f9f930;
+
+    --conex-color-bg: brown;
+  }
+}
+
+body {
+  color: var(--conex-color-fg);
+  background: var(--conex-color-bg);
+}
+
+#conex-banner img {
+  max-height: 40vh;
+
+  @apply
+  w-full
+  object-cover
+}
+
+#conex-banner h1 {
+  font-size: 2.5em;
+
+  @apply
+  font-extrabold
+  text-center
+  w-full
+  m-0
+  p-4
+}
+
+main {
+  @apply
+  w-full
+  max-w-4xl
+  mx-auto
+  p-4
+}
+
+input, select, button {
+  border-color: var(--conex-color-fg-border);
+
+  @apply
+  w-full
+  p-4
+  border
+  rounded-full
+}
+
+::placeholder {
+  color: var(--conex-color-fg-unemph);
+}
