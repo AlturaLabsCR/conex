@@ -109,7 +109,7 @@ live/sql:
 
 live/templ:
 	@printf "\033[1mstarting templ proxy, url:\033[0m \033[32m\033[4m%s\033[0m\033[0m\n" "http://localhost:7331"
-	@$(GO) tool github.com/a-h/templ/cmd/templ generate --watch --proxy="http://localhost:8080" --open-browser=false --log-level="warn" $(LIVELOG)
+	@$(GO) tool $(TEMPL) generate --watch --proxy="http://localhost:8080" --open-browser=false --log-level="warn" $(LIVELOG)
 
 live/server: $(GEN)
 	@$(GO) run $(AIR) \
