@@ -20,7 +20,7 @@ CREATE TABLE sites (
   site_title VARCHAR(63) NOT NULL,
   site_description VARCHAR(255) NOT NULL,
   site_tags_json VARCHAR(255) NOT NULL,
-  site_data TEXT NOT NULL,
+  site_html TEXT NOT NULL,
   site_created_unix INTEGER NOT NULL,
   site_modified_unix INTEGER NOT NULL,
   site_published INTEGER NOT NULL DEFAULT 1,
@@ -47,4 +47,15 @@ CREATE TABLE site_objects (
   CONSTRAINT fk_site_objects_site FOREIGN KEY (object_site) REFERENCES sites(site_id),
   CONSTRAINT uq_site_objects_address UNIQUE (object_bucket, object_key),
   CONSTRAINT ck_site_objects_deleted CHECK (object_deleted IN (0,1))
+);
+
+CREATE TABLE site_banners (
+  banner_id INTEGER NOT NULL,
+  banner_site INTEGER NOT NULL,
+  banner_object INTEGER NOT NULL,
+
+  CONSTRAINT pk_site_banners PRIMARY KEY (banner_id),
+  CONSTRAINT uq_site_banners_site UNIQUE (banner_site),
+  CONSTRAINT fk_site_banners_site FOREIGN KEY (banner_site) REFERENCES sites(site_id),
+  CONSTRAINT fk_site_banners_object FOREIGN KEY (banner_object) REFERENCES site_objects(object_id)
 );

@@ -25,6 +25,17 @@ templ Home() {
 	</div>
 }
 
+templ HomeHeader() {
+	<div class="content">
+		<h1>{ config.AppTitle }</h1>
+		<a href={ config.EditorPath }>
+			<button class="text-black bg-white max-w-fit mx-auto mt-4">
+				Crear un sitio
+			</button>
+		</a>
+	</div>
+}
+
 templ cards(cc []string) {
 	for _, c := range cc {
 		@card(c)
@@ -33,7 +44,7 @@ templ cards(cc []string) {
 
 templ card(c string) {
 	<a href={ config.RootPrefix + "#" } class="conex-card">
-		<img src="/assets/banner.jpg"/>
+		<!-- <img src={ config.RootPrefix + "assets/default-banner.svg" }/> -->
 		<div class="conex-content">
 			<h1 class="title">Título Lorem Ipsum</h1>
 			<div class="tags">

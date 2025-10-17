@@ -13,6 +13,7 @@ var (
 	AppTitle string = "CONEX.cr"
 
 	RootPrefix string = "/"
+	EditorPath string = RootPrefix + "e"
 	// Depends on the RootPrefix, so, must be initialized after checking for any
 	// overwrites of RootPrefix
 	Assets string

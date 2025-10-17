@@ -9,7 +9,8 @@ import (
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	header := templates.HomeHeader()
 	content := templates.Home()
 
-	templates.Base(content).Render(ctx, w)
+	templates.Base(header, content).Render(ctx, w)
 }
