@@ -1,36 +1,17 @@
 package templates
 
+import "app/config"
+
 templ Home() {
 	<section class="mb-24">
+		<div class="mb-4">
+			<select>
+				<option>Más visitados</option>
+				<option>Creados recientemente</option>
+			</select>
+		</div>
 		<div class="conex-cards">
-			<div class="conex-card">
-				<img src="/assets/banner.jpg"/>
-				<div class="conex-content">
-					<h1>Título Lorem Ipsum</h1>
-					<p>Descripción lorem ipsum.</p>
-				</div>
-			</div>
-			<div class="conex-card">
-				<img src="/assets/banner.jpg"/>
-				<div class="conex-content">
-					<h1>Título Lorem Ipsum</h1>
-					<p>Descripción lorem ipsum dolor sit amet qui consecutur.</p>
-				</div>
-			</div>
-			<div class="conex-card">
-				<img src="/assets/banner.jpg"/>
-				<div class="conex-content">
-					<h1>Título Lorem Ipsum</h1>
-					<p>Descripción lorem ipsum.</p>
-				</div>
-			</div>
-			<div class="conex-card">
-				<img src="/assets/banner.jpg"/>
-				<div class="conex-content">
-					<h1>Título Lorem Ipsum</h1>
-					<p>Descripción lorem ipsum dolor sit amet qui consecutur.</p>
-				</div>
-			</div>
+			@cards([]string{"1", "2", "3"})
 		</div>
 	</section>
 	<div class="fixed bottom-0 left-0 right-0 w-full max-w-4xl mx-auto">
@@ -42,4 +23,22 @@ templ Home() {
 			/>
 		</div>
 	</div>
+}
+
+templ cards(cards []string) {
+	for _, _ = range cards {
+		<a href={ config.RootPrefix + "#" } class="conex-card">
+			<img src="/assets/banner.jpg"/>
+			<div class="conex-content">
+				<h1 class="title">Título Lorem Ipsum</h1>
+				<div class="tags">
+					<span class="tag" data-color="blue">tag1</span>
+					<span class="tag" data-color="purple">tag2</span>
+					<span class="tag" data-color="cyan">tag3</span>
+					<span class="tag" data-color="red">tag4</span>
+				</div>
+				<p class="description">Descripción lorem ipsum dolor sit amet qui consecutur.</p>
+			</div>
+		</a>
+	}
 }

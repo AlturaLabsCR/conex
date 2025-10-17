@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
 :root {
-  font-size: 1.1rem;
-  line-height: 1.55rem;
   font-family: Inter, sans-serif;
   font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
 }
@@ -56,9 +54,8 @@ p {
 }
 
 .conex-banner {
-  height: 28vh;
-
   @apply
+  h-64
   relative
 }
 
@@ -80,10 +77,9 @@ p {
 }
 
 .conex-banner:has(img) .content {
-  background: #00000055;
-
   @apply
   text-white
+  bg-black/25
 }
 
 .conex-banner h1,
@@ -129,7 +125,6 @@ input, select, button {
   focus:shadow-md
   focus:outline-none
   focus:border-gray-400
-  focus:dark:border-white
 
   transition-all
   duration-300
@@ -137,6 +132,9 @@ input, select, button {
 
 ::placeholder {
   color: var(--conex-color-fg-unemph);
+
+  @apply
+  italic
 }
 
 .conex-cards {
@@ -152,7 +150,7 @@ input, select, button {
 
   @apply
   flex
-  max-h-28
+  max-h-36
   border
   items-stretch
   rounded-2xl
@@ -160,15 +158,11 @@ input, select, button {
 
   transition-all
   duration-300
-}
 
-.conex-card:hover {
-  @apply
-  bg-slate-600/10
-  dark:bg-slate-400/10
-  border-gray-400
-  dark:border-white
-  shadow-md
+  hover:bg-slate-600/10
+  hover:dark:bg-slate-400/10
+  hover:border-gray-400
+  hover:shadow-md
 }
 
 .conex-card img {
@@ -181,18 +175,111 @@ input, select, button {
 
 .conex-content {
   @apply
-  p-3
+  px-3
+  py-1.5
 }
 
-.conex-content h1 {
+.conex-content .title {
   @apply
   font-semibold
   text-base
 }
 
-.conex-content p {
+.conex-content .description {
   @apply
-  text-sm
   text-black/60
   dark:text-white/60
+}
+
+.conex-content .tags {
+  @apply
+  mb-1
+}
+
+.tag {
+  @apply
+  m-0
+  text-xs
+  border
+  rounded-full
+  px-1.5
+  py-0.5
+
+  /* default: grey */
+  border-gray-300
+  text-gray-500
+  bg-gray-200
+  dark:border-gray-600
+  dark:text-gray-400
+  dark:bg-gray-800
+}
+
+.tag[data-color="blue"] {
+  @apply
+  border-blue-300
+  text-blue-500
+  bg-blue-100
+  dark:border-blue-700
+  dark:text-blue-400
+  dark:bg-blue-950
+}
+
+.tag[data-color="purple"] {
+  @apply
+  border-purple-300
+  text-purple-500
+  bg-purple-100
+  dark:border-purple-700
+  dark:text-purple-400
+  dark:bg-purple-950
+}
+
+.tag[data-color="cyan"] {
+  @apply
+  border-cyan-300
+  text-cyan-600
+  bg-cyan-100
+  dark:border-cyan-700
+  dark:text-cyan-500
+  dark:bg-cyan-950
+}
+
+.tag[data-color="green"] {
+  @apply
+  border-green-400
+  text-green-600
+  bg-green-100
+  dark:border-green-700
+  dark:text-green-600
+  dark:bg-green-950
+}
+
+.tag[data-color="yellow"] {
+  @apply
+  border-yellow-400
+  text-yellow-600
+  bg-yellow-100
+  dark:border-yellow-600
+  dark:text-yellow-600
+  dark:bg-yellow-950
+}
+
+.tag[data-color="orange"] {
+  @apply
+  border-orange-300
+  text-orange-500
+  bg-orange-100
+  dark:border-orange-600
+  dark:text-orange-500
+  dark:bg-orange-950
+}
+
+.tag[data-color="red"] {
+  @apply
+  border-red-300
+  text-red-500
+  bg-red-100
+  dark:border-red-700
+  dark:text-red-400
+  dark:bg-red-950
 }

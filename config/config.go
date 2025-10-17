@@ -41,7 +41,7 @@ func Init() {
 	if r != "" {
 		RootPrefix = r
 	}
-	Assets = RootPrefix + "assets"
+	Assets = RootPrefix + "assets/"
 
 	Production = os.Getenv(envProd) == "1"
 
