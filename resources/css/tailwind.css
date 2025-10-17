@@ -86,7 +86,7 @@ p {
 .conex-banner p {
   @apply
   w-full
-  max-w-7xl
+  max-w-4xl
   mx-auto
 }
 
@@ -99,6 +99,7 @@ p {
 .conex-banner p {
   @apply
   font-light
+  mt-3
 }
 
 main {
@@ -138,7 +139,7 @@ input, select, button {
 }
 
 .conex-cards {
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
 
   @apply
   grid

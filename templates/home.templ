@@ -25,20 +25,24 @@ templ Home() {
 	</div>
 }
 
-templ cards(cards []string) {
-	for _, _ = range cards {
-		<a href={ config.RootPrefix + "#" } class="conex-card">
-			<img src="/assets/banner.jpg"/>
-			<div class="conex-content">
-				<h1 class="title">Título Lorem Ipsum</h1>
-				<div class="tags">
-					<span class="tag" data-color="blue">tag1</span>
-					<span class="tag" data-color="purple">tag2</span>
-					<span class="tag" data-color="cyan">tag3</span>
-					<span class="tag" data-color="red">tag4</span>
-				</div>
-				<p class="description">Descripción lorem ipsum dolor sit amet qui consecutur.</p>
-			</div>
-		</a>
+templ cards(cc []string) {
+	for _, c := range cc {
+		@card(c)
 	}
+}
+
+templ card(c string) {
+	<a href={ config.RootPrefix + "#" } class="conex-card">
+		<img src="/assets/banner.jpg"/>
+		<div class="conex-content">
+			<h1 class="title">Título Lorem Ipsum</h1>
+			<div class="tags">
+				<span class="tag" data-color="blue">tag1</span>
+				<span class="tag" data-color="purple">tag2</span>
+				<span class="tag" data-color="cyan">tag3</span>
+				<span class="tag" data-color="red">tag4</span>
+			</div>
+			<p class="description">Descripción lorem ipsum dolor sit amet qui consecutur.</p>
+		</div>
+	</a>
 }
