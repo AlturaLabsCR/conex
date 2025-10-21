@@ -10,7 +10,7 @@ var (
 	// Default values are initialized here, these will be used unless overwritten
 	// by the Init() method
 
-	AppTitle string = "CONEX.cr"
+	AppTitle string = "conex.cr"
 
 	RootPrefix string = "/"
 	EditorPath string = RootPrefix + "e"
