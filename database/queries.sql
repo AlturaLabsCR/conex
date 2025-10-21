@@ -34,6 +34,9 @@ SELECT * FROM site_metrics WHERE metric_site = ?;
 -- name: GetValidSites :many
 SELECT * FROM valid_sites;
 
+-- name: GetValidSiteBySlug :one
+SELECT * FROM valid_sites WHERE site_slug = ?;
+
 -- name: GetValidSitesWithMetrics :many
 SELECT * FROM valid_sites_with_metrics;
 

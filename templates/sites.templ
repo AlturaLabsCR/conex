@@ -1,0 +1,15 @@
+package templates
+
+import "app/internal/db"
+import "app/database"
+
+templ Site(s db.ValidSite) {
+	@templ.Raw(database.SanitizeHTML(s.SiteHtmlPublished))
+}
+
+templ SiteHeader(s db.ValidSite) {
+	<div class="content">
+		<h1>{ s.SiteTitle }</h1>
+		<p>{ s.SiteDescription }</p>
+	</div>
+}

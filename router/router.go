@@ -12,7 +12,9 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 
 	router.HandleFunc("GET /", h.Home)
 
-	router.HandleFunc("GET /e", h.Editor)
+	router.HandleFunc("GET /{site}", h.Site)
+
+	router.HandleFunc("GET /e/{site}", h.Editor)
 
 	return router
 }

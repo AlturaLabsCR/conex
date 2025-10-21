@@ -4,6 +4,8 @@ package database
 
 import (
 	"encoding/json"
+
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type Tag struct {
@@ -20,4 +22,9 @@ func JSONToTags(s string) []Tag {
 	}
 
 	return tags
+}
+
+func SanitizeHTML(s string) string {
+	p := bluemonday.UGCPolicy()
+	return p.Sanitize(s)
 }
