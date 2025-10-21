@@ -111,7 +111,7 @@ CREATE TABLE site_objects (
   CONSTRAINT pk_site_objects PRIMARY KEY (object_id),
   CONSTRAINT fk_site_objects_site FOREIGN KEY (object_site) REFERENCES sites(site_id),
   CONSTRAINT uq_site_objects_address UNIQUE (object_bucket, object_key),
-  CONSTRAINT uq_site_objects_md5 UNIQUE (object_bucket, object_md5)
+  CONSTRAINT uq_site_objects_md5 UNIQUE (object_bucket, object_md5),
   CONSTRAINT ck_site_objects_deleted CHECK (object_deleted IN (0,1))
 );
 
