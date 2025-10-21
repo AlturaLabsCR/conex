@@ -38,7 +38,7 @@ VALUES
   "<h1>Photography by Carol</h1>", "<h1>Draft Photography Page</h1>",
   1729459200, 1729459200, 1, 0);
 
-INSERT INTO site_tags (tag_id, tag_site, tag_name, tag_color)
+INSERT INTO site_tags (tag_id, tag_site, tag_name, tag_color_hex)
 VALUES
 (1, 1, 'design', '#ff3366'),
 (2, 1, 'personal', '#33cc99'),
