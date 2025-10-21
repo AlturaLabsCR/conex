@@ -89,7 +89,7 @@ CREATE TABLE site_tags (
   tag_id INTEGER NOT NULL,
   tag_site INTEGER NOT NULL,
   tag_name VARCHAR(63) NOT NULL,
-  tag_color VARCHAR(15) NOT NULL,
+  tag_color_hex VARCHAR(9) NOT NULL,
 
   CONSTRAINT pk_site_tags PRIMARY KEY (tag_id),
   CONSTRAINT fk_site_tags_site FOREIGN KEY (tag_site) REFERENCES sites(site_id),
