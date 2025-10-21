@@ -199,7 +199,8 @@ input, select, button {
 
 .tag {
   @apply
-  m-0
+  my-0
+  mr-1
   text-xs
   border
   rounded-full

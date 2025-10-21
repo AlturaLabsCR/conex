@@ -13,10 +13,11 @@ var (
 	AppTitle string = "conex.cr"
 
 	RootPrefix string = "/"
-	EditorPath string = RootPrefix + "e"
 	// Depends on the RootPrefix, so, must be initialized after checking for any
 	// overwrites of RootPrefix
-	Assets string
+	Assets      string
+	EditorPath  string
+	ManagerPath string
 
 	Production bool   = false
 	Port       string = "8080"
@@ -42,7 +43,10 @@ func Init() {
 	if r != "" {
 		RootPrefix = r
 	}
+
 	Assets = RootPrefix + "assets/"
+	EditorPath = RootPrefix + "e/"
+	ManagerPath = RootPrefix + "c/"
 
 	Production = os.Getenv(envProd) == "1"
 

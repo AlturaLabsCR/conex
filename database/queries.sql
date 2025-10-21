@@ -25,12 +25,6 @@ SELECT * FROM sites WHERE site_deleted = 0;
 -- name: GetPublishedSites :many
 SELECT * FROM sites WHERE site_published = 1;
 
--- name: GetTags :many
-SELECT * FROM site_tags;
-
--- name: GetTagsBySiteID :many
-SELECT * FROM site_tags WHERE tag_site = ?;
-
 -- name: GetMetrics :many
 SELECT * FROM site_metrics;
 

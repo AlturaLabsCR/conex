@@ -1,8 +1,12 @@
 package templates
 
-import "app/config"
+import (
+	"app/config"
+	"app/database"
+	"app/internal/db"
+)
 
-templ Home() {
+templ Home(sites []db.ValidSitesWithMetric) {
 	<section class="mb-24">
 		<div class="mb-4">
 			<select>
@@ -11,7 +15,7 @@ templ Home() {
 			</select>
 		</div>
 		<div class="conex-cards">
-			@cards([]string{"1", "2", "3"})
+			@cards(sites)
 		</div>
 	</section>
 	<div class="fixed bottom-0 left-0 right-0 w-full max-w-4xl mx-auto">
@@ -28,7 +32,7 @@ templ Home() {
 templ HomeHeader() {
 	<div class="content">
 		<h1>{ config.AppTitle }</h1>
-		<a href={ config.EditorPath }>
+		<a href={ config.ManagerPath }>
 			<button class="text-black bg-white max-w-fit mx-auto mt-4">
 				Crear un sitio
 			</button>
@@ -36,24 +40,28 @@ templ HomeHeader() {
 	</div>
 }
 
-templ cards(cc []string) {
-	for _, c := range cc {
-		@card(c)
+templ cards(ss []db.ValidSitesWithMetric) {
+	for _, s := range ss {
+		@card(s)
 	}
 }
 
-templ card(c string) {
-	<a href={ config.RootPrefix + "#" } class="conex-card">
+templ card(s db.ValidSitesWithMetric) {
+	<a href={ config.RootPrefix + s.SiteSlug } class="conex-card">
 		<!-- <img src={ config.RootPrefix + "assets/default-banner.svg" }/> -->
 		<div class="conex-content">
-			<h1 class="title">Título Lorem Ipsum</h1>
+			<span class="title">{ s.SiteTitle }</span>
+			<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">{ s.MetricVisitsTotal } visitas</span>
 			<div class="tags">
-				<span class="tag" data-color="blue">tag1</span>
-				<span class="tag" data-color="purple">tag2</span>
-				<span class="tag" data-color="cyan">tag3</span>
-				<span class="tag" data-color="red">tag4</span>
+				@Tags(database.JSONToTags(s.SiteTagsJson))
 			</div>
-			<p class="description">Descripción lorem ipsum dolor sit amet qui consecutur.</p>
+			<p class="description">{ s.SiteDescription }</p>
 		</div>
 	</a>
+}
+
+templ Tags(tags []database.Tag) {
+	for _, tag := range tags {
+		<span class="tag" data-color={ tag.Color }>{ tag.Name }</span>
+	}
 }

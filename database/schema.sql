@@ -62,6 +62,7 @@ CREATE TABLE sites (
   site_user INTEGER NOT NULL,
   site_slug VARCHAR(63) NOT NULL,
   site_title VARCHAR(63) NOT NULL,
+  site_tags_json VARCHAR(255) NOT NULL,
   site_description VARCHAR(255) NOT NULL,
   site_html_published TEXT NOT NULL,
   site_html_staging TEXT NOT NULL,
@@ -83,17 +84,6 @@ CREATE TABLE site_metrics (
 
   CONSTRAINT pk_site_metrics PRIMARY KEY (metric_id),
   CONSTRAINT uq_site_metrics UNIQUE (metric_site)
-);
-
-CREATE TABLE site_tags (
-  tag_id INTEGER NOT NULL,
-  tag_site INTEGER NOT NULL,
-  tag_name VARCHAR(63) NOT NULL,
-  tag_color_hex VARCHAR(9) NOT NULL,
-
-  CONSTRAINT pk_site_tags PRIMARY KEY (tag_id),
-  CONSTRAINT fk_site_tags_site FOREIGN KEY (tag_site) REFERENCES sites(site_id),
-  CONSTRAINT uq_site_tags UNIQUE (tag_site, tag_name)
 );
 
 CREATE TABLE site_objects (
@@ -134,14 +124,12 @@ site_deleted = 0;
 
 CREATE VIEW valid_sites_with_metrics AS
 SELECT v.*, m.*
-FROM valid_sites AS v LEFT JOIN site_metrics AS m
+FROM valid_sites AS v INNER JOIN site_metrics AS m
 ON v.site_id = m.metric_site;
 
 CREATE INDEX idx_sites_user ON sites(site_user);
-CREATE INDEX idx_site_tags_site ON site_tags(tag_site);
 CREATE INDEX idx_sites_published_deleted ON sites(site_published, site_deleted);
 CREATE INDEX idx_site_metrics_site ON site_metrics(metric_site);
 CREATE INDEX idx_site_metrics_visits_total ON site_metrics(metric_visits_total);
--- CREATE INDEX idx_site_tags_name ON site_tags(tag_name); -- Sites by tags
 -- CREATE INDEX idx_sites_created_unix ON sites(site_created_unix DESC); -- Sites by creation date
 -- CREATE INDEX idx_sites_modified_unix ON sites(site_modified_unix DESC); -- Last updated sites
