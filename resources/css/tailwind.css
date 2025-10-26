@@ -53,6 +53,27 @@ p {
   pb-4
 }
 
+.conex-banner nav {
+  @apply
+  relative
+  z-10
+}
+
+nav {
+  @apply
+  flex
+  flex-row
+  justify-between
+  items-center
+}
+
+nav ul {
+  @apply
+  list-none
+  flex
+  gap-4
+}
+
 .conex-banner {
   @apply
   h-64
@@ -66,7 +87,7 @@ p {
   object-cover
 }
 
-.conex-banner .content {
+.conex-banner .conex-banner-content {
   @apply
   absolute
   flex
@@ -76,7 +97,7 @@ p {
   inset-0
 }
 
-.conex-banner:has(img) .content {
+.conex-banner:has(img) .conex-banner-content {
   @apply
   text-white
   bg-black/25
@@ -115,6 +136,7 @@ input, select, button {
 
   @apply
   w-full
+  my-1
   py-2.5 px-4
   border
   rounded-full
@@ -174,25 +196,25 @@ input, select, button {
   block
 }
 
-.conex-content {
+.conex-card-content {
   @apply
   px-3
   py-1.5
 }
 
-.conex-content .title {
+.conex-card-content .title {
   @apply
   font-semibold
   text-base
 }
 
-.conex-content .description {
+.conex-card-content .description {
   @apply
   text-black/60
   dark:text-white/60
 }
 
-.conex-content .tags {
+.conex-card-content .tags {
   @apply
   mb-1
 }

@@ -1,0 +1,47 @@
+package templates
+
+import (
+	"app/config"
+	"app/database"
+	"app/internal/db"
+)
+
+templ CardsGrid(sites []db.ValidSitesWithMetric) {
+	<section class="mb-24">
+		<div class="mb-4">
+			<select>
+				<option>Más visitados</option>
+				<option>Creados recientemente</option>
+			</select>
+		</div>
+		<div class="conex-cards">
+			@cards(sites)
+		</div>
+	</section>
+}
+
+templ cards(ss []db.ValidSitesWithMetric) {
+	for _, s := range ss {
+		@card(s)
+	}
+}
+
+templ card(s db.ValidSitesWithMetric) {
+	<a href={ config.RootPrefix + s.SiteSlug } class="conex-card">
+		<!-- <img src={ config.RootPrefix + "assets/default-banner.svg" }/> -->
+		<div class="conex-card-content">
+			<span class="title">{ s.SiteTitle }</span>
+			<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">{ s.MetricVisitsTotal } visitas</span>
+			<div class="tags">
+				@tags(database.JSONToTags(s.SiteTagsJson))
+			</div>
+			<p class="description">{ s.SiteDescription }</p>
+		</div>
+	</a>
+}
+
+templ tags(tags []database.Tag) {
+	for _, tag := range tags {
+		<span class="tag" data-color={ tag.Color }>{ tag.Name }</span>
+	}
+}

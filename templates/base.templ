@@ -9,6 +9,7 @@ templ Base(header, content templ.Component) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"/>
 			<title>{ config.AppTitle }</title>
+			<meta name="description" content={ config.AppDescription }/>
 			<link rel="stylesheet" href={ config.Assets + "css/styles.css?dev" }/>
 			<link rel="icon" href={ config.Assets + "favicon/favicon.svg" } type="image/svg+xml"/>
 			<link rel="preconnect" href="https://rsms.me/"/>
@@ -16,9 +17,7 @@ templ Base(header, content templ.Component) {
 			<script src={ config.Assets + "js/index.js" }></script>
 		</head>
 		<body>
-			<header class="conex-banner">
-				@header
-			</header>
+			@header
 			<main>
 				@content
 			</main>

@@ -1,23 +1,22 @@
 package templates
 
-import (
-	"app/config"
-	"app/database"
-	"app/internal/db"
-)
+import "app/config"
 
-templ Home(sites []db.ValidSitesWithMetric) {
-	<section class="mb-24">
-		<div class="mb-4">
-			<select>
-				<option>Más visitados</option>
-				<option>Creados recientemente</option>
-			</select>
+templ HomeHeader() {
+	<header class="conex-banner">
+		<div class="conex-banner-content">
+			<h1>{ config.AppTitle }</h1>
+			<a href={ config.DashboardPath }>
+				<button class="max-w-fit mx-auto mt-4">
+					Crear un sitio
+				</button>
+			</a>
 		</div>
-		<div class="conex-cards">
-			@cards(sites)
-		</div>
-	</section>
+		@floatingSearch()
+	</header>
+}
+
+templ floatingSearch() {
 	<div class="fixed bottom-0 left-0 right-0 w-full max-w-4xl mx-auto">
 		<div class="h-16 bg-gradient-to-t from-white dark:from-black to-transparent"></div>
 		<div class="bg-white dark:bg-black px-4 pb-4">
@@ -27,41 +26,4 @@ templ Home(sites []db.ValidSitesWithMetric) {
 			/>
 		</div>
 	</div>
-}
-
-templ HomeHeader() {
-	<div class="content">
-		<h1>{ config.AppTitle }</h1>
-		<a href={ config.ManagerPath }>
-			<button class="text-black bg-white max-w-fit mx-auto mt-4">
-				Crear un sitio
-			</button>
-		</a>
-	</div>
-}
-
-templ cards(ss []db.ValidSitesWithMetric) {
-	for _, s := range ss {
-		@card(s)
-	}
-}
-
-templ card(s db.ValidSitesWithMetric) {
-	<a href={ config.RootPrefix + s.SiteSlug } class="conex-card">
-		<!-- <img src={ config.RootPrefix + "assets/default-banner.svg" }/> -->
-		<div class="conex-content">
-			<span class="title">{ s.SiteTitle }</span>
-			<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">{ s.MetricVisitsTotal } visitas</span>
-			<div class="tags">
-				@Tags(database.JSONToTags(s.SiteTagsJson))
-			</div>
-			<p class="description">{ s.SiteDescription }</p>
-		</div>
-	</a>
-}
-
-templ Tags(tags []database.Tag) {
-	for _, tag := range tags {
-		<span class="tag" data-color={ tag.Color }>{ tag.Name }</span>
-	}
 }

@@ -1,0 +1,22 @@
+package templates
+
+templ LoginHeader() {
+	<header class="conex-banner">
+		<div class="conex-banner-content">
+			<h1>Iniciar Sesión</h1>
+		</div>
+	</header>
+}
+
+templ Login() {
+	<form>
+		<input type="email" placeholder="Correo Electrónico"/>
+		<button
+			id="conexLoginButton"
+			type="button"
+			class="text-white bg-black dark:text-black dark:bg-white"
+		>
+			Enviar verificación
+		</button>
+	</form>
+}

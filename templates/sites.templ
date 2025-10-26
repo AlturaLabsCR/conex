@@ -8,8 +8,10 @@ templ Site(s db.ValidSite) {
 }
 
 templ SiteHeader(s db.ValidSite) {
-	<div class="content">
-		<h1>{ s.SiteTitle }</h1>
-		<p>{ s.SiteDescription }</p>
-	</div>
+	<header class="conex-banner">
+		<div class="conex-banner-content">
+			<h1>{ s.SiteTitle }</h1>
+			<p>{ s.SiteDescription }</p>
+		</div>
+	</header>
 }

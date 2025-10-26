@@ -17,6 +17,7 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 	site, err := queries.GetValidSiteBySlug(ctx, siteSlug)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		// TODO: 404 page
 		return
 	}
 
