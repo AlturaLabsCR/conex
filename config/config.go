@@ -16,7 +16,7 @@ var (
 	RootPrefix string = "/"
 	// Depends on the RootPrefix, so, must be initialized after checking for any
 	// overwrites of RootPrefix
-	Assets        string
+	AssetsPath    string
 	EditorPath    string
 	DashboardPath string
 	LoginPath     string
@@ -46,9 +46,9 @@ func Init() {
 		RootPrefix = r
 	}
 
-	Assets = RootPrefix + "assets/"
+	AssetsPath = RootPrefix + "assets/"
 	EditorPath = RootPrefix + "e/"
-	DashboardPath = RootPrefix + "d"
+	DashboardPath = RootPrefix + "d/"
 	LoginPath = RootPrefix + "login"
 
 	Production = os.Getenv(envProd) == "1"

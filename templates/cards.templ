@@ -10,24 +10,29 @@ templ CardsGrid(sites []db.ValidSitesWithMetric) {
 	<section class="mb-24">
 		<div class="mb-4">
 			<select>
-				<option>Más visitados</option>
-				<option>Creados recientemente</option>
+				<option value="visits">Más visitados</option>
+				<option value="created">Creados recientemente</option>
 			</select>
 		</div>
-		<div class="conex-cards">
-			@cards(sites)
-		</div>
+		@cards(sites)
 	</section>
 }
 
 templ cards(ss []db.ValidSitesWithMetric) {
-	for _, s := range ss {
-		@card(s)
-	}
+	<div class="conex-cards">
+		for _, s := range ss {
+			@card(s)
+		}
+	</div>
 }
 
 templ card(s db.ValidSitesWithMetric) {
-	<a href={ config.RootPrefix + s.SiteSlug } class="conex-card">
+	<a
+		href={ config.RootPrefix + s.SiteSlug }
+		class="conex-card"
+		data-created-unix={ s.SiteCreatedUnix }
+		data-visit-count={ s.MetricVisitsTotal }
+	>
 		<!-- <img src={ config.RootPrefix + "assets/default-banner.svg" }/> -->
 		<div class="conex-card-content">
 			<span class="title">{ s.SiteTitle }</span>
