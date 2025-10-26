@@ -2,27 +2,27 @@ package templates
 
 import "app/config"
 
-templ HomeHeader() {
+templ HomeHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ config.AppTitle }</h1>
 			<a href={ config.DashboardPath }>
 				<button class="max-w-fit mx-auto mt-4">
-					Crear un sitio
+					{ tr("create_site") }
 				</button>
 			</a>
 		</div>
-		@floatingSearch()
+		@floatingSearch(tr)
 	</header>
 }
 
-templ floatingSearch() {
+templ floatingSearch(tr func(string) string) {
 	<div class="fixed bottom-0 left-0 right-0 w-full max-w-4xl mx-auto">
 		<div class="h-16 bg-gradient-to-t from-white dark:from-black to-transparent"></div>
 		<div class="bg-white dark:bg-black px-4 pb-4">
 			<input
 				type="text"
-				placeholder="Describe lo que necesitas..."
+				placeholder={ tr("describe_site") }
 			/>
 		</div>
 	</div>

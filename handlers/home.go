@@ -18,8 +18,8 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	header := templates.HomeHeader()
-	content := templates.CardsGrid(sites)
+	header := templates.HomeHeader(h.Translator(r))
+	content := templates.CardsGrid(h.Translator(r), sites)
 
-	templates.Base(header, content).Render(ctx, w)
+	templates.Base(h.Translator(r), header, content).Render(ctx, w)
 }

@@ -1,0 +1,20 @@
+package templates
+
+import "app/config"
+
+templ Pricing(tr func(string) string) {
+	<p>{ tr("pricing") }</p>
+}
+
+templ PricingHeader(tr func(string) string) {
+	<header class="conex-banner">
+		<nav class="m-4">
+			<a href={ config.DashboardPath }>
+				← { tr("back_to") } { tr("my_sites") }
+			</a>
+		</nav>
+		<div class="conex-banner-content">
+			<h1>{ tr("pricing") }</h1>
+		</div>
+	</header>
+}

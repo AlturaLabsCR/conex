@@ -9,17 +9,17 @@ templ Editor() {
 	</section>
 }
 
-templ EditorHeader() {
+templ EditorHeader(tr func(string) string) {
 	<nav class="p-4">
 		<a href={ config.DashboardPath }>
-			← Volver a Mis sitios
+			← { tr("back_to") } { tr("my_sites") }
 		</a>
 	</nav>
 	<header class="conex-banner">
-		<img src={ config.RootPrefix + "assets/default-banner.svg" }/>
+		<img src={ config.AssetsPath + "default-banner.svg" }/>
 		<div class="conex-banner-content">
-			<h1>Mi Sitio</h1>
-			<p>Crear un sitio</p>
+			<h1>{ tr("editor_title") }</h1>
+			<p>{ tr("editor_description") }</p>
 		</div>
 	</header>
 }

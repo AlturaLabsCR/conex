@@ -6,12 +6,12 @@ import (
 	"app/internal/db"
 )
 
-templ CardsGrid(sites []db.ValidSitesWithMetric) {
+templ CardsGrid(tr func(string) string, sites []db.ValidSitesWithMetric) {
 	<section class="mb-24">
 		<div class="mb-4">
 			<select>
-				<option value="visits">Más visitados</option>
-				<option value="created">Creados recientemente</option>
+				<option value="visits">{ tr("most_visited") }</option>
+				<option value="created">{ tr("recently_created") }</option>
 			</select>
 		</div>
 		@cards(sites)

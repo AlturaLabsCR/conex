@@ -4,10 +4,12 @@ package handlers
 import (
 	"database/sql"
 	"log/slog"
+	"net/http"
 )
 
 type Handler struct {
-	params HandlerParams
+	params     HandlerParams
+	Translator func(*http.Request) func(string) string
 }
 
 type HandlerParams struct {
@@ -16,9 +18,10 @@ type HandlerParams struct {
 	Logger     *slog.Logger
 }
 
-func New(p HandlerParams) *Handler {
+func New(params HandlerParams, translatorFunc func(*http.Request) func(string) string) *Handler {
 	return &Handler{
-		params: p,
+		params:     params,
+		Translator: translatorFunc,
 	}
 }
 

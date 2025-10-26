@@ -16,13 +16,13 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 
 	site, err := queries.GetValidSiteBySlug(ctx, siteSlug)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		// TODO: 404 page
+		w.WriteHeader(http.StatusNotFound)
+		templates.NotFound(h.Translator(r)).Render(ctx, w)
 		return
 	}
 
 	header := templates.SiteHeader(site)
 	content := templates.Site(site)
 
-	templates.Base(header, content).Render(ctx, w)
+	templates.Base(h.Translator(r), header, content).Render(ctx, w)
 }

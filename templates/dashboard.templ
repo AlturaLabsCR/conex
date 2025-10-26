@@ -2,24 +2,26 @@ package templates
 
 import "app/config"
 
-templ DashboardHeader() {
+templ DashboardHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<nav class="m-4">
 			<a href={ config.RootPrefix }>
-				← Volver a { config.AppTitle }
+				← { tr("back_to") } { config.AppTitle }
 			</a>
 		</nav>
 		<div class="conex-banner-content">
-			<h1>Mis sitios</h1>
+			<h1>{ tr("my_sites") }</h1>
 			<div>
 				<a href={ config.EditorPath }>
 					<button class="text-white bg-black dark:text-black dark:bg-white max-w-fit mx-auto mt-4 mr-1">
-						Crear un sitio
+						{ tr("create_website") }
 					</button>
 				</a>
-				<button class="max-w-fit mx-auto mt-4" onclick="console.log('open pricing')">
-					Planes
-				</button>
+				<a href={ config.PricingPath }>
+					<button class="max-w-fit mx-auto mt-4" onclick="console.log('open pricing')">
+						{ tr("pricing") }
+					</button>
+				</a>
 			</div>
 		</div>
 	</header>

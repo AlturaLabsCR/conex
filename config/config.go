@@ -10,8 +10,7 @@ var (
 	// Default values are initialized here, these will be used unless overwritten
 	// by the Init() method
 
-	AppTitle       string = "CONEX.cr"
-	AppDescription string = "Crea un sitio web en minutos"
+	AppTitle string = "CONEX.cr"
 
 	RootPrefix string = "/"
 	// Depends on the RootPrefix, so, must be initialized after checking for any
@@ -20,6 +19,7 @@ var (
 	EditorPath    string
 	DashboardPath string
 	LoginPath     string
+	PricingPath   string
 
 	Production bool   = false
 	Port       string = "8080"
@@ -50,6 +50,7 @@ func Init() {
 	EditorPath = RootPrefix + "e/"
 	DashboardPath = RootPrefix + "d/"
 	LoginPath = RootPrefix + "login"
+	PricingPath = RootPrefix + "pricing"
 
 	Production = os.Getenv(envProd) == "1"
 

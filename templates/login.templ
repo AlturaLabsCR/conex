@@ -1,22 +1,22 @@
 package templates
 
-templ LoginHeader() {
+templ LoginHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
-			<h1>Iniciar sesión</h1>
+			<h1>{ tr("log_in") }</h1>
 		</div>
 	</header>
 }
 
-templ Login() {
+templ Login(tr func(string) string) {
 	<form>
-		<input type="email" placeholder="Correo Electrónico"/>
+		<input type="email" placeholder={ tr("email") }/>
 		<button
 			id="conexLoginButton"
 			type="button"
 			class="text-white bg-black dark:text-black dark:bg-white"
 		>
-			Enviar verificación
+			<h1>{ tr("pricing_send_verification") }</h1>
 		</button>
 	</form>
 }

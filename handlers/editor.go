@@ -15,11 +15,11 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 	var content templ.Component
 
 	if r.PathValue("site") == "" {
-		header = templates.EditorHeader()
+		header = templates.EditorHeader(h.Translator((r)))
 		content = templates.Editor()
 	} else {
 		// TODO: fill with site data
 	}
 
-	templates.Base(header, content).Render(ctx, w)
+	templates.Base(h.Translator(r), header, content).Render(ctx, w)
 }

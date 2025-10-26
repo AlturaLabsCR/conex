@@ -9,6 +9,7 @@ import (
 
 	"app/config"
 	"app/handlers"
+	"app/i18n"
 	"app/middleware"
 	"app/router"
 )
@@ -31,11 +32,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	handler := handlers.New(handlers.HandlerParams{
-		Production: config.Production,
-		DB:         database,
-		Logger:     logger,
-	})
+	locales := map[string]map[string]string{
+		"es": i18n.ES,
+		"en": i18n.EN,
+	}
+
+	handler := handlers.New(
+		handlers.HandlerParams{
+			Production: config.Production,
+			DB:         database,
+			Logger:     logger,
+		},
+		i18n.New(locales).TranslateHTTPRequest,
+	)
 
 	routes := router.Routes(handler)
 

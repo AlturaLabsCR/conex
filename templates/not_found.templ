@@ -2,7 +2,7 @@ package templates
 
 import "app/config"
 
-templ Base(tr func(key string) string, header, content templ.Component) {
+templ NotFound(tr func(key string) string) {
 	<!DOCTYPE html>
 	<html lang={ tr("lang") }>
 		<head>
@@ -17,10 +17,22 @@ templ Base(tr func(key string) string, header, content templ.Component) {
 			<script src={ config.AssetsPath + "js/index.js" }></script>
 		</head>
 		<body>
-			@header
-			<main>
-				@content
-			</main>
+			@notFoundHeader(tr)
 		</body>
 	</html>
+}
+
+templ notFoundHeader(tr func(string) string) {
+	<header class="conex-banner">
+		<div class="conex-banner-content">
+			<h1>{ tr("not_found") }</h1>
+			<div>
+				<a href={ config.RootPrefix }>
+					<button class="text-white bg-black dark:text-black dark:bg-white max-w-fit mx-auto mt-4 mr-1">
+						← { tr("back_to") } { config.AppTitle }
+					</button>
+				</a>
+			</div>
+		</div>
+	</header>
 }

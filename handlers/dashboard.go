@@ -16,8 +16,8 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, config.LoginPath, http.StatusSeeOther)
 	}
 
-	header := templates.DashboardHeader()
-	content := templates.CardsGrid([]db.ValidSitesWithMetric{})
+	header := templates.DashboardHeader(h.Translator(r))
+	content := templates.CardsGrid(h.Translator(r), []db.ValidSitesWithMetric{})
 
-	templates.Base(header, content).Render(ctx, w)
+	templates.Base(h.Translator(r), header, content).Render(ctx, w)
 }
