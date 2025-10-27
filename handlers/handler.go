@@ -5,23 +5,45 @@ import (
 	"database/sql"
 	"log/slog"
 	"net/http"
+	"time"
+
+	"app/i18n"
+	"app/sessions"
+	"app/utils/smtp"
 )
 
 type Handler struct {
 	params     HandlerParams
 	Translator func(*http.Request) func(string) string
+	Sessions   *sessions.Store[string]
 }
 
 type HandlerParams struct {
-	Production bool
-	DB         *sql.DB
-	Logger     *slog.Logger
+	Production   bool
+	Logger       *slog.Logger
+	Database     *sql.DB
+	Locales      map[string]map[string]string
+	SMTPAuth     smtp.AuthParams
+	CookieName   string
+	CookiePath   string
+	ServerSecret string
 }
 
-func New(params HandlerParams, translatorFunc func(*http.Request) func(string) string) *Handler {
+func New(params HandlerParams) *Handler {
+	sessions := sessions.New[string](sessions.StoreParams{
+		CookieName:     params.CookieName,
+		CookiePath:     params.CookiePath,
+		CookieSameSite: http.SameSiteStrictMode,
+		CookieTTL:      24 * time.Hour,
+		JWTSecret:      params.ServerSecret,
+	})
+
+	translator := i18n.New(params.Locales).TranslateHTTPRequest
+
 	return &Handler{
 		params:     params,
-		Translator: translatorFunc,
+		Translator: translator,
+		Sessions:   sessions,
 	}
 }
 
@@ -30,7 +52,7 @@ func (h *Handler) Prod() bool {
 }
 
 func (h *Handler) DB() *sql.DB {
-	return h.params.DB
+	return h.params.Database
 }
 
 func (h *Handler) Log() *slog.Logger {

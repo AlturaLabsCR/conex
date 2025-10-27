@@ -21,7 +21,7 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 
 	router.HandleFunc("GET "+config.EditorPath+"{site...}", h.Editor)
 
-	router.HandleFunc("GET /{site}", h.Site)
+	router.HandleFunc("GET "+config.RootPrefix+"{site}", h.Site)
 
 	return router
 }

@@ -8,3 +8,5 @@ assets/**/*.css
 tmp/
 dist/
 *.log
+
+.env

@@ -4,7 +4,10 @@ go 1.25.3
 
 require (
 	github.com/a-h/templ v0.3.960
+	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/joho/godotenv v1.5.1
 	github.com/microcosm-cc/bluemonday v1.0.27
+	golang.org/x/crypto v0.43.0
 	golang.org/x/text v0.30.0
 	modernc.org/sqlite v1.39.1
 )
@@ -55,7 +58,6 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
 	golang.org/x/mod v0.29.0 // indirect
 	golang.org/x/net v0.46.0 // indirect

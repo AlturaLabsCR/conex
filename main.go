@@ -37,19 +37,25 @@ func main() {
 		"en": i18n.EN,
 	}
 
+	smtpAuth := config.InitSMTPAuth()
+
 	handler := handlers.New(
 		handlers.HandlerParams{
-			Production: config.Production,
-			DB:         database,
-			Logger:     logger,
+			Production:   config.Production,
+			Logger:       logger,
+			Database:     database,
+			Locales:      locales,
+			SMTPAuth:     smtpAuth,
+			ServerSecret: config.ServerSecret,
+			CookieName:   config.CookieName,
+			CookiePath:   config.RootPrefix,
 		},
-		i18n.New(locales).TranslateHTTPRequest,
 	)
 
 	routes := router.Routes(handler)
 
 	routes.Handle(
-		"GET /assets/",
+		"GET "+config.AssetsPath,
 		middleware.DisableCacheInDevMode(
 			config.Production,
 			http.FileServer(http.FS(assetsFS)),

@@ -1,3 +1,22 @@
+-- name: InsertTempKey :exec
+INSERT INTO temp_keys (
+  temp_key_user,
+  temp_key_hash,
+  temp_key_expires_unix
+) VALUES (?, ?, ?);
+
+-- name: GetTempKey :one
+SELECT * FROM temp_keys WHERE temp_key_user = ?;
+
+-- name: UpdateTempKey :exec
+UPDATE temp_keys SET
+temp_key_hash = ?,
+temp_key_expires_unix = ?
+WHERE temp_key_user = ?;
+
+-- name: SetTempKeyUsed :exec
+UPDATE temp_keys SET temp_key_expires_unix = 0 WHERE temp_key_user = ?;
+
 -- name: GetUsers :many
 SELECT * FROM users;
 
