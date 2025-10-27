@@ -307,3 +307,51 @@ input, select, button {
   dark:text-red-400
   dark:bg-red-950
 }
+
+/* text and icons */
+.ce-inline-tool,
+.ce-popover-item__icon,
+.ce-popover-item__title {
+  @apply
+  dark:text-white
+}
+
+/* hover over popups items */
+.ce-popover__container .ce-popover-item,
+.ce-popover-item__icon,
+.ce-inline-tool {
+  @apply
+  dark:hover:!bg-gray-900
+}
+
+.ce-popover-item-separator__line {
+  @apply
+  dark:bg-gray-700
+}
+
+/* floating popups and buttons */
+.ce-popover--opened>.ce-popover__container,
+.ce-popover__search,
+.ce-inline-tool-input,
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+  @apply
+  dark:text-white
+  dark:bg-gray-950
+  dark:border-gray-700
+}
+
+/* floating buttons */
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+  @apply
+  dark:hover:border-gray-500
+  dark:hover:bg-gray-900
+}
+
+/* selection for example when clicking click to tune */
+.ce-block.ce-block--selected .ce-block__content,
+*::selection {
+  @apply
+  dark:!bg-blue-500/30
+}
