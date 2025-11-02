@@ -26,6 +26,7 @@ var (
 	DashboardPath string
 	RegisterPath  string
 	LoginPath     string
+	LogoutPath    string
 	PricingPath   string
 
 	Production bool   = false
@@ -88,6 +89,7 @@ func Init() {
 	DashboardPath = RootPrefix + "dashboard"
 	RegisterPath = RootPrefix + "register"
 	LoginPath = RootPrefix + "login"
+	LogoutPath = RootPrefix + "logout"
 	PricingPath = RootPrefix + "pricing"
 
 	Production = os.Getenv(envProd) == "1"

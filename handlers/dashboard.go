@@ -11,9 +11,10 @@ import (
 func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// TODO: if not logged in, redirect to login page
-	if false {
+	err := h.verifyClient(w, r)
+	if err != nil {
 		http.Redirect(w, r, config.LoginPath, http.StatusSeeOther)
+		return
 	}
 
 	header := templates.DashboardHeader(h.Translator(r))

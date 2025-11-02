@@ -59,3 +59,7 @@ func (h *Handler) DB() *sql.DB {
 func (h *Handler) Log() *slog.Logger {
 	return h.params.Logger
 }
+
+func (h *Handler) SMTPClient() *smtp.Auth {
+	return smtp.Client(h.params.SMTPAuth)
+}

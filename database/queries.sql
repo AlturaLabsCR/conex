@@ -81,3 +81,6 @@ INSERT INTO sessions(
   session_os,
   session_created_unix
 ) VALUES (?, ?, ?) RETURNING session_id;
+
+-- name: GetSession :one
+SELECT * FROM sessions WHERE session_id = ?;

@@ -6,9 +6,10 @@ templ RegisterHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ tr("register") }</h1>
-			<p>{ tr("register_already_have_account") }, <a href={ config.LoginPath }>{ tr("log_in") }</a></p>
+			<p>{ tr("register_already_have_account") } <a href={ config.LoginPath }>{ tr("log_in") }</a></p>
 		</div>
 	</header>
+	<div id="redirect"></div>
 }
 
 templ RegisterSendEmailForm(tr func(string) string) {
@@ -21,7 +22,7 @@ templ RegisterSendEmailForm(tr func(string) string) {
 		/>
 		<button
 			class="!text-white bg-black dark:!text-black dark:bg-white"
-			data-on:click={ "@post(' " + config.RegisterPath + "', {contentType: 'form'})" }
+			data-on:click={ "@put(' " + config.RegisterPath + "', {contentType: 'form'})" }
 		>
 			{ tr("register_send_email") }
 		</button>
@@ -34,7 +35,7 @@ templ RegisterSendEmail(tr func(string) string) {
 	</div>
 }
 
-templ RegisterConfirmEmailForm(tr func(string) string, token string) {
+templ RegisterConfirmEmailForm(tr func(string) string, token, email string) {
 	<form>
 		<input
 			id="registerToken"
@@ -47,6 +48,8 @@ templ RegisterConfirmEmailForm(tr func(string) string, token string) {
 			id="registerEmail"
 			name="email"
 			type="email"
+			class="hidden"
+			value={ email }
 			placeholder={ tr("email") }
 		/>
 		<input
@@ -58,16 +61,16 @@ templ RegisterConfirmEmailForm(tr func(string) string, token string) {
 		/>
 		<button
 			class="!text-white bg-black dark:!text-black dark:bg-white"
-			data-on:click={ "@put(' " + config.RegisterPath + "', {contentType: 'form'})" }
+			data-on:click={ "@post(' " + config.RegisterPath + "', {contentType: 'form'})" }
 		>
 			{ tr("register_confirm_email") }
 		</button>
 	</form>
 }
 
-templ RegisterConfirmEmail(tr func(string) string, token string) {
+templ RegisterConfirmEmail(tr func(string) string, token, email string) {
 	<div id="registerDiv">
-		@RegisterConfirmEmailForm(tr, token)
+		@RegisterConfirmEmailForm(tr, token, email)
 	</div>
 }
 
@@ -78,10 +81,10 @@ templ RegisterWarnInvalidEmail(tr func(string) string) {
 	</div>
 }
 
-templ RegisterErrorInvalidOTP(tr func(string) string, token string) {
+templ RegisterErrorInvalidOTP(tr func(string) string, token, email string) {
 	<div id="registerDiv">
-		@Notice(NoticeWarn, tr("warn"), tr("register_warn_invalid_otp"))
-		@RegisterConfirmEmailForm(tr, token)
+		@Notice(NoticeWarn, tr("warn"), tr("invalid_otp"))
+		@RegisterConfirmEmailForm(tr, token, email)
 	</div>
 }
 

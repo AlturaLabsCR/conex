@@ -66,17 +66,29 @@ func (s *Store[T]) JWTSet(w http.ResponseWriter, r *http.Request, data T) (strin
 	return tokenStr, nil
 }
 
+func (s *Store[T]) JWTTerminate(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     s.params.CookieName,
+		Path:     s.params.CookiePath,
+		SameSite: s.params.CookieSameSite,
+		Expires:  time.Unix(0, 0),
+		Value:    "",
+		HttpOnly: true,
+		Secure:   r.TLS != nil,
+	})
+}
+
 // JWTValidate reads and verifies the cookie, returning the typed session data.
-func (s *Store[T]) JWTValidate(r *http.Request) (T, error) {
+func (s *Store[T]) JWTValidate(r *http.Request) (T, bool, error) {
 	var zero T // zero value of T if validation fails
 
 	cookie, err := r.Cookie(s.params.CookieName)
 	if err != nil {
-		return zero, fmt.Errorf("get cookie: %w", err)
+		return zero, false, fmt.Errorf("get cookie: %w", err)
 	}
 
-	if !cookie.Expires.IsZero() && cookie.Expires.Before(time.Now()) {
-		return zero, fmt.Errorf("cookie expired at %v", cookie.Expires)
+	if cookie.Expires.Before(time.Now()) {
+		return zero, true, fmt.Errorf("cookie expired at %v", cookie.Expires)
 	}
 
 	token, err := jwt.ParseWithClaims(cookie.Value, &Claims[T]{}, func(token *jwt.Token) (any, error) {
@@ -87,15 +99,15 @@ func (s *Store[T]) JWTValidate(r *http.Request) (T, error) {
 	})
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return zero, fmt.Errorf("token expired: %w", err)
+			return zero, true, fmt.Errorf("token expired: %w", err)
 		}
-		return zero, fmt.Errorf("parse token: %w", err)
+		return zero, false, fmt.Errorf("parse token: %w", err)
 	}
 
 	claims, ok := token.Claims.(*Claims[T])
 	if !ok || !token.Valid {
-		return zero, fmt.Errorf("invalid token claims")
+		return zero, false, fmt.Errorf("invalid token claims")
 	}
 
-	return claims.Data, nil
+	return claims.Data, false, nil
 }

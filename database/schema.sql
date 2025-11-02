@@ -74,7 +74,6 @@ CREATE TABLE sites (
   site_tags_json VARCHAR(255) NOT NULL,
   site_description VARCHAR(255) NOT NULL,
   site_html_published TEXT NOT NULL,
-  site_html_staging TEXT NOT NULL,
   site_created_unix INTEGER NOT NULL,
   site_modified_unix INTEGER NOT NULL,
   site_published INTEGER NOT NULL DEFAULT 1,
@@ -84,6 +83,14 @@ CREATE TABLE sites (
   CONSTRAINT fk_sites_user FOREIGN KEY (site_user) REFERENCES users(user_id),
   CONSTRAINT uq_sites_slug UNIQUE (site_slug),
   CONSTRAINT ck_sites_deleted CHECK (site_deleted IN (0,1))
+);
+
+CREATE TABLE site_sync (
+  site_sync_id INTEGER NOT NULL,
+  site_sync_html_staging TEXT NOT NULL,
+
+  CONSTRAINT pk_site_sync PRIMARY KEY (site_sync_id),
+  CONSTRAINT fk_site_sync FOREIGN KEY (site_sync_id) REFERENCES sites(site_id)
 );
 
 CREATE TABLE site_metrics (

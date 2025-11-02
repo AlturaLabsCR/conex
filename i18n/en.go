@@ -29,7 +29,7 @@ var EN = map[string]string{
 
 	// register
 	"register":                      "Register",
-	"register_already_have_account": "I already have an account",
+	"register_already_have_account": "Already have an account?",
 	"register_send_email":           "Send verification email",
 	"register_insert_verification":  "Verification code",
 	"register_confirm_email":        "Confirm and register",
@@ -37,10 +37,13 @@ var EN = map[string]string{
 
 	// login
 	"log_in":                  "Log in",
-	"login_dont_have_account": "I don't have an account yet",
+	"login_dont_have_account": "Don't have an account yet?",
 	"login_send_verification": "Send verification email",
 	"login_error":             "Error logging in, try again later",
 	"login_confirm_email":     "Log in",
+
+	// logout
+	"log_out": "Log out",
 
 	// editor
 	"editor_title":       "New site title",

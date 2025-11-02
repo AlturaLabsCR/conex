@@ -8,6 +8,9 @@ templ DashboardHeader(tr func(string) string) {
 			<a href={ config.RootPrefix }>
 				← { tr("back_to") } { config.AppTitle }
 			</a>
+			<a href={ config.LogoutPath }>
+				<button class="icon logout"></button>
+			</a>
 		</nav>
 		<div class="conex-banner-content">
 			<h1>{ tr("my_sites") }</h1>

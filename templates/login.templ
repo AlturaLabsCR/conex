@@ -6,9 +6,10 @@ templ LoginHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ tr("log_in") }</h1>
-			<p>{ tr("login_dont_have_account") }, <a href={ config.RegisterPath }>{ tr("register") }</a></p>
+			<p>{ tr("login_dont_have_account") } <a href={ config.RegisterPath }>{ tr("register") }</a></p>
 		</div>
 	</header>
+	<div id="redirect"></div>
 }
 
 templ LoginForm(tr func(string) string) {
@@ -22,14 +23,14 @@ templ LoginForm(tr func(string) string) {
 		<button
 			id="loginButton"
 			class="!text-white bg-black dark:!text-black dark:bg-white"
-			data-on:click={ "@post(' " + config.LoginPath + "', {contentType: 'form'})" }
+			data-on:click={ "@put(' " + config.LoginPath + "', {contentType: 'form'})" }
 		>
 			{ tr("login_send_verification") }
 		</button>
 	</form>
 }
 
-templ LoginConfirmEmailForm(tr func(string) string, token string) {
+templ LoginConfirmEmailForm(tr func(string) string, token, email string) {
 	<form>
 		<input
 			id="loginToken"
@@ -42,7 +43,8 @@ templ LoginConfirmEmailForm(tr func(string) string, token string) {
 			id="loginEmail"
 			name="email"
 			type="email"
-			placeholder={ tr("email") }
+			class="hidden"
+			value={ email }
 		/>
 		<input
 			id="loginConfirm"
@@ -53,7 +55,7 @@ templ LoginConfirmEmailForm(tr func(string) string, token string) {
 		/>
 		<button
 			class="!text-white bg-black dark:!text-black dark:bg-white"
-			data-on:click={ "@put(' " + config.LoginPath + "', {contentType: 'form'})" }
+			data-on:click={ "@post(' " + config.LoginPath + "', {contentType: 'form'})" }
 		>
 			{ tr("login_confirm_email") }
 		</button>
@@ -66,10 +68,10 @@ templ Login(tr func(string) string) {
 	</div>
 }
 
-templ LoginErrorInvalidOTP(tr func(string) string, token string) {
+templ LoginErrorInvalidOTP(tr func(string) string, token, email string) {
 	<div id="loginDiv">
 		@Notice(NoticeWarn, tr("warn"), tr("invalid_otp"))
-		@LoginConfirmEmailForm(tr, token)
+		@LoginConfirmEmailForm(tr, token, email)
 	</div>
 }
 
@@ -80,9 +82,9 @@ templ LoginWarnInvalidEmail(tr func(string) string) {
 	</div>
 }
 
-templ LoginConfirmEmail(tr func(string) string, token string) {
+templ LoginConfirmEmail(tr func(string) string, token, email string) {
 	<div id="loginDiv">
-		@LoginConfirmEmailForm(tr, token)
+		@LoginConfirmEmailForm(tr, token, email)
 	</div>
 }
 

@@ -25,6 +25,8 @@ type key struct {
 
 var keys = map[string]key{}
 
+var csrfProtection = map[int64]string{}
+
 func (h *Handler) RegisterForm(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -52,14 +54,14 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.issueOTP(email)
+	token, err := h.issueOTP(h.Translator(r), email)
 	if err != nil {
 		h.Log().Error("error issuing otp", "error", err)
 		templates.RegisterError(h.Translator(r)).Render(ctx, w)
 		return
 	}
 
-	templates.RegisterConfirmEmail(h.Translator(r), token).Render(ctx, w)
+	templates.RegisterConfirmEmail(h.Translator(r), token, email).Render(ctx, w)
 }
 
 func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +85,7 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 	otp := r.FormValue("otp")
 
 	if err := h.verifyOTP(key, email, token, otp); err != nil {
-		templates.RegisterErrorInvalidOTP(h.Translator(r), token).Render(ctx, w)
+		templates.RegisterErrorInvalidOTP(h.Translator(r), token, email).Render(ctx, w)
 		h.Log().Debug("failed to verify otp", "error", err)
 		return
 	}
@@ -104,12 +106,21 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 
 	h.Log().Info("new user registration")
 
-	// TODO: SESSION MANAGEMENT (no redirect to login, actually log in)
-	http.Redirect(w, r, config.LoginPath, http.StatusSeeOther)
+	if err := h.loginClient(w, r, email); err != nil {
+		h.Log().Debug("failed to login user", "error", err)
+	}
+
+	templates.Redirect(config.DashboardPath).Render(ctx, w)
 }
 
 func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	err := h.verifyClient(w, r)
+	if err == nil {
+		http.Redirect(w, r, config.DashboardPath, http.StatusSeeOther)
+		return
+	}
 
 	header := templates.LoginHeader(h.Translator(r))
 	content := templates.Login(h.Translator(r))
@@ -135,14 +146,29 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.issueOTP(email)
+	token, err := h.issueOTP(h.Translator(r), email)
 	if err != nil {
 		h.Log().Error("error issuing otp", "error", err)
 		templates.LoginError(h.Translator(r)).Render(ctx, w)
 		return
 	}
 
-	templates.LoginConfirmEmail(h.Translator(r), token).Render(ctx, w)
+	templates.LoginConfirmEmail(h.Translator(r), token, email).Render(ctx, w)
+}
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	h.Sessions.JWTTerminate(w, r)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf",
+		Value:    "",
+		Path:     config.RootPrefix,
+		Expires:  time.Unix(0, 0),
+		HttpOnly: false,
+		Secure:   r.TLS != nil,
+	})
+
+	http.Redirect(w, r, config.LoginPath, http.StatusSeeOther)
 }
 
 func (h *Handler) LoginConfirm(w http.ResponseWriter, r *http.Request) {
@@ -166,17 +192,96 @@ func (h *Handler) LoginConfirm(w http.ResponseWriter, r *http.Request) {
 	otp := r.FormValue("otp")
 
 	if err := h.verifyOTP(key, email, token, otp); err != nil {
-		templates.LoginErrorInvalidOTP(h.Translator(r), token).Render(ctx, w)
+		templates.LoginErrorInvalidOTP(h.Translator(r), token, email).Render(ctx, w)
 		h.Log().Debug("failed to verify otp", "error", err)
 		return
 	}
 
-	// TODO: SESSION MANAGEMENT
+	if err := h.loginClient(w, r, email); err != nil {
+		h.Log().Debug("failed to login user", "error", err)
+	}
 
-	http.Redirect(w, r, config.DashboardPath, http.StatusSeeOther)
+	templates.Redirect(config.DashboardPath).Render(ctx, w)
 }
 
-func (h *Handler) issueOTP(email string) (string, error) {
+func (h *Handler) loginClient(w http.ResponseWriter, r *http.Request, email string) error {
+	queries := db.New(h.DB())
+
+	user, err := queries.GetUserByEmail(r.Context(), email)
+	if err != nil {
+		h.Log().Debug("failed to get user by email", "error", err)
+		return err
+	}
+
+	now := time.Now().Unix()
+
+	sessionID, err := queries.InsertSession(r.Context(), db.InsertSessionParams{
+		SessionUser:        user.UserID,
+		SessionOs:          getClientOS(r),
+		SessionCreatedUnix: now,
+	})
+	if err != nil {
+		h.Log().Debug("error inserting session", "error", err)
+		return err
+	}
+
+	_, err = h.Sessions.JWTSet(w, r, db.Session{
+		SessionID:          sessionID,
+		SessionUser:        user.UserID,
+		SessionOs:          getClientOS(r),
+		SessionCreatedUnix: now,
+	})
+	if err != nil {
+		h.Log().Debug("error setting jwt", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request) error {
+	session, expired, err := h.Sessions.JWTValidate(r)
+	if err != nil && !expired {
+		h.Log().Debug("error validating session", "error", err)
+		return err
+	}
+
+	now := time.Now().Unix()
+
+	if expired {
+		_, err = h.Sessions.JWTSet(w, r, db.Session{
+			SessionID:          session.SessionID,
+			SessionUser:        session.SessionUser,
+			SessionOs:          session.SessionOs,
+			SessionCreatedUnix: now,
+		})
+		if err != nil {
+			h.Log().Debug("error setting jwt", "error", err)
+			return err
+		}
+	}
+
+	csrfToken, err := randStr()
+	if err != nil {
+		h.Log().Error("error generating csrf token", "error", err)
+		return err
+	}
+
+	csrfProtection[session.SessionID] = csrfToken
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf",
+		Value:    csrfToken,
+		Path:     config.RootPrefix,
+		Expires:  time.Now().Add(8 * time.Hour),
+		HttpOnly: false,
+		Secure:   r.TLS != nil,
+	})
+
+	return nil
+}
+
+func (h *Handler) issueOTP(tr func(string) string, email string) (string, error) {
 	hashedEmailBytes, err := bcrypt.GenerateFromPassword([]byte(email), bcrypt.DefaultCost)
 	hashedEmail := string(hashedEmailBytes)
 	if err != nil {
@@ -201,8 +306,27 @@ func (h *Handler) issueOTP(email string) (string, error) {
 
 	keys[token] = key
 
-	// TODO: SEND TOKEN TO EMAIL
 	h.Log().Debug("otp issued", "otp", otp)
+
+	subject := tr("otp_code_email_subject")
+	body := tr("otp_code_email_body") + " " + otp
+
+	if h.Prod() {
+		h.SMTPClient().SendText(
+			config.ServerSMTPUser,
+			[]string{email},
+			subject,
+			body,
+		)
+	} else {
+		h.Log().Debug(
+			"sent otp email",
+			"from", config.ServerSMTPUser,
+			"to", email,
+			"subject", subject,
+			"body", body,
+		)
+	}
 
 	return token, nil
 }

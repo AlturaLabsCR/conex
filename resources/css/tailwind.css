@@ -15,14 +15,8 @@
   --conex-color-fg-border: #00000030;
 
   --conex-color-bg: white;
-}
 
-[data-theme="forest"] {
-  --conex-color-fg: brown;
-  --conex-color-fg-unemph: #00000085;
-  --conex-color-fg-border: #00000030;
-
-  --conex-color-bg: green;
+  --conex-icon-logout: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20fill='none'%20viewBox='0%200%2024%2024'%20stroke-width='1.5'%20stroke='rgb(136,145,164)'%3E%3Cpath%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M15.75%209V5.25A2.25%202.25%200%200%200%2013.5%203h-6a2.25%202.25%200%200%200-2.25%202.25v13.5A2.25%202.25%200%200%200%207.5%2021h6a2.25%202.25%200%200%200%202.25-2.25V15m3%200%203-3m0%200-3-3m3%203H9'%2F%3E%3C%2Fsvg%3E");
 }
 
 @media (prefers-color-scheme: dark) {
@@ -151,6 +145,42 @@ input, select, button {
 
   transition-all
   duration-300
+}
+
+a {
+  @apply
+  underline
+}
+
+button.icon {
+  @apply
+  inline-flex
+  items-center
+  border-none
+  mx-2
+  m-0
+  p-0
+  bg-no-repeat
+
+  hover:shadow-none
+
+  focus:shadow-none
+}
+
+button.logout::before {
+  content: "";
+  background-image: var(--conex-icon-logout);
+  width: 1.5rem;
+  height: 1.5rem;
+  background-size: 1.5rem 1.5rem;
+}
+
+[data-theme="forest"] {
+  --conex-color-fg: brown;
+  --conex-color-fg-unemph: #00000085;
+  --conex-color-fg-border: #00000030;
+
+  --conex-color-bg: green;
 }
 
 ::placeholder {
