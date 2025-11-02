@@ -1,22 +1,3 @@
--- name: InsertTempKey :exec
-INSERT INTO temp_keys (
-  temp_key_user,
-  temp_key_hash,
-  temp_key_expires_unix
-) VALUES (?, ?, ?);
-
--- name: GetTempKey :one
-SELECT * FROM temp_keys WHERE temp_key_user = ?;
-
--- name: UpdateTempKey :exec
-UPDATE temp_keys SET
-temp_key_hash = ?,
-temp_key_expires_unix = ?
-WHERE temp_key_user = ?;
-
--- name: SetTempKeyUsed :exec
-UPDATE temp_keys SET temp_key_expires_unix = 0 WHERE temp_key_user = ?;
-
 -- name: GetUsers :many
 SELECT * FROM users;
 
@@ -86,3 +67,17 @@ WHERE (metric_visits_total > ?)
 OR (metric_visits_total = ? AND site_id > ?)
 ORDER BY metric_visits_total ASC, site_id ASC
 LIMIT 30;
+
+-- name: InsertUser :one
+INSERT INTO users(
+  user_email, user_name,
+  user_created_unix, user_modified_unix,
+  user_deleted
+) VALUES (?, ?, ?, ?, ?) RETURNING user_id;
+
+-- name: InsertSession :one
+INSERT INTO sessions(
+  session_user,
+  session_os,
+  session_created_unix
+) VALUES (?, ?, ?) RETURNING session_id;

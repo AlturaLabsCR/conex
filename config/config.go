@@ -24,6 +24,7 @@ var (
 	AssetsPath    string
 	EditorPath    string
 	DashboardPath string
+	RegisterPath  string
 	LoginPath     string
 	PricingPath   string
 
@@ -44,7 +45,7 @@ var (
 const (
 	// You should use a prefix for any overwrites via env to avoid conflicts with
 	// other programs
-	envPrefix = "APP_"
+	envPrefix = "CONEX_"
 
 	envAppTitle = envPrefix + "TITLE"
 
@@ -83,8 +84,9 @@ func Init() {
 	}
 
 	AssetsPath = RootPrefix + "assets/"
-	EditorPath = RootPrefix + "e/"
-	DashboardPath = RootPrefix + "d/"
+	EditorPath = RootPrefix + "editor/"
+	DashboardPath = RootPrefix + "dashboard"
+	RegisterPath = RootPrefix + "register"
 	LoginPath = RootPrefix + "login"
 	PricingPath = RootPrefix + "pricing"
 

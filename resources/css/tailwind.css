@@ -219,6 +219,48 @@ input, select, button {
   mb-1
 }
 
+article {
+  @apply
+  border
+  rounded-2xl
+  p-2
+  my-3
+
+  text-gray-800/70
+  bg-gray-200/40
+  dark:text-gray-400/90
+  dark:bg-gray-600/15
+}
+
+article header {
+  @apply
+  font-bold
+}
+
+article.info {
+  @apply
+  text-blue-800/80
+  bg-blue-200/40
+  dark:text-blue-400/90
+  dark:bg-blue-600/15
+}
+
+article.warn {
+  @apply
+  text-yellow-800/90
+  bg-yellow-200/15
+  dark:text-yellow-400/70
+  dark:bg-yellow-500/15
+}
+
+article.error {
+  @apply
+  text-red-800/90
+  bg-red-200/40
+  dark:text-red-500/90
+  dark:bg-red-500/10
+}
+
 .tag {
   @apply
   my-0

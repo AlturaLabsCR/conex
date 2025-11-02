@@ -13,14 +13,13 @@ CREATE TABLE users (
   CONSTRAINT ck_users_deleted CHECK (user_deleted IN (0,1))
 );
 
-CREATE TABLE temp_keys (
-  temp_key_user INTEGER NOT NULL,
-  temp_key_hash VARCHAR(63) NOT NULL,
-  temp_key_expires_unix INTEGER NOT NULL,
+CREATE TABLE sessions (
+  session_id INTEGER NOT NULL,
+  session_user INTEGER NOT NULL,
+  session_os VARCHAR(7) NOT NULL,
+  session_created_unix INTEGER NOT NULL,
 
-  CONSTRAINT pk_temp_keys PRIMARY KEY (temp_key_user),
-  CONSTRAINT fk_temp_keys_user FOREIGN KEY (temp_key_user) REFERENCES users(user_id),
-  CONSTRAINT uk_temp_keys UNIQUE (temp_key_hash)
+  CONSTRAINT pk_sessions PRIMARY KEY (session_id)
 );
 
 CREATE TABLE plans (

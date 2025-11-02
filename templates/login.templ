@@ -1,22 +1,94 @@
 package templates
 
+import "app/config"
+
 templ LoginHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ tr("log_in") }</h1>
+			<p>{ tr("login_dont_have_account") }, <a href={ config.RegisterPath }>{ tr("register") }</a></p>
 		</div>
 	</header>
 }
 
-templ Login(tr func(string) string) {
+templ LoginForm(tr func(string) string) {
 	<form>
-		<input type="email" placeholder={ tr("email") }/>
+		<input
+			id="loginEmail"
+			name="email"
+			type="email"
+			placeholder={ tr("email") }
+		/>
 		<button
-			id="conexLoginButton"
-			type="button"
-			class="text-white bg-black dark:text-black dark:bg-white"
+			id="loginButton"
+			class="!text-white bg-black dark:!text-black dark:bg-white"
+			data-on:click={ "@post(' " + config.LoginPath + "', {contentType: 'form'})" }
 		>
-			<h1>{ tr("pricing_send_verification") }</h1>
+			{ tr("login_send_verification") }
 		</button>
 	</form>
+}
+
+templ LoginConfirmEmailForm(tr func(string) string, token string) {
+	<form>
+		<input
+			id="loginToken"
+			name="token"
+			type="text"
+			class="hidden"
+			value={ token }
+		/>
+		<input
+			id="loginEmail"
+			name="email"
+			type="email"
+			placeholder={ tr("email") }
+		/>
+		<input
+			id="loginConfirm"
+			name="otp"
+			type="number"
+			placeholder={ tr("register_insert_verification") }
+			step="1"
+		/>
+		<button
+			class="!text-white bg-black dark:!text-black dark:bg-white"
+			data-on:click={ "@put(' " + config.LoginPath + "', {contentType: 'form'})" }
+		>
+			{ tr("login_confirm_email") }
+		</button>
+	</form>
+}
+
+templ Login(tr func(string) string) {
+	<div id="loginDiv">
+		@LoginForm(tr)
+	</div>
+}
+
+templ LoginErrorInvalidOTP(tr func(string) string, token string) {
+	<div id="loginDiv">
+		@Notice(NoticeWarn, tr("warn"), tr("invalid_otp"))
+		@LoginConfirmEmailForm(tr, token)
+	</div>
+}
+
+templ LoginWarnInvalidEmail(tr func(string) string) {
+	<div id="loginDiv">
+		@Notice(NoticeWarn, tr("warn"), tr("invalid_email"))
+		@LoginForm(tr)
+	</div>
+}
+
+templ LoginConfirmEmail(tr func(string) string, token string) {
+	<div id="loginDiv">
+		@LoginConfirmEmailForm(tr, token)
+	</div>
+}
+
+templ LoginError(tr func(string) string) {
+	<div id="loginDiv">
+		@Notice(NoticeError, tr("error"), tr("login_error"))
+		@LoginForm(tr)
+	</div>
 }

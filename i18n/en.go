@@ -6,7 +6,12 @@ var EN = map[string]string{
 	"home_description": "Create a website in minutes!",
 
 	// misc
-	"email": "Email",
+	"info":          "Info",
+	"warn":          "Attention",
+	"error":         "Error",
+	"email":         "Email",
+	"invalid_email": "Invalid email",
+	"invalid_otp":   "Invalid code",
 
 	// home
 	"create_site":      "Create website",
@@ -17,16 +22,25 @@ var EN = map[string]string{
 	// navbar
 	"back_to": "Back to",
 
-	// log in
-	"log_in": "Log in",
-
 	// dashboard
 	"my_sites":       "My sites",
 	"create_website": "Create website",
-	"pricing":        "Plans",
+	"pricing":        "Pricing",
 
-	// pricing
-	"pricing_send_verification": "Send verification email",
+	// register
+	"register":                      "Register",
+	"register_already_have_account": "I already have an account",
+	"register_send_email":           "Send verification email",
+	"register_insert_verification":  "Verification code",
+	"register_confirm_email":        "Confirm and register",
+	"register_error":                "Error registering user, try again later",
+
+	// login
+	"log_in":                  "Log in",
+	"login_dont_have_account": "I don't have an account yet",
+	"login_send_verification": "Send verification email",
+	"login_error":             "Error logging in, try again later",
+	"login_confirm_email":     "Log in",
 
 	// editor
 	"editor_title":       "New site title",

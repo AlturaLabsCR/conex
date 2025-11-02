@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"app/i18n"
+	"app/internal/db"
 	"app/sessions"
 	"app/utils/smtp"
 )
@@ -15,7 +16,7 @@ import (
 type Handler struct {
 	params     HandlerParams
 	Translator func(*http.Request) func(string) string
-	Sessions   *sessions.Store[string]
+	Sessions   *sessions.Store[db.Session]
 }
 
 type HandlerParams struct {
@@ -30,7 +31,7 @@ type HandlerParams struct {
 }
 
 func New(params HandlerParams) *Handler {
-	sessions := sessions.New[string](sessions.StoreParams{
+	sessions := sessions.New[db.Session](sessions.StoreParams{
 		CookieName:     params.CookieName,
 		CookiePath:     params.CookiePath,
 		CookieSameSite: http.SameSiteStrictMode,

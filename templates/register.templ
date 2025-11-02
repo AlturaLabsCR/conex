@@ -1,0 +1,93 @@
+package templates
+
+import "app/config"
+
+templ RegisterHeader(tr func(string) string) {
+	<header class="conex-banner">
+		<div class="conex-banner-content">
+			<h1>{ tr("register") }</h1>
+			<p>{ tr("register_already_have_account") }, <a href={ config.LoginPath }>{ tr("log_in") }</a></p>
+		</div>
+	</header>
+}
+
+templ RegisterSendEmailForm(tr func(string) string) {
+	<form>
+		<input
+			id="registerEmail"
+			name="email"
+			type="email"
+			placeholder={ tr("email") }
+		/>
+		<button
+			class="!text-white bg-black dark:!text-black dark:bg-white"
+			data-on:click={ "@post(' " + config.RegisterPath + "', {contentType: 'form'})" }
+		>
+			{ tr("register_send_email") }
+		</button>
+	</form>
+}
+
+templ RegisterSendEmail(tr func(string) string) {
+	<div id="registerDiv">
+		@RegisterSendEmailForm(tr)
+	</div>
+}
+
+templ RegisterConfirmEmailForm(tr func(string) string, token string) {
+	<form>
+		<input
+			id="registerToken"
+			name="token"
+			type="text"
+			class="hidden"
+			value={ token }
+		/>
+		<input
+			id="registerEmail"
+			name="email"
+			type="email"
+			placeholder={ tr("email") }
+		/>
+		<input
+			id="registerConfirm"
+			name="otp"
+			type="number"
+			placeholder={ tr("register_insert_verification") }
+			step="1"
+		/>
+		<button
+			class="!text-white bg-black dark:!text-black dark:bg-white"
+			data-on:click={ "@put(' " + config.RegisterPath + "', {contentType: 'form'})" }
+		>
+			{ tr("register_confirm_email") }
+		</button>
+	</form>
+}
+
+templ RegisterConfirmEmail(tr func(string) string, token string) {
+	<div id="registerDiv">
+		@RegisterConfirmEmailForm(tr, token)
+	</div>
+}
+
+templ RegisterWarnInvalidEmail(tr func(string) string) {
+	<div id="registerDiv">
+		@Notice(NoticeWarn, tr("warn"), tr("invalid_email"))
+		@RegisterSendEmailForm(tr)
+	</div>
+}
+
+templ RegisterErrorInvalidOTP(tr func(string) string, token string) {
+	<div id="registerDiv">
+		@Notice(NoticeWarn, tr("warn"), tr("register_warn_invalid_otp"))
+		@RegisterConfirmEmailForm(tr, token)
+	</div>
+}
+
+templ RegisterError(tr func(string) string) {
+	<div id="registerDiv">
+		@Notice(NoticeError, tr("error"), tr("register_error"))
+		@RegisterSendEmailForm(tr)
+	</div>
+}

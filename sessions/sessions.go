@@ -36,7 +36,7 @@ func New[T any](params StoreParams) *Store[T] {
 }
 
 // JWTSet creates and signs a JWT, then stores it in a secure HttpOnly cookie.
-func (s *Store[T]) JWTSet(w http.ResponseWriter, r *http.Request, data T) error {
+func (s *Store[T]) JWTSet(w http.ResponseWriter, r *http.Request, data T) (string, error) {
 	expires := time.Now().Add(s.params.CookieTTL)
 
 	claims := &Claims[T]{
@@ -50,7 +50,7 @@ func (s *Store[T]) JWTSet(w http.ResponseWriter, r *http.Request, data T) error 
 	tokenStr, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).
 		SignedString([]byte(s.params.JWTSecret))
 	if err != nil {
-		return fmt.Errorf("sign jwt: %w", err)
+		return "", fmt.Errorf("sign jwt: %w", err)
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -63,7 +63,7 @@ func (s *Store[T]) JWTSet(w http.ResponseWriter, r *http.Request, data T) error 
 		Secure:   r.TLS != nil,
 	})
 
-	return nil
+	return tokenStr, nil
 }
 
 // JWTValidate reads and verifies the cookie, returning the typed session data.
