@@ -49,6 +49,13 @@ var EN = map[string]string{
 	"editor_title":       "New site title",
 	"editor_description": "New site description",
 
+	// account
+	"my_account":      "My account",
+	"device":          "Device",
+	"last_login":      "Last login",
+	"session_current": "Current",
+	"logout_device":   "Log out",
+
 	// sites
 	"not_found": "Website not found",
 }

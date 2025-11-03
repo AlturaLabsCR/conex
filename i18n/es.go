@@ -49,6 +49,13 @@ var ES = map[string]string{
 	"editor_title":       "Título",
 	"editor_description": "Descripción del nuevo sitio",
 
+	// account
+	"my_account":      "Mi cuenta",
+	"device":          "Dispositivo",
+	"last_login":      "Última sesión",
+	"session_current": "Esta sesión",
+	"logout_device":   "Cerrar",
+
 	// sites
 	"not_found": "Sitio web no encontrado",
 }

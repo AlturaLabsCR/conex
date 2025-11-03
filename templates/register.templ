@@ -9,10 +9,9 @@ templ RegisterHeader(tr func(string) string) {
 			<p>{ tr("register_already_have_account") } <a href={ config.LoginPath }>{ tr("log_in") }</a></p>
 		</div>
 	</header>
-	<div id="redirect"></div>
 }
 
-templ RegisterSendEmailForm(tr func(string) string) {
+templ registerSendEmailForm(tr func(string) string) {
 	<form>
 		<input
 			id="registerEmail"
@@ -29,13 +28,13 @@ templ RegisterSendEmailForm(tr func(string) string) {
 	</form>
 }
 
-templ RegisterSendEmail(tr func(string) string) {
+templ Register(tr func(string) string) {
 	<div id="registerDiv">
-		@RegisterSendEmailForm(tr)
+		@registerSendEmailForm(tr)
 	</div>
 }
 
-templ RegisterConfirmEmailForm(tr func(string) string, token, email string) {
+templ registerConfirmEmailForm(tr func(string) string, token, email string) {
 	<form>
 		<input
 			id="registerToken"
@@ -70,27 +69,20 @@ templ RegisterConfirmEmailForm(tr func(string) string, token, email string) {
 
 templ RegisterConfirmEmail(tr func(string) string, token, email string) {
 	<div id="registerDiv">
-		@RegisterConfirmEmailForm(tr, token, email)
+		@registerConfirmEmailForm(tr, token, email)
 	</div>
 }
 
-templ RegisterWarnInvalidEmail(tr func(string) string) {
+templ RegisterNotice(level int, tr func(string) string, header, msg string) {
 	<div id="registerDiv">
-		@Notice(NoticeWarn, tr("warn"), tr("invalid_email"))
-		@RegisterSendEmailForm(tr)
+		@Notice(level, header, msg)
+		@registerSendEmailForm(tr)
 	</div>
 }
 
-templ RegisterErrorInvalidOTP(tr func(string) string, token, email string) {
+templ RegisterConfirmEmailNotice(level int, tr func(string) string, header, msg, token, email string) {
 	<div id="registerDiv">
-		@Notice(NoticeWarn, tr("warn"), tr("invalid_otp"))
-		@RegisterConfirmEmailForm(tr, token, email)
-	</div>
-}
-
-templ RegisterError(tr func(string) string) {
-	<div id="registerDiv">
-		@Notice(NoticeError, tr("error"), tr("register_error"))
-		@RegisterSendEmailForm(tr)
+		@Notice(level, header, msg)
+		@registerConfirmEmailForm(tr, token, email)
 	</div>
 }

@@ -6,6 +6,7 @@ import (
 
 	"app/config"
 	"app/handlers"
+	"app/middleware"
 )
 
 func Routes(h *handlers.Handler) *http.ServeMux {
@@ -20,11 +21,31 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 	router.HandleFunc("GET "+config.LoginPath, h.LoginForm)
 	router.HandleFunc("PUT "+config.LoginPath, h.Login)
 	router.HandleFunc("POST "+config.LoginPath, h.LoginConfirm)
-	router.HandleFunc("GET "+config.LogoutPath, h.Logout)
 
-	router.HandleFunc("GET "+config.DashboardPath, h.Dashboard)
 	router.HandleFunc("GET "+config.PricingPath, h.Pricing)
-	router.HandleFunc("GET "+config.EditorPath+"{site...}", h.Editor)
+
+	loggedIn := middleware.Stack(
+		h.AuthenticationMiddleware(
+			false,
+			0,
+			config.LoginPath,
+		),
+	)
+
+	router.Handle("GET "+config.EditorPath+"{site...}", middleware.With(loggedIn, h.Editor))
+	router.Handle("GET "+config.DashboardPath, middleware.With(loggedIn, h.Dashboard))
+	router.Handle("GET "+config.AccountPath, middleware.With(loggedIn, h.Account))
+	router.Handle("GET "+config.LogoutPath, middleware.With(loggedIn, h.Logout))
+
+	protected := middleware.Stack(
+		h.AuthenticationMiddleware(
+			true,
+			0,
+			"",
+		),
+	)
+
+	router.Handle("DELETE "+config.LogoutPath+"/{sessionID}", middleware.With(protected, h.LogoutAskedSession))
 
 	router.HandleFunc("GET "+config.RootPrefix+"{site}", h.Site)
 

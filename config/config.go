@@ -28,6 +28,9 @@ var (
 	LoginPath     string
 	LogoutPath    string
 	PricingPath   string
+	AccountPath   string
+
+	CSRFHeaderName = "X-CSRF-Token"
 
 	Production bool   = false
 	Port       string = "8080"
@@ -91,6 +94,7 @@ func Init() {
 	LoginPath = RootPrefix + "login"
 	LogoutPath = RootPrefix + "logout"
 	PricingPath = RootPrefix + "pricing"
+	AccountPath = RootPrefix + "account"
 
 	Production = os.Getenv(envProd) == "1"
 

@@ -17,7 +17,7 @@ CREATE TABLE sessions (
   session_id INTEGER NOT NULL,
   session_user INTEGER NOT NULL,
   session_os VARCHAR(7) NOT NULL,
-  session_created_unix INTEGER NOT NULL,
+  session_last_login_unix INTEGER NOT NULL,
 
   CONSTRAINT pk_sessions PRIMARY KEY (session_id)
 );

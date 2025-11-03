@@ -17,6 +17,7 @@
   --conex-color-bg: white;
 
   --conex-icon-logout: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20fill='none'%20viewBox='0%200%2024%2024'%20stroke-width='1.5'%20stroke='rgb(136,145,164)'%3E%3Cpath%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M15.75%209V5.25A2.25%202.25%200%200%200%2013.5%203h-6a2.25%202.25%200%200%200-2.25%202.25v13.5A2.25%202.25%200%200%200%207.5%2021h6a2.25%202.25%200%200%200%202.25-2.25V15m3%200%203-3m0%200-3-3m3%203H9'%2F%3E%3C%2Fsvg%3E");
+  --conex-icon-user: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20fill='none'%20viewBox='0%200%2024%2024'%20stroke-width='1.5'%20stroke='rgb(136,145,164)'%3E%3Cpath%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M17.982%2018.725A7.488%207.488%200%200%200%2012%2015.75a7.488%207.488%200%200%200-5.982%202.975m11.963%200a9%209%200%201%200-11.963%200m11.963%200A8.966%208.966%200%200%201%2012%2021a8.966%208.966%200%200%201-5.982-2.275M15%209.75a3%203%200%201%201-6%200%203%203%200%200%201%206%200Z'%2F%3E%3C%2Fsvg%3E");
 }
 
 @media (prefers-color-scheme: dark) {
@@ -167,12 +168,36 @@ button.icon {
   focus:shadow-none
 }
 
-button.logout::before {
+button.icon::before {
   content: "";
-  background-image: var(--conex-icon-logout);
   width: 1.5rem;
   height: 1.5rem;
   background-size: 1.5rem 1.5rem;
+}
+
+button.logout::before {
+  background-image: var(--conex-icon-logout);
+}
+
+button.user::before {
+  background-image: var(--conex-icon-user);
+}
+
+table {
+  @apply
+  w-full
+  my-4
+  mx-0
+  border-collapse
+  table-auto
+}
+
+th, td {
+  border-color: var(--conex-color-fg-unemph);
+
+  @apply
+  border-b
+  p-2
 }
 
 [data-theme="forest"] {

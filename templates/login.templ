@@ -9,10 +9,9 @@ templ LoginHeader(tr func(string) string) {
 			<p>{ tr("login_dont_have_account") } <a href={ config.RegisterPath }>{ tr("register") }</a></p>
 		</div>
 	</header>
-	<div id="redirect"></div>
 }
 
-templ LoginForm(tr func(string) string) {
+templ loginForm(tr func(string) string) {
 	<form>
 		<input
 			id="loginEmail"
@@ -30,7 +29,7 @@ templ LoginForm(tr func(string) string) {
 	</form>
 }
 
-templ LoginConfirmEmailForm(tr func(string) string, token, email string) {
+templ loginConfirmEmailForm(tr func(string) string, token, email string) {
 	<form>
 		<input
 			id="loginToken"
@@ -64,33 +63,26 @@ templ LoginConfirmEmailForm(tr func(string) string, token, email string) {
 
 templ Login(tr func(string) string) {
 	<div id="loginDiv">
-		@LoginForm(tr)
+		@loginForm(tr)
 	</div>
 }
 
-templ LoginErrorInvalidOTP(tr func(string) string, token, email string) {
+templ LoginNotice(level int, tr func(string) string, header, msg string) {
 	<div id="loginDiv">
-		@Notice(NoticeWarn, tr("warn"), tr("invalid_otp"))
-		@LoginConfirmEmailForm(tr, token, email)
+		@Notice(level, header, msg)
+		@loginForm(tr)
 	</div>
 }
 
-templ LoginWarnInvalidEmail(tr func(string) string) {
+templ LoginConfirmEmailNotice(level int, tr func(string) string, header, msg, token, email string) {
 	<div id="loginDiv">
-		@Notice(NoticeWarn, tr("warn"), tr("invalid_email"))
-		@LoginForm(tr)
+		@Notice(level, header, msg)
+		@loginConfirmEmailForm(tr, token, email)
 	</div>
 }
 
 templ LoginConfirmEmail(tr func(string) string, token, email string) {
 	<div id="loginDiv">
-		@LoginConfirmEmailForm(tr, token, email)
-	</div>
-}
-
-templ LoginError(tr func(string) string) {
-	<div id="loginDiv">
-		@Notice(NoticeError, tr("error"), tr("login_error"))
-		@LoginForm(tr)
+		@loginConfirmEmailForm(tr, token, email)
 	</div>
 }

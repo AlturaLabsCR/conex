@@ -75,12 +75,45 @@ INSERT INTO users(
   user_deleted
 ) VALUES (?, ?, ?, ?, ?) RETURNING user_id;
 
+-- name: UserExists :one
+SELECT EXISTS (
+  SELECT 1
+  FROM users
+  WHERE user_id = ?
+);
+
+-- name: UserExistsEmail :one
+SELECT EXISTS (
+  SELECT 1
+  FROM users
+  WHERE user_email = ?
+);
+
 -- name: InsertSession :one
 INSERT INTO sessions(
   session_user,
   session_os,
-  session_created_unix
+  session_last_login_unix
 ) VALUES (?, ?, ?) RETURNING session_id;
+
+-- name: UpdateSession :exec
+UPDATE sessions
+SET session_last_login_unix = ?
+WHERE session_id = ?;
+
+-- name: SessionExists :one
+SELECT EXISTS (
+  SELECT 1
+  FROM sessions
+  WHERE session_id = ?
+);
 
 -- name: GetSession :one
 SELECT * FROM sessions WHERE session_id = ?;
+
+-- name: GetSessionsByUser :many
+SELECT * FROM sessions WHERE session_user = ?
+ORDER BY session_last_login_unix DESC;
+
+-- name: DeleteSession :exec
+DELETE FROM sessions WHERE session_id = ?;

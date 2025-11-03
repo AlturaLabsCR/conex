@@ -1,0 +1,86 @@
+package templates
+
+import (
+	"fmt"
+	"time"
+
+	"app/config"
+	"app/internal/db"
+	"strconv"
+)
+
+func unixDateLong(timestamp int64) string {
+	loc, _ := time.LoadLocation("America/Costa_Rica")
+	t := time.Unix(timestamp, 0).In(loc)
+
+	days := []string{"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"}
+	months := []string{
+		"enero", "febrero", "marzo", "abril", "mayo", "junio",
+		"julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+	}
+
+	dayName := days[t.Weekday()]
+	monthName := months[t.Month()-1]
+
+	hour := t.Hour()
+	ampm := "AM"
+	if hour >= 12 {
+		ampm = "PM"
+	}
+	hour12 := hour % 12
+	if hour12 == 0 {
+		hour12 = 12
+	}
+
+	return fmt.Sprintf("%d:%02d%s %s %d de %s, %d",
+		hour12, t.Minute(), ampm,
+		dayName, t.Day(), monthName, t.Year())
+}
+
+templ AccountHeader(tr func(string) string) {
+	<header class="conex-banner">
+		<nav class="m-4">
+			<a href={ config.DashboardPath }>
+				← { tr("back_to") } { tr("my_sites") }
+			</a>
+		</nav>
+		<div class="conex-banner-content">
+			<h1>{ tr("my_account") }</h1>
+		</div>
+	</header>
+}
+
+templ Account(tr func(string) string, session db.Session, user db.User, sessions []db.Session) {
+	@SessionsTable(tr, session, sessions)
+}
+
+templ SessionsTable(tr func(string) string, session db.Session, sessions []db.Session) {
+	<div id="sessionsContainer">
+		<table>
+			<tr>
+				<th align="left">{ tr("device") }</th>
+				<th align="left">{ tr("last_login") }</th>
+				<th></th>
+			</tr>
+			for _, s := range sessions {
+				<tr>
+					<td>{ s.SessionOs }</td>
+					if session.SessionID == s.SessionID {
+						<td>{ tr("session_current") }</td>
+					} else {
+						<td>{ unixDateLong(s.SessionLastLoginUnix) }</td>
+					}
+					<td align="right">
+						<button
+							type="button"
+							data-on:click={ "@delete('" + config.LogoutPath + "/" + strconv.FormatInt(s.SessionID, 10) +
+              "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+						>
+							{ tr("logout_device") }
+						</button>
+					</td>
+				</tr>
+			}
+		</table>
+	</div>
+}

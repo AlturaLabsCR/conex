@@ -82,13 +82,15 @@ func (s *Store[T]) JWTTerminate(w http.ResponseWriter, r *http.Request) {
 func (s *Store[T]) JWTValidate(r *http.Request) (T, bool, error) {
 	var zero T // zero value of T if validation fails
 
+	expires := false
+
 	cookie, err := r.Cookie(s.params.CookieName)
 	if err != nil {
 		return zero, false, fmt.Errorf("get cookie: %w", err)
 	}
 
 	if cookie.Expires.Before(time.Now()) {
-		return zero, true, fmt.Errorf("cookie expired at %v", cookie.Expires)
+		expires = true
 	}
 
 	token, err := jwt.ParseWithClaims(cookie.Value, &Claims[T]{}, func(token *jwt.Token) (any, error) {
@@ -99,9 +101,10 @@ func (s *Store[T]) JWTValidate(r *http.Request) (T, bool, error) {
 	})
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return zero, true, fmt.Errorf("token expired: %w", err)
+			expires = true
+		} else {
+			return zero, false, fmt.Errorf("parse token: %w", err)
 		}
-		return zero, false, fmt.Errorf("parse token: %w", err)
 	}
 
 	claims, ok := token.Claims.(*Claims[T])
@@ -109,5 +112,5 @@ func (s *Store[T]) JWTValidate(r *http.Request) (T, bool, error) {
 		return zero, false, fmt.Errorf("invalid token claims")
 	}
 
-	return claims.Data, false, nil
+	return claims.Data, expires, nil
 }
