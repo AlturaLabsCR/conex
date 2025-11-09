@@ -1,14 +1,26 @@
 package templates
 
-import "app/internal/db"
-import "app/database"
+import (
+	"app/config"
+	"app/database"
+	"app/internal/db"
+)
 
-templ Site(s db.ValidSite) {
+templ Site(s db.SitesWithMetric) {
 	@templ.Raw(database.SanitizeHTML(s.SiteHtmlPublished))
 }
 
-templ SiteHeader(s db.ValidSite) {
+templ SiteHeader(s db.SitesWithMetric) {
+	<nav class="m-4">
+		<div></div>
+		<div class="flex flex-row">
+			<a href={ config.EditorPath + s.SiteSlug }>
+				<button class="icon edit"></button>
+			</a>
+		</div>
+	</nav>
 	<header class="conex-banner">
+		<img src={ config.AssetsPath + "default-banner.svg" }/>
 		<div class="conex-banner-content">
 			<h1>{ s.SiteTitle }</h1>
 			<p>{ s.SiteDescription }</p>

@@ -14,7 +14,7 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 
 	queries := db.New(h.DB())
 
-	site, err := queries.GetValidSiteBySlug(ctx, siteSlug)
+	site, err := queries.GetPublishedSiteWithMetricsBySlug(ctx, siteSlug)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		templates.NotFound(h.Translator(r)).Render(ctx, w)

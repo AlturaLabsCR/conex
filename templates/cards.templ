@@ -6,27 +6,29 @@ import (
 	"app/internal/db"
 )
 
-templ CardsGrid(tr func(string) string, sites []db.ValidSitesWithMetric) {
-	<section class="mb-24">
-		<div class="mb-4">
-			<select>
-				<option value="visits">{ tr("most_visited") }</option>
-				<option value="created">{ tr("recently_created") }</option>
-			</select>
-		</div>
-		@cards(sites)
-	</section>
+templ CardsGrid(tr func(string) string, sites []db.SitesWithMetric) {
+	if len(sites) > 0 {
+		<section class="mb-24">
+			<div class="mb-4">
+				<select>
+					<option value="visits">{ tr("most_visited") }</option>
+					<option value="created">{ tr("recently_created") }</option>
+				</select>
+			</div>
+			@cards(tr, sites)
+		</section>
+	}
 }
 
-templ cards(ss []db.ValidSitesWithMetric) {
+templ cards(tr func(string) string, ss []db.SitesWithMetric) {
 	<div class="conex-cards">
 		for _, s := range ss {
-			@card(s)
+			@card(tr, s)
 		}
 	</div>
 }
 
-templ card(s db.ValidSitesWithMetric) {
+templ card(tr func(string) string, s db.SitesWithMetric) {
 	<a
 		href={ config.RootPrefix + s.SiteSlug }
 		class="conex-card"
@@ -36,7 +38,9 @@ templ card(s db.ValidSitesWithMetric) {
 		<!-- <img src={ config.RootPrefix + "assets/default-banner.svg" }/> -->
 		<div class="conex-card-content">
 			<span class="title">{ s.SiteTitle }</span>
-			<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">{ s.MetricVisitsTotal } visitas</span>
+			if s.MetricVisitsTotal > 0 {
+				<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">→ { s.MetricVisitsTotal } { tr("visits") }</span>
+			}
 			<div class="tags">
 				@tags(database.JSONToTags(s.SiteTagsJson))
 			</div>

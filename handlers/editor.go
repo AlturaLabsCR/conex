@@ -3,23 +3,26 @@ package handlers
 import (
 	"net/http"
 
+	"app/internal/db"
 	"app/templates"
-
-	"github.com/a-h/templ"
 )
 
 func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var header templ.Component
-	var content templ.Component
+	s := r.PathValue("site")
 
-	if r.PathValue("site") == "" {
-		header = templates.EditorHeader(h.Translator((r)))
-		content = templates.Editor()
-	} else {
-		// TODO: fill with site data
+	queries := db.New(h.DB())
+
+	site, err := queries.GetSiteWithMetrics(ctx, s)
+	if err != nil {
+		h.Log().Error("error loading sites", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+
+	header := templates.EditorHeader(h.Translator((r)), site)
+	content := templates.Editor(site)
 
 	templates.Base(h.Translator(r), header, content).Render(ctx, w)
 }

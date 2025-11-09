@@ -47,6 +47,8 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 
 	router.Handle("DELETE "+config.LogoutPath+"/{sessionID}", middleware.With(protected, h.LogoutAskedSession))
 
+	router.Handle("POST "+config.EditorPath, middleware.With(protected, h.NewSite))
+
 	router.HandleFunc("GET "+config.RootPrefix+"{site}", h.Site)
 
 	return router

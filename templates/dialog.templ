@@ -1,0 +1,15 @@
+package templates
+
+templ Dialog(tr func(string) string, id, header string, body templ.Component) {
+	<dialog id={ id }>
+		<article>
+			<header>
+				<button rel="prev" data-target={ id } onclick="toggleModal(event)"></button>
+				<h1>{ header }</h1>
+			</header>
+			if body != nil {
+				@body
+			}
+		</article>
+	</dialog>
+}

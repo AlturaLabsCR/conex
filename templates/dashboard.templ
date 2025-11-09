@@ -1,6 +1,9 @@
 package templates
 
-import "app/config"
+import (
+	"app/config"
+	"app/internal/db"
+)
 
 templ DashboardHeader(tr func(string) string) {
 	<header class="conex-banner">
@@ -19,18 +22,36 @@ templ DashboardHeader(tr func(string) string) {
 		</nav>
 		<div class="conex-banner-content">
 			<h1>{ tr("my_sites") }</h1>
-			<div>
-				<a href={ config.EditorPath }>
-					<button class="!text-white bg-black dark:!text-black dark:bg-white max-w-fit mx-auto mt-4 mr-1">
-						{ tr("create_website") }
-					</button>
-				</a>
-				<a href={ config.PricingPath }>
-					<button class="max-w-fit mx-auto mt-4" onclick="console.log('open pricing')">
-						{ tr("pricing") }
-					</button>
-				</a>
-			</div>
+			<button
+				onclick="toggleModal(event)"
+				data-target="dashboard-modal-new-site"
+				class="max-w-fit mx-auto"
+			>
+				{ tr("create_website") }
+			</button>
 		</div>
 	</header>
+}
+
+templ Dashboard(tr func(string) string, sites []db.SitesWithMetric) {
+	@CardsGrid(tr, sites)
+	@Dialog(tr, "dashboard-modal-new-site", tr("dashboard_create_site"), newSiteForm(tr))
+}
+
+templ newSiteForm(tr func(string) string) {
+	<form>
+		<input name="name" data-bind:new_site_name placeholder={ tr("new_site_name") }/>
+		<div class="mt-6" data-show="$new_site_name != ''">
+			{ tr("new_site_endpoint") }:
+			<span
+				data-computed:endpoint="$new_site_name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-')"
+				data-text={ "'https://" + "conex.cr" + "/'+$endpoint" }
+			></span>
+			<input name="endpoint" data-attr:value="$endpoint" hidden/>
+			<button
+				class="!text-white bg-black dark:!text-black dark:bg-white"
+				data-on:click={ "@post(' " + config.EditorPath + "', {contentType: 'form', headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			>{ tr("dashboard_new_site_editor") }</button>
+		</div>
+	</form>
 }

@@ -16,9 +16,6 @@ SELECT * FROM sites WHERE site_id = ?;
 -- name: GetSiteBySlug :one
 SELECT * FROM sites WHERE site_slug = ?;
 
--- name: GetSitesByUserID :many
-SELECT * FROM sites WHERE site_user = ?;
-
 -- name: GetActiveSites :many
 SELECT * FROM sites WHERE site_deleted = 0;
 
@@ -31,40 +28,53 @@ SELECT * FROM site_metrics;
 -- name: GetMetricsBySiteID :one
 SELECT * FROM site_metrics WHERE metric_site = ?;
 
--- name: GetValidSites :many
-SELECT * FROM valid_sites;
+-- name: GetPublishedSitesWithMetrics :many
+SELECT * FROM sites_with_metrics
+WHERE site_published = 1 AND site_deleted = 0;
 
--- name: GetValidSiteBySlug :one
-SELECT * FROM valid_sites WHERE site_slug = ?;
+-- name: GetSitesWithMetricsByUserID :many
+SELECT * FROM sites_with_metrics WHERE site_user = ?;
 
--- name: GetValidSitesWithMetrics :many
-SELECT * FROM valid_sites_with_metrics;
+-- name: GetSiteWithMetrics :one
+SELECT * FROM sites_with_metrics WHERE site_slug = ?;
 
--- name: GetValidSitesWithMetricsFromMostTotalVisits :many
-SELECT *
-FROM valid_sites_with_metrics
+-- name: GetPublishedSiteWithMetricsBySlug :one
+SELECT * FROM sites_with_metrics WHERE site_slug = ?;
+
+-- name: GetPublishedSitesWithMetricsFromMostTotalVisits :many
+SELECT * FROM sites_with_metrics
+WHERE site_published = 1 AND site_deleted = 0
 ORDER BY metric_visits_total DESC, site_id ASC
 LIMIT 30;
 
 -- name: GetValidSitesWithMetricsFromMostTotalVisitsLessThan :many
 SELECT *
-FROM valid_sites_with_metrics
-WHERE (metric_visits_total < ?)
-OR (metric_visits_total = ? AND site_id > ?)
+FROM sites_with_metrics
+WHERE site_published = 1
+  AND site_deleted = 0
+  AND (
+    metric_visits_total < ?
+    OR (metric_visits_total = ? AND site_id > ?)
+  )
 ORDER BY metric_visits_total DESC, site_id ASC
 LIMIT 30;
 
 -- name: GetValidSitesWithMetricsFromLeastTotalVisits :many
 SELECT *
-FROM valid_sites_with_metrics
+FROM sites_with_metrics
+WHERE site_published = 1 AND site_deleted = 0
 ORDER BY metric_visits_total ASC, site_id ASC
 LIMIT 30;
 
 -- name: GetValidSitesWithMetricsFromLeastTotalVisitsMoreThan :many
 SELECT *
-FROM valid_sites_with_metrics
-WHERE (metric_visits_total > ?)
-OR (metric_visits_total = ? AND site_id > ?)
+FROM sites_with_metrics
+WHERE site_published = 1
+  AND site_deleted = 0
+  AND (
+    metric_visits_total > ?
+    OR (metric_visits_total = ? AND site_id > ?)
+  )
 ORDER BY metric_visits_total ASC, site_id ASC
 LIMIT 30;
 
@@ -117,3 +127,25 @@ ORDER BY session_last_login_unix DESC;
 
 -- name: DeleteSession :exec
 DELETE FROM sessions WHERE session_id = ?;
+
+-- name: InsertSite :one
+INSERT INTO sites (
+  site_user,
+  site_slug,
+  site_title,
+  site_tags_json,
+  site_description,
+  site_html_published,
+  site_created_unix,
+  site_modified_unix,
+  site_published,
+  site_deleted
+) VALUES (
+  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+) RETURNING site_id;
+
+-- name: InsertMetric :one
+INSERT INTO site_metrics (
+  metric_site,
+  metric_visits_total
+) VALUES (?, ?) RETURNING metric_id;

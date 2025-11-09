@@ -12,9 +12,10 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 
 	queries := db.New(h.DB())
 
-	sites, err := queries.GetValidSitesWithMetricsFromMostTotalVisits(ctx)
+	sites, err := queries.GetPublishedSitesWithMetricsFromMostTotalVisits(ctx)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		h.Log().Error("error querying sites with metrics", "error", err)
 		return
 	}
 

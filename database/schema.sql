@@ -132,16 +132,10 @@ CREATE TABLE site_banners (
   CONSTRAINT fk_site_banners_object FOREIGN KEY (banner_object) REFERENCES site_objects(object_id)
 );
 
-CREATE VIEW valid_sites AS
-SELECT * FROM sites WHERE
-site_published = 1
-AND
-site_deleted = 0;
-
-CREATE VIEW valid_sites_with_metrics AS
-SELECT v.*, m.*
-FROM valid_sites AS v INNER JOIN site_metrics AS m
-ON v.site_id = m.metric_site;
+CREATE VIEW sites_with_metrics AS
+SELECT s.*, m.*
+FROM sites AS s INNER JOIN site_metrics AS m
+ON s.site_id = m.metric_site;
 
 CREATE INDEX idx_sites_user ON sites(site_user);
 CREATE INDEX idx_sites_published_deleted ON sites(site_published, site_deleted);
