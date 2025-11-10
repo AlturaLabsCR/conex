@@ -23,7 +23,7 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 
 	tr := h.Translator(r)
 
-	header := templates.SiteHeader(tr, site)
+	header := templates.SiteHeader(tr, site, "", true)
 	content := templates.Site(site)
 
 	// gz := gzip.NewWriter(w)

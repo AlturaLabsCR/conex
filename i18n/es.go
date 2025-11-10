@@ -53,6 +53,8 @@ var ES = map[string]string{
 	// editor
 	"editor_title":       "Título",
 	"editor_description": "Descripción del nuevo sitio",
+	"editor_publish":     "Publicar cambios",
+	"publish":            "Publicar",
 
 	// account
 	"my_account":      "Mi cuenta",

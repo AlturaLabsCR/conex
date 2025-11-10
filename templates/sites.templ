@@ -10,20 +10,24 @@ templ Site(s db.SitesWithMetric) {
 	@templ.Raw(database.SanitizeHTML(s.SiteHtmlPublished))
 }
 
-templ SiteHeader(tr func(string) string, s db.SitesWithMetric) {
-	<nav class="m-4">
-		<a href={ config.DashboardPath }>
-			← { tr("my_sites") }
-		</a>
-		<div class="flex flex-row">
-			<button
-				class="icon edit"
-				onclick={ templ.JSFuncCall("window.location.assign", config.EditorPath+s.SiteSlug) }
-			></button>
-		</div>
-	</nav>
+templ SiteHeader(tr func(string) string, s db.SitesWithMetric, bannerURL string, isOwner bool) {
+	if isOwner {
+		<nav class="m-4">
+			<a href={ config.DashboardPath }>
+				← { tr("my_sites") }
+			</a>
+			<div class="flex flex-row">
+				<button
+					class="icon edit"
+					onclick={ templ.JSFuncCall("window.location.assign", config.EditorPath+s.SiteSlug) }
+				></button>
+			</div>
+		</nav>
+	}
 	<header class="conex-banner">
-		<img src={ config.AssetsPath + "default-banner.svg" }/>
+		if bannerURL != "" {
+			<img src={ bannerURL }/>
+		}
 		<div class="conex-banner-content">
 			<h1>{ s.SiteTitle }</h1>
 			<p>{ s.SiteDescription }</p>

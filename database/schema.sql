@@ -87,7 +87,8 @@ CREATE TABLE sites (
 
 CREATE TABLE site_sync (
   site_sync_id INTEGER NOT NULL,
-  site_sync_html_staging TEXT NOT NULL,
+  site_sync_data_staging TEXT NOT NULL,
+  site_sync_last_update_unix INTEGER NOT NULL,
 
   CONSTRAINT pk_site_sync PRIMARY KEY (site_sync_id),
   CONSTRAINT fk_site_sync FOREIGN KEY (site_sync_id) REFERENCES sites(site_id)

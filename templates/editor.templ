@@ -11,7 +11,11 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric) {
 			← { tr("my_sites") }
 		</a>
 		<div class="flex flex-row">
-			<button class="icon upload"></button>
+			<button
+				onclick="toggleModal(event)"
+				data-target="dashboard-modal-publish"
+				class="icon upload"
+			></button>
 			<button
 				class="icon eye"
 				onclick={ templ.JSFuncCall("window.location.assign", config.RootPrefix+site.SiteSlug) }
@@ -38,7 +42,7 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric) {
 	</header>
 }
 
-templ Editor(site db.SitesWithMetric) {
+templ Editor(tr func(string) string, site db.SitesWithMetric) {
 	<section>
 		<div id="editorjs"></div>
 		<script src={ config.AssetsPath + "js/editor.js" } defer></script>
@@ -56,4 +60,12 @@ templ Editor(site db.SitesWithMetric) {
       });
     </script>
 	</section>
+	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr))
+}
+
+templ publishSiteForm(tr func(string) string) {
+	<button
+		class="!text-white bg-black dark:!text-black dark:bg-white"
+		data-on:click={ "@post(' " + config.EditorPath + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+	>{ tr("publish") }</button>
 }
