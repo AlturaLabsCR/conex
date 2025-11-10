@@ -6,10 +6,18 @@ import (
 )
 
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric) {
-	<nav class="p-4">
+	<nav class="m-4">
 		<a href={ config.DashboardPath }>
-			← { tr("back_to") } { tr("my_sites") }
+			← { tr("my_sites") }
 		</a>
+		<div class="flex flex-row">
+			<button class="icon upload"></button>
+			<button
+				class="icon eye"
+				onclick={ templ.JSFuncCall("window.location.assign", config.RootPrefix+site.SiteSlug) }
+			></button>
+			<button class="icon gear"></button>
+		</div>
 	</nav>
 	<header class="conex-banner">
 		<img src={ config.AssetsPath + "default-banner.svg" }/>
@@ -19,70 +27,13 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric) {
 				class="font-bold text-4xl resize-none text-center overflow-hidden w-full max-w-4xl mx-auto h-auto outline-none"
 				rows="1"
 				placeholder={ tr("editor_title") }
-				oninput="resizeAndRun(this)"
 			></textarea>
 			<textarea
 				id="editor_description"
 				class="resize-none text-center overflow-hidden w-full max-w-4xl mx-auto outline-none"
 				rows="1"
 				placeholder={ tr("editor_description") }
-				oninput="resizeAndRun(this)"
 			></textarea>
-			<script>
-        // Define a global flag
-        window.isFirstLoad = window.isFirstLoad ?? true;
-
-        function resizeAndRun(el) {
-          el.style.height = 'auto';
-
-          const newHeight = el.scrollHeight;
-          const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
-          const isMultiLine = newHeight > lineHeight * 1.5;
-
-          if (isMultiLine) {
-            el.removeAttribute('rows');
-          } else {
-            el.setAttribute('rows', '1');
-          }
-
-          el.style.height = newHeight + 'px';
-
-          const site = window.currentSite;
-          if (!site) return;
-
-          const stored = localStorage.getItem(`site:${site}`);
-          const data = stored ? JSON.parse(stored) : {};
-
-          // ✅ Use localStorage values on first load
-          // ✅ Use element value on subsequent changes
-          if (window.isFirstLoad) {
-            if (el.id === 'editor_title' && data.title) {
-              el.value = data.title;
-            } else if (el.id === 'editor_description' && data.description) {
-              el.value = data.description;
-            }
-          } else {
-            if (el.id === 'editor_title') {
-              data.title = el.value || "{{ site.SiteTitle }}";
-            } else if (el.id === 'editor_description') {
-              data.description = el.value;
-            }
-            localStorage.setItem(`site:${site}`, JSON.stringify(data));
-          }
-
-          // resize again after possible content change
-          el.style.height = 'auto';
-          el.style.height = el.scrollHeight + 'px';
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-          const els = document.querySelectorAll('#editor_title, #editor_description');
-          els.forEach(resizeAndRun);
-
-          // mark as not first load after initialization
-          window.isFirstLoad = false;
-        });
-      </script>
 		</div>
 	</header>
 }
@@ -90,11 +41,18 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric) {
 templ Editor(site db.SitesWithMetric) {
 	<section>
 		<div id="editorjs"></div>
-		<script src={ config.AssetsPath + "js/editor.js" }></script>
+		<script src={ config.AssetsPath + "js/editor.js" } defer></script>
 		<script>
-      window.currentSite = {{ site.SiteSlug }};
       document.addEventListener('DOMContentLoaded', () => {
         initEditor({{ site.SiteSlug }})
+
+        const els = document.querySelectorAll('#editor_title, #editor_description');
+        els.forEach((el) => {
+          resizeAndRun({{ site.SiteSlug }}, el);
+          el.addEventListener('input', () => resizeAndRun({{ site.SiteSlug }}, el));
+        });
+
+        window.isFirstLoad = false;
       });
     </script>
 	</section>

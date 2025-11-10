@@ -23,30 +23,39 @@ templ CardsGrid(tr func(string) string, sites []db.SitesWithMetric) {
 templ cards(tr func(string) string, ss []db.SitesWithMetric) {
 	<div class="conex-cards">
 		for _, s := range ss {
-			@card(tr, s)
+			@card(tr, s, true)
 		}
 	</div>
 }
 
-templ card(tr func(string) string, s db.SitesWithMetric) {
-	<a
-		href={ config.RootPrefix + s.SiteSlug }
-		class="conex-card"
-		data-created-unix={ s.SiteCreatedUnix }
-		data-visit-count={ s.MetricVisitsTotal }
-	>
-		<!-- <img src={ config.RootPrefix + "assets/default-banner.svg" }/> -->
-		<div class="conex-card-content">
-			<span class="title">{ s.SiteTitle }</span>
-			if s.MetricVisitsTotal > 0 {
-				<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">→ { s.MetricVisitsTotal } { tr("visits") }</span>
-			}
-			<div class="tags">
-				@tags(database.JSONToTags(s.SiteTagsJson))
+templ card(tr func(string) string, s db.SitesWithMetric, editor bool) {
+	<div class="relative">
+		<a
+			href={ config.RootPrefix + s.SiteSlug }
+			class="conex-card"
+			data-created-unix={ s.SiteCreatedUnix }
+			data-visit-count={ s.MetricVisitsTotal }
+		>
+			<img src={ config.RootPrefix + "assets/default-banner.svg" }/>
+			<div class="conex-card-content">
+				<span class="title">{ s.SiteTitle }</span>
+				if s.MetricVisitsTotal > 0 {
+					<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">→ { s.MetricVisitsTotal } { tr("visits") }</span>
+				}
+				<div class="tags">
+					@tags(database.JSONToTags(s.SiteTagsJson))
+				</div>
+				<p class="description">{ s.SiteDescription }</p>
 			</div>
-			<p class="description">{ s.SiteDescription }</p>
-		</div>
-	</a>
+		</a>
+		<button
+			class="absolute top-1 right-2 !w-fit text-sm bg-black/5 dark:bg-white/10"
+			type="button"
+			onclick={ templ.JSFuncCall("window.location.assign", config.EditorPath+s.SiteSlug) }
+		>
+			{ tr("dashboard_edit_site") }
+		</button>
+	</div>
 }
 
 templ tags(tags []database.Tag) {

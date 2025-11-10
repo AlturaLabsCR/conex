@@ -23,9 +23,14 @@ var EN = map[string]string{
 	"back_to": "Back to",
 
 	// dashboard
-	"my_sites":       "My sites",
-	"create_website": "Create website",
-	"pricing":        "Pricing",
+	"my_sites":                  "My sites",
+	"create_website":            "Create website",
+	"pricing":                   "Pricing",
+	"dashboard_create_site":     "Create new site",
+	"new_site_name":             "Site title",
+	"new_site_endpoint":         "Site URL",
+	"dashboard_new_site_editor": "Create",
+	"dashboard_edit_site":       "Edit",
 
 	// register
 	"register":                      "Register",

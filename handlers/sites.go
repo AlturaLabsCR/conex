@@ -21,8 +21,15 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	header := templates.SiteHeader(site)
+	tr := h.Translator(r)
+
+	header := templates.SiteHeader(tr, site)
 	content := templates.Site(site)
+
+	// gz := gzip.NewWriter(w)
+	// defer gz.Close()
+	// w.Header().Add("Content-Type", "text/html")
+	// w.Header().Add("Content-Encoding", "gzip")
 
 	templates.Base(h.Translator(r), header, content).Render(ctx, w)
 }
