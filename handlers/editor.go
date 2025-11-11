@@ -25,7 +25,7 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 
 	tr := h.Translator(r)
 
-	header := templates.EditorHeader(tr, site)
+	header := templates.EditorHeader(tr, site, "")
 	content := templates.Editor(tr, site)
 
 	templates.Base(tr, header, content).Render(ctx, w)

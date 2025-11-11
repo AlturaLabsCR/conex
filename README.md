@@ -6,8 +6,13 @@
 	- [X] user plans table
 	- [X] Send CSRF token in client
 	- [X] Account logins, devices, etc
-	- [ ] site registration
-	- [ ] site update
-	- [ ] site sync
+	- [X] site registration
+	- [X] site update
+	- [ ] Finish templates conditions
+	- [ ] Lock down endpoints
+	- [ ] Banner
+	- [ ] Upload images
+	- [ ] Clean logger, add useful info
 	- [ ] payments, permission update
+	- [ ] site sync
 

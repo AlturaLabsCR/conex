@@ -122,6 +122,11 @@ nav ul {
   mt-3
 }
 
+.conex-floating-search {
+  @apply
+  bg-black
+}
+
 main {
   @apply
   w-full
@@ -449,7 +454,7 @@ article.error {
 .ce-popover-item__icon,
 .ce-inline-tool {
   @apply
-  dark:hover:!bg-gray-900
+  dark:hover:bg-gray-900!
 }
 
 .ce-popover-item-separator__line {
@@ -481,7 +486,7 @@ article.error {
 .ce-block.ce-block--selected .ce-block__content,
 *::selection {
   @apply
-  dark:!bg-blue-500/30
+  dark:bg-blue-500/30!
 }
 
 dialog.open {

@@ -23,12 +23,12 @@ templ CardsGrid(tr func(string) string, sites []db.SitesWithMetric) {
 templ cards(tr func(string) string, ss []db.SitesWithMetric) {
 	<div class="conex-cards">
 		for _, s := range ss {
-			@card(tr, s, true)
+			@card(tr, s, "", true)
 		}
 	</div>
 }
 
-templ card(tr func(string) string, s db.SitesWithMetric, editor bool) {
+templ card(tr func(string) string, s db.SitesWithMetric, bannerURL string, editor bool) {
 	<div class="relative">
 		<a
 			href={ config.RootPrefix + s.SiteSlug }
@@ -36,7 +36,9 @@ templ card(tr func(string) string, s db.SitesWithMetric, editor bool) {
 			data-created-unix={ s.SiteCreatedUnix }
 			data-visit-count={ s.MetricVisitsTotal }
 		>
-			<img src={ config.RootPrefix + "assets/default-banner.svg" }/>
+			if bannerURL != "" {
+				<img src={ bannerURL }/>
+			}
 			<div class="conex-card-content">
 				<span class="title">{ s.SiteTitle }</span>
 				if s.MetricVisitsTotal > 0 {
@@ -50,7 +52,7 @@ templ card(tr func(string) string, s db.SitesWithMetric, editor bool) {
 		</a>
 		if editor {
 			<button
-				class="absolute top-1 right-2 !w-fit !py-1 text-sm bg-black/5 dark:bg-white/10"
+				class="absolute top-1 right-2 w-fit! py-1! text-sm bg-black/5 dark:bg-white/10"
 				type="button"
 				onclick={ templ.JSFuncCall("window.location.assign", config.EditorPath+s.SiteSlug) }
 			>
