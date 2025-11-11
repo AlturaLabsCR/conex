@@ -6,7 +6,7 @@ templ HomeHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ config.AppTitle }</h1>
-			<a href={ config.DashboardPath }>
+			<a href={ config.Endpoints[config.DashboardPath] }>
 				<button class="max-w-fit mx-auto mt-4">
 					{ tr("create_site") }
 				</button>

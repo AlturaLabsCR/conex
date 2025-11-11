@@ -10,12 +10,12 @@ templ Base(tr func(key string) string, header, content templ.Component) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"/>
 			<title>{ config.AppTitle }</title>
 			<meta name="description" content={ tr("home_description") }/>
-			<link rel="stylesheet" href={ config.AssetsPath + "css/styles.css?dev" }/>
-			<link rel="icon" href={ config.AssetsPath + "favicon/favicon.svg" } type="image/svg+xml"/>
+			<link rel="stylesheet" href={ config.Endpoints[config.AssetsPath] + "css/styles.css?dev" }/>
+			<link rel="icon" href={ config.Endpoints[config.AssetsPath] + "favicon/favicon.svg" } type="image/svg+xml"/>
 			<link rel="preconnect" href="https://rsms.me/"/>
 			<link rel="stylesheet" href="https://rsms.me/inter/inter.css"/>
 			<script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.6/bundles/datastar.js"></script>
-			<script src={ config.AssetsPath + "js/index.js" }></script>
+			<script src={ config.Endpoints[config.AssetsPath] + "js/index.js" }></script>
 			<div id="redirect"></div>
 		</head>
 		<body>

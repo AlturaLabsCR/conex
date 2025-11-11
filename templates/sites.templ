@@ -12,13 +12,13 @@ templ Site(s db.SitesWithMetric) {
 templ SiteHeader(tr func(string) string, s db.SitesWithMetric, bannerURL string, isOwner bool) {
 	if isOwner {
 		<nav class="m-4">
-			<a href={ config.DashboardPath }>
+			<a href={ config.Endpoints[config.DashboardPath] }>
 				← { tr("my_sites") }
 			</a>
 			<div class="flex flex-row">
 				<button
 					class="icon edit"
-					onclick={ templ.JSFuncCall("window.location.assign", config.EditorPath+s.SiteSlug) }
+					onclick={ templ.JSFuncCall("window.location.assign", config.Endpoints[config.EditorPath]+s.SiteSlug) }
 				></button>
 			</div>
 		</nav>

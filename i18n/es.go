@@ -6,12 +6,14 @@ var ES = map[string]string{
 	"home_description": "Crea un sitio web en minutos!",
 
 	// misc
-	"info":          "Info",
-	"warn":          "Atención",
-	"error":         "Error",
-	"email":         "Correo electrónico",
-	"invalid_email": "Correo electrónico inválido",
-	"invalid_otp":   "Código incorrecto",
+	"info":              "Info",
+	"warn":              "Atención",
+	"error":             "Error",
+	"email":             "Correo electrónico",
+	"invalid_email":     "Correo electrónico inválido",
+	"nonexistent_email": "No se encontró esta cuenta",
+	"existent_email":    "Esta cuenta ya existe",
+	"invalid_otp":       "Código incorrecto",
 
 	// home
 	"create_site":      "Crear un sitio",
@@ -23,14 +25,15 @@ var ES = map[string]string{
 	"back_to": "Volver a",
 
 	// dashboard
-	"my_sites":                  "Mis sitios",
-	"create_website":            "Crear sitio web",
-	"pricing":                   "Planes",
-	"dashboard_create_site":     "Crear nuevo sitio",
-	"new_site_name":             "Título",
-	"new_site_endpoint":         "Enlace",
-	"dashboard_new_site_editor": "Crear",
-	"dashboard_edit_site":       "Editar",
+	"my_sites":                     "Mis sitios",
+	"create_website":               "Crear sitio web",
+	"pricing":                      "Planes",
+	"dashboard_create_site":        "Crear nuevo sitio",
+	"new_site_name":                "Título",
+	"new_site_endpoint":            "Enlace",
+	"dashboard_new_site_editor":    "Crear",
+	"dashboard_edit_site":          "Editar",
+	"dashboard_slug_not_available": "Este sitio no está disponible, intenta otro",
 
 	// register
 	"register":                      "Registrarse",
@@ -64,5 +67,6 @@ var ES = map[string]string{
 	"logout_device":   "Cerrar",
 
 	// sites
-	"not_found": "Sitio web no encontrado",
+	"not_found":      "Sitio web no encontrado",
+	"not_found_long": "Este sitio web no existe, o no está publicado",
 }

@@ -10,11 +10,11 @@ templ NotFound(tr func(key string) string) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"/>
 			<title>{ config.AppTitle }</title>
 			<meta name="description" content={ tr("home_description") }/>
-			<link rel="stylesheet" href={ config.AssetsPath + "css/styles.css?dev" }/>
-			<link rel="icon" href={ config.AssetsPath + "favicon/favicon.svg" } type="image/svg+xml"/>
+			<link rel="stylesheet" href={ config.Endpoints[config.AssetsPath] + "css/styles.css?dev" }/>
+			<link rel="icon" href={ config.Endpoints[config.AssetsPath] + "favicon/favicon.svg" } type="image/svg+xml"/>
 			<link rel="preconnect" href="https://rsms.me/"/>
 			<link rel="stylesheet" href="https://rsms.me/inter/inter.css"/>
-			<script src={ config.AssetsPath + "js/index.js" }></script>
+			<script src={ config.Endpoints[config.AssetsPath] + "js/index.js" }></script>
 		</head>
 		<body>
 			@notFoundHeader(tr)
@@ -26,8 +26,9 @@ templ notFoundHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ tr("not_found") }</h1>
+			<p>{ tr("not_found_long") }</p>
 			<div>
-				<a href={ config.RootPrefix }>
+				<a href={ config.Endpoints[config.RootPath] }>
 					<button class="text-white bg-black dark:text-black dark:bg-white max-w-fit mx-auto mt-4 mr-1">
 						← { tr("back_to") } { config.AppTitle }
 					</button>

@@ -2,11 +2,15 @@ package templates
 
 import "app/config"
 
+const (
+	LoginNoticeID string = "loginNotice"
+)
+
 templ LoginHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ tr("log_in") }</h1>
-			<p>{ tr("login_dont_have_account") } <a href={ config.RegisterPath }>{ tr("register") }</a></p>
+			<p>{ tr("login_dont_have_account") } <a href={ config.Endpoints[config.RegisterPath] }>{ tr("register") }</a></p>
 		</div>
 	</header>
 }
@@ -14,19 +18,28 @@ templ LoginHeader(tr func(string) string) {
 templ loginForm(tr func(string) string) {
 	<form>
 		<input
+			data-bind:email
 			id="loginEmail"
 			name="email"
 			type="email"
 			placeholder={ tr("email") }
 		/>
 		<button
-			id="loginButton"
-			class="!text-white bg-black dark:!text-black dark:bg-white"
-			data-on:click={ "@put(' " + config.LoginPath + "', {contentType: 'form'})" }
+			class="text-white! bg-black dark:text-black! dark:bg-white"
+			data-on:click={ "@put(' " + config.Endpoints[config.LoginPath] + "', {contentType: 'form'})" }
+			data-attr:disabled="!($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
+			disabled
 		>
 			{ tr("login_send_verification") }
 		</button>
 	</form>
+}
+
+templ Login(tr func(string) string) {
+	<div id={ LoginNoticeID }></div>
+	<div id="loginForm">
+		@loginForm(tr)
+	</div>
 }
 
 templ loginConfirmEmailForm(tr func(string) string, token, email string) {
@@ -46,43 +59,32 @@ templ loginConfirmEmailForm(tr func(string) string, token, email string) {
 			value={ email }
 		/>
 		<input
-			id="loginConfirm"
-			name="otp"
-			type="number"
+			data-bind:otpraw
+			data-computed:otp="$otpraw.replaceAll(' ', '')"
+			inputmode="numeric"
+			pattern="[0-9 ]*"
 			placeholder={ tr("register_insert_verification") }
 			step="1"
 		/>
+		<input
+			data-attr:value="$otp"
+			name="otp"
+			class="hidden"
+		/>
 		<button
-			class="!text-white bg-black dark:!text-black dark:bg-white"
-			data-on:click={ "@post(' " + config.LoginPath + "', {contentType: 'form'})" }
+			class="text-white! bg-black dark:text-black! dark:bg-white"
+			data-on:click={ "@post(' " + config.Endpoints[config.LoginPath] + "', {contentType: 'form'})" }
+			data-attr:disabled="!(/^[0-9]{6}$/.test(String($otp)))"
+			disabled
 		>
 			{ tr("login_confirm_email") }
 		</button>
 	</form>
 }
 
-templ Login(tr func(string) string) {
-	<div id="loginDiv">
-		@loginForm(tr)
-	</div>
-}
-
-templ LoginNotice(level int, tr func(string) string, header, msg string) {
-	<div id="loginDiv">
-		@Notice(level, header, msg)
-		@loginForm(tr)
-	</div>
-}
-
-templ LoginConfirmEmailNotice(level int, tr func(string) string, header, msg, token, email string) {
-	<div id="loginDiv">
-		@Notice(level, header, msg)
-		@loginConfirmEmailForm(tr, token, email)
-	</div>
-}
-
 templ LoginConfirmEmail(tr func(string) string, token, email string) {
-	<div id="loginDiv">
+	<div id={ LoginNoticeID }></div>
+	<div id="loginForm">
 		@loginConfirmEmailForm(tr, token, email)
 	</div>
 }

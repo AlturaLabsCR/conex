@@ -5,16 +5,20 @@ import (
 	"app/internal/db"
 )
 
+const (
+	NewSiteNoticeID string = "newSiteNotice"
+)
+
 templ DashboardHeader(tr func(string) string) {
 	<nav class="m-4">
-		<a href={ config.RootPrefix }>
+		<a href={ config.Endpoints[config.RootPath] }>
 			← { tr("back_to") } { config.AppTitle }
 		</a>
 		<div class="flex flex-row">
-			<a href={ config.AccountPath }>
+			<a href={ config.Endpoints[config.AccountPath] }>
 				<button class="icon user"></button>
 			</a>
-			<a href={ config.LogoutPath }>
+			<a href={ config.Endpoints[config.LogoutPath] }>
 				<button class="icon logout"></button>
 			</a>
 		</div>
@@ -39,6 +43,7 @@ templ Dashboard(tr func(string) string, sites []db.SitesWithMetric) {
 }
 
 templ newSiteForm(tr func(string) string) {
+	<div id={ NewSiteNoticeID }></div>
 	<form>
 		<input name="name" data-bind:new_site_name placeholder={ tr("new_site_name") }/>
 		<div class="mt-6" data-show="$new_site_name != ''">
@@ -47,10 +52,14 @@ templ newSiteForm(tr func(string) string) {
 				data-computed:endpoint="$new_site_name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-')"
 				data-text={ "'https://" + "conex.cr" + "/'+$endpoint" }
 			></span>
-			<input name="endpoint" data-attr:value="$endpoint" hidden/>
+			<input
+				data-attr:value="$endpoint"
+				name="endpoint"
+				class="hidden"
+			/>
 			<button
 				class="text-white! bg-black dark:text-black! dark:bg-white"
-				data-on:click={ "@post(' " + config.EditorPath + "', {contentType: 'form', headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+				data-on:click={ "@post(' " + config.Endpoints[config.EditorPath] + "', {contentType: 'form', headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 			>{ tr("dashboard_new_site_editor") }</button>
 		</div>
 	</form>

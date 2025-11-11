@@ -2,11 +2,15 @@ package templates
 
 import "app/config"
 
+const (
+	RegisterNoticeID string = "registerNotice"
+)
+
 templ RegisterHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ tr("register") }</h1>
-			<p>{ tr("register_already_have_account") } <a href={ config.LoginPath }>{ tr("log_in") }</a></p>
+			<p>{ tr("register_already_have_account") } <a href={ config.Endpoints[config.LoginPath] }>{ tr("log_in") }</a></p>
 		</div>
 	</header>
 }
@@ -14,14 +18,17 @@ templ RegisterHeader(tr func(string) string) {
 templ registerSendEmailForm(tr func(string) string) {
 	<form>
 		<input
+			data-bind:email
 			id="registerEmail"
 			name="email"
 			type="email"
 			placeholder={ tr("email") }
 		/>
 		<button
-			class="!text-white bg-black dark:!text-black dark:bg-white"
-			data-on:click={ "@put(' " + config.RegisterPath + "', {contentType: 'form'})" }
+			class="text-white! bg-black dark:text-black! dark:bg-white"
+			data-on:click={ "@put(' " + config.Endpoints[config.RegisterPath] + "', {contentType: 'form'})" }
+			data-attr:disabled="!($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
+			disabled
 		>
 			{ tr("register_send_email") }
 		</button>
@@ -29,7 +36,8 @@ templ registerSendEmailForm(tr func(string) string) {
 }
 
 templ Register(tr func(string) string) {
-	<div id="registerDiv">
+	<div id={ RegisterNoticeID }></div>
+	<div id="registerForm">
 		@registerSendEmailForm(tr)
 	</div>
 }
@@ -49,18 +57,25 @@ templ registerConfirmEmailForm(tr func(string) string, token, email string) {
 			type="email"
 			class="hidden"
 			value={ email }
-			placeholder={ tr("email") }
 		/>
 		<input
-			id="registerConfirm"
-			name="otp"
-			type="number"
+			data-bind:otpraw
+			data-computed:otp="$otpraw.replaceAll(' ', '')"
+			inputmode="numeric"
+			pattern="[0-9 ]*"
 			placeholder={ tr("register_insert_verification") }
 			step="1"
 		/>
+		<input
+			data-attr:value="$otp"
+			name="otp"
+			class="hidden"
+		/>
 		<button
-			class="!text-white bg-black dark:!text-black dark:bg-white"
-			data-on:click={ "@post(' " + config.RegisterPath + "', {contentType: 'form'})" }
+			class="text-white! bg-black dark:text-black! dark:bg-white"
+			data-on:click={ "@post(' " + config.Endpoints[config.RegisterPath] + "', {contentType: 'form'})" }
+			data-attr:disabled="!(/^[0-9]{6}$/.test(String($otp)))"
+			disabled
 		>
 			{ tr("register_confirm_email") }
 		</button>
@@ -68,21 +83,8 @@ templ registerConfirmEmailForm(tr func(string) string, token, email string) {
 }
 
 templ RegisterConfirmEmail(tr func(string) string, token, email string) {
-	<div id="registerDiv">
-		@registerConfirmEmailForm(tr, token, email)
-	</div>
-}
-
-templ RegisterNotice(level int, tr func(string) string, header, msg string) {
-	<div id="registerDiv">
-		@Notice(level, header, msg)
-		@registerSendEmailForm(tr)
-	</div>
-}
-
-templ RegisterConfirmEmailNotice(level int, tr func(string) string, header, msg, token, email string) {
-	<div id="registerDiv">
-		@Notice(level, header, msg)
+	<div id={ RegisterNoticeID }></div>
+	<div id="registerForm">
 		@registerConfirmEmailForm(tr, token, email)
 	</div>
 }

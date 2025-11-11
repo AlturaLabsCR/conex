@@ -7,7 +7,7 @@ import (
 
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL string) {
 	<nav class="m-4">
-		<a href={ config.DashboardPath }>
+		<a href={ config.Endpoints[config.DashboardPath] }>
 			← { tr("my_sites") }
 		</a>
 		<div class="flex flex-row">
@@ -45,7 +45,7 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 templ Editor(tr func(string) string, site db.SitesWithMetric) {
 	<section>
 		<div id="editorjs"></div>
-		<script src={ config.AssetsPath + "js/editor.js" } defer></script>
+		<script src={ config.Endpoints[config.AssetsPath] + "js/editor.js" } defer></script>
 		<script>
       document.addEventListener('DOMContentLoaded', () => {
         initEditor({{ site.SiteSlug }})
@@ -68,6 +68,6 @@ templ publishSiteForm(tr func(string) string, site string) {
 	<textarea id="editor_html" class="hidden" disabled></textarea>
 	<button
 		class="text-white! bg-black dark:text-black! dark:bg-white"
-		data-on:click={ "$content = getEditorHtml(); @put('" + config.EditorPath + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1], 'Editor-HTML': document.getElementById('editor_html')?.value || '' } })" }
+		data-on:click={ "$content = getEditorHtml(); @put('" + config.Endpoints[config.EditorPath] + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1], 'Editor-HTML': document.getElementById('editor_html')?.value || '' } })" }
 	>{ tr("publish") }</button>
 }

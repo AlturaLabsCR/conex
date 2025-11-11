@@ -48,14 +48,14 @@ func main() {
 			SMTPAuth:     smtpAuth,
 			ServerSecret: config.ServerSecret,
 			CookieName:   config.CookieName,
-			CookiePath:   config.RootPrefix,
+			CookiePath:   config.Endpoints[config.RootPath],
 		},
 	)
 
 	routes := router.Routes(handler)
 
 	routes.Handle(
-		"GET "+config.AssetsPath,
+		"GET "+config.Endpoints[config.AssetsPath],
 		middleware.DisableCacheInDevMode(
 			config.Production,
 			http.FileServer(http.FS(assetsFS)),

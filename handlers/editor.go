@@ -12,6 +12,13 @@ import (
 func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Error("error retrieving session from ctx")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	s := r.PathValue("site")
 
 	queries := db.New(h.DB())
@@ -20,6 +27,12 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.Log().Error("error loading sites", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if site.SiteUser != session.SessionUser {
+		h.Log().Debug("tried to load a site without ownership", "user_id", session.SessionUser, "site_slug", site.SiteSlug)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -45,9 +58,16 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		h.Log().Error("invalid publish request", "data", data)
 		return
 	}
 	defer r.Body.Close()
+
+	if data.Title == "" {
+		http.Error(w, "Invalid Title", http.StatusBadRequest)
+		h.Log().Error("title is empty")
+		return
+	}
 
 	queries := db.New(h.DB())
 

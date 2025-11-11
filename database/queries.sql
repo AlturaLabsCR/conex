@@ -10,6 +10,9 @@ SELECT * FROM users WHERE user_email = ?;
 -- name: GetSites :many
 SELECT * FROM sites;
 
+-- name: GetSlugs :many
+SELECT site_slug FROM sites;
+
 -- name: GetSiteByID :one
 SELECT * FROM sites WHERE site_id = ?;
 
@@ -102,7 +105,7 @@ SELECT EXISTS (
 -- name: InsertSession :one
 INSERT INTO sessions(
   session_user,
-  session_os,
+  session_device,
   session_last_login_unix
 ) VALUES (?, ?, ?) RETURNING session_id;
 

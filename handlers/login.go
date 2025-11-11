@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"net/mail"
 	"strconv"
-	"strings"
 	"time"
+
+	"github.com/mileusna/useragent"
 
 	"app/config"
 	"app/internal/db"
@@ -49,7 +50,12 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	email := r.FormValue("email")
 	if _, err := mail.ParseAddress(email); err != nil {
-		templates.RegisterNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_email")).Render(ctx, w)
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_email"),
+		).Render(ctx, w)
 		h.Log().Debug("failed to parse email address", "email", email)
 		return
 	}
@@ -57,7 +63,12 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(h.DB())
 
 	if _, err := queries.GetUserByEmail(ctx, email); err == nil {
-		templates.RegisterNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_email")).Render(ctx, w)
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("existent_email"),
+		).Render(ctx, w)
 		h.Log().Debug("email exists", "email", email)
 		return
 	}
@@ -65,7 +76,12 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	token, err := h.issueOTP(h.Translator(r), email)
 	if err != nil {
 		h.Log().Error("error issuing otp", "error", err)
-		templates.RegisterNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_otp")).Render(ctx, w)
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_otp"),
+		).Render(ctx, w)
 		return
 	}
 
@@ -88,14 +104,24 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	if _, err := mail.ParseAddress(email); err != nil {
 		h.Log().Debug("failed to parse email address", "email", email)
-		templates.RegisterConfirmEmailNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_email"), token, email).Render(ctx, w)
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_email"),
+		).Render(ctx, w)
 		return
 	}
 
 	otp := r.FormValue("otp")
 
 	if err := h.verifyOTP(key, email, token, otp); err != nil {
-		templates.RegisterConfirmEmailNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_otp"), token, email).Render(ctx, w)
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_otp"),
+		).Render(ctx, w)
 		h.Log().Debug("failed to verify otp", "error", err)
 		return
 	}
@@ -109,7 +135,12 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 		UserModifiedUnix: now,
 		UserDeleted:      0,
 	}); err != nil {
-		templates.RegisterConfirmEmailNotice(templates.NoticeError, tr, token, email, tr("error"), tr("register_error")).Render(ctx, w)
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("register_error"),
+		).Render(ctx, w)
 		h.Log().Error("error registering user", "error", err)
 		return
 	}
@@ -120,7 +151,7 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 		h.Log().Debug("failed to login user", "error", err)
 	}
 
-	templates.Redirect(config.DashboardPath).Render(ctx, w)
+	templates.Redirect(config.Endpoints[config.DashboardPath]).Render(ctx, w)
 }
 
 func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +159,7 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.verifyClient(w, r, false)
 	if err == nil {
-		http.Redirect(w, r, config.DashboardPath, http.StatusSeeOther)
+		http.Redirect(w, r, config.Endpoints[config.DashboardPath], http.StatusSeeOther)
 		return
 	}
 
@@ -145,7 +176,12 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	email := r.FormValue("email")
 	if _, err := mail.ParseAddress(email); err != nil {
-		templates.LoginNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_email")).Render(ctx, w)
+		templates.Notice(
+			templates.LoginNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_email"),
+		).Render(ctx, w)
 		h.Log().Debug("failed to parse email address", "email", email)
 		return
 	}
@@ -153,7 +189,12 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(h.DB())
 
 	if _, err := queries.GetUserByEmail(ctx, email); err != nil {
-		templates.LoginNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_email")).Render(ctx, w)
+		templates.Notice(
+			templates.LoginNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("nonexistent_email"),
+		).Render(ctx, w)
 		h.Log().Debug("email does not exist", "email", email)
 		return
 	}
@@ -161,7 +202,12 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	token, err := h.issueOTP(h.Translator(r), email)
 	if err != nil {
 		h.Log().Error("error issuing otp", "error", err)
-		templates.LoginNotice(templates.NoticeError, tr, tr("error"), tr("login_error")).Render(ctx, w)
+		templates.Notice(
+			templates.LoginNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("login_error"),
+		).Render(ctx, w)
 		return
 	}
 
@@ -186,13 +232,13 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf",
 		Value:    "",
-		Path:     config.RootPrefix,
+		Path:     config.Endpoints[config.RootPath],
 		Expires:  time.Unix(0, 0),
 		HttpOnly: false,
 		Secure:   r.TLS != nil,
 	})
 
-	http.Redirect(w, r, config.LoginPath, http.StatusSeeOther)
+	http.Redirect(w, r, config.Endpoints[config.LoginPath], http.StatusSeeOther)
 }
 
 func (h *Handler) LogoutAskedSession(w http.ResponseWriter, r *http.Request) {
@@ -232,7 +278,7 @@ func (h *Handler) LogoutAskedSession(w http.ResponseWriter, r *http.Request) {
 	sessions = append(sessions[:index], sessions[index+1:]...)
 
 	if len(sessions) == 0 || askedSession == session.SessionID {
-		templates.Redirect(config.LoginPath).Render(ctx, w)
+		templates.Redirect(config.Endpoints[config.LoginPath]).Render(ctx, w)
 		return
 	}
 
@@ -255,14 +301,24 @@ func (h *Handler) LoginConfirm(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	if _, err := mail.ParseAddress(email); err != nil {
 		h.Log().Debug("failed to parse email address", "email", email)
-		templates.LoginConfirmEmailNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_email"), token, email).Render(ctx, w)
+		templates.Notice(
+			templates.LoginNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_email"),
+		).Render(ctx, w)
 		return
 	}
 
 	otp := r.FormValue("otp")
 
 	if err := h.verifyOTP(key, email, token, otp); err != nil {
-		templates.LoginConfirmEmailNotice(templates.NoticeWarn, tr, tr("warn"), tr("invalid_otp"), token, email).Render(ctx, w)
+		templates.Notice(
+			templates.LoginNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_otp"),
+		).Render(ctx, w)
 		h.Log().Debug("failed to verify otp", "error", err)
 		return
 	}
@@ -271,7 +327,7 @@ func (h *Handler) LoginConfirm(w http.ResponseWriter, r *http.Request) {
 		h.Log().Debug("failed to login user", "error", err)
 	}
 
-	templates.Redirect(config.DashboardPath).Render(ctx, w)
+	templates.Redirect(config.Endpoints[config.DashboardPath]).Render(ctx, w)
 }
 
 func (h *Handler) loginClient(w http.ResponseWriter, r *http.Request, email string) error {
@@ -283,11 +339,14 @@ func (h *Handler) loginClient(w http.ResponseWriter, r *http.Request, email stri
 		return err
 	}
 
+	ua := useragent.Parse(r.UserAgent())
+	device := ua.OS + ", " + ua.Name
+
 	now := time.Now().Unix()
 
 	sessionID, err := queries.InsertSession(r.Context(), db.InsertSessionParams{
 		SessionUser:          user.UserID,
-		SessionOs:            getClientOS(r),
+		SessionDevice:        device,
 		SessionLastLoginUnix: now,
 	})
 	if err != nil {
@@ -298,7 +357,7 @@ func (h *Handler) loginClient(w http.ResponseWriter, r *http.Request, email stri
 	_, err = h.Sessions.JWTSet(w, r, db.Session{
 		SessionID:            sessionID,
 		SessionUser:          user.UserID,
-		SessionOs:            getClientOS(r),
+		SessionDevice:        device,
 		SessionLastLoginUnix: now,
 	})
 	if err != nil {
@@ -314,7 +373,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 
 	session, expired, err := h.Sessions.JWTValidate(r)
 	if err != nil {
-		templates.Redirect(config.LoginPath)
+		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, err
 	}
 
@@ -322,23 +381,23 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 
 	exists, err := queries.SessionExists(ctx, session.SessionID)
 	if err != nil {
-		templates.Redirect(config.LoginPath)
+		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, err
 	}
 
 	if exists != 1 {
-		templates.Redirect(config.LoginPath)
+		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, fmt.Errorf("session does not exist")
 	}
 
 	exists, err = queries.UserExists(ctx, session.SessionUser)
 	if err != nil {
-		templates.Redirect(config.LoginPath)
+		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, err
 	}
 
 	if exists != 1 {
-		templates.Redirect(config.LoginPath)
+		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, fmt.Errorf("user does not exist")
 	}
 
@@ -361,7 +420,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 		_, err = h.Sessions.JWTSet(w, r, db.Session{
 			SessionID:            session.SessionID,
 			SessionUser:          session.SessionUser,
-			SessionOs:            session.SessionOs,
+			SessionDevice:        session.SessionDevice,
 			SessionLastLoginUnix: now,
 		})
 		if err != nil {
@@ -374,7 +433,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf",
 		Value:    newCSRFToken,
-		Path:     config.RootPrefix,
+		Path:     config.Endpoints[config.RootPath],
 		Expires:  time.Now().Add(time.Hour),
 		HttpOnly: false,
 		Secure:   r.TLS != nil,
@@ -467,25 +526,6 @@ func randStr() (string, error) {
 	}
 
 	return base64.RawURLEncoding.EncodeToString(b), nil
-}
-
-func getClientOS(r *http.Request) string {
-	userAgent := r.UserAgent()
-
-	switch {
-	case strings.Contains(userAgent, "Windows"):
-		return "Windows"
-	case strings.Contains(userAgent, "Mac OS") || strings.Contains(userAgent, "Macintosh"):
-		return "macOS"
-	case strings.Contains(userAgent, "Linux"):
-		return "Linux"
-	case strings.Contains(userAgent, "Android"):
-		return "Android"
-	case strings.Contains(userAgent, "iPhone") || strings.Contains(userAgent, "iPad") || strings.Contains(userAgent, "iOS"):
-		return "iOS"
-	default:
-		return "Unknown"
-	}
 }
 
 func otp() (string, error) {

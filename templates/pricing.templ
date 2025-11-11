@@ -9,7 +9,7 @@ templ Pricing(tr func(string) string) {
 templ PricingHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<nav class="m-4">
-			<a href={ config.DashboardPath }>
+			<a href={ config.Endpoints[config.DashboardPath] }>
 				← { tr("back_to") } { tr("my_sites") }
 			</a>
 		</nav>

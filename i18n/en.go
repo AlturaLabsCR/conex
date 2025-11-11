@@ -6,12 +6,14 @@ var EN = map[string]string{
 	"home_description": "Create a website in minutes!",
 
 	// misc
-	"info":          "Info",
-	"warn":          "Attention",
-	"error":         "Error",
-	"email":         "Email",
-	"invalid_email": "Invalid email",
-	"invalid_otp":   "Invalid code",
+	"info":              "Info",
+	"warn":              "Attention",
+	"error":             "Error",
+	"email":             "Email",
+	"invalid_email":     "Invalid email address",
+	"nonexistent_email": "Could not find your account",
+	"existent_email":    "Account already exists",
+	"invalid_otp":       "Invalid code",
 
 	// home
 	"create_site":      "Create website",
@@ -23,14 +25,15 @@ var EN = map[string]string{
 	"back_to": "Back to",
 
 	// dashboard
-	"my_sites":                  "My sites",
-	"create_website":            "Create website",
-	"pricing":                   "Pricing",
-	"dashboard_create_site":     "Create new site",
-	"new_site_name":             "Site title",
-	"new_site_endpoint":         "Site URL",
-	"dashboard_new_site_editor": "Create",
-	"dashboard_edit_site":       "Edit",
+	"my_sites":                     "My sites",
+	"create_website":               "Create website",
+	"pricing":                      "Pricing",
+	"dashboard_create_site":        "Create new site",
+	"new_site_name":                "Site title",
+	"new_site_endpoint":            "Site URL",
+	"dashboard_new_site_editor":    "Create",
+	"dashboard_edit_site":          "Edit",
+	"dashboard_slug_not_available": "This site is not available, try another",
 
 	// register
 	"register":                      "Register",
@@ -64,5 +67,6 @@ var EN = map[string]string{
 	"logout_device":   "Log out",
 
 	// sites
-	"not_found": "Website not found",
+	"not_found":      "Website not found",
+	"not_found_long": "This website either does not exist, or is not public",
 }

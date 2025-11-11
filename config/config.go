@@ -11,24 +11,41 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type Endpoint int
+
+const (
+	RootPath Endpoint = iota
+	AssetsPath
+	EditorPath
+	DashboardPath
+	RegisterPath
+	LoginPath
+	LogoutPath
+	PricingPath
+	AccountPath
+)
+
+var Endpoints = map[Endpoint]string{
+	RootPath:      "/",
+	AssetsPath:    "assets/",
+	EditorPath:    "editor/",
+	DashboardPath: "dashboard",
+	RegisterPath:  "register",
+	LoginPath:     "login",
+	LogoutPath:    "logout",
+	PricingPath:   "pricing",
+	AccountPath:   "account",
+}
+
 var (
 	// Default values are initialized here, these will be used unless overwritten
 	// by the Init() method
 
 	AppTitle   string = "CONEX.cr"
-	RootPrefix string = "/"
 	CookieName string = "session"
 
 	// Depends on the RootPrefix, so, must be initialized after checking for any
 	// overwrites of RootPrefix
-	AssetsPath    string
-	EditorPath    string
-	DashboardPath string
-	RegisterPath  string
-	LoginPath     string
-	LogoutPath    string
-	PricingPath   string
-	AccountPath   string
 
 	CSRFHeaderName = "X-CSRF-Token"
 
@@ -79,7 +96,7 @@ func Init() {
 
 	r := os.Getenv(envRoot)
 	if r != "" {
-		RootPrefix = r
+		Endpoints[RootPath] = r
 	}
 
 	c := os.Getenv(envCookieName)
@@ -87,14 +104,13 @@ func Init() {
 		CookieName = c
 	}
 
-	AssetsPath = RootPrefix + "assets/"
-	EditorPath = RootPrefix + "editor/"
-	DashboardPath = RootPrefix + "dashboard"
-	RegisterPath = RootPrefix + "register"
-	LoginPath = RootPrefix + "login"
-	LogoutPath = RootPrefix + "logout"
-	PricingPath = RootPrefix + "pricing"
-	AccountPath = RootPrefix + "account"
+	// Prefix all endpoint paths with Endpoints[RootPath]
+	for key, path := range Endpoints {
+		if key == RootPath {
+			continue
+		}
+		Endpoints[key] = Endpoints[RootPath] + path
+	}
 
 	Production = os.Getenv(envProd) == "1"
 

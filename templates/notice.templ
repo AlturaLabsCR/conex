@@ -6,8 +6,8 @@ const (
 	NoticeError
 )
 
-templ Notice(level int, header, message string) {
-	<div id="registerDiv">
+templ Notice(id string, level int, header, message string) {
+	<div id={ id }>
 		<article
 			if level == NoticeInfo {
 				class="info"

@@ -40,7 +40,7 @@ func unixDateLong(timestamp int64) string {
 templ AccountHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<nav class="m-4">
-			<a href={ config.DashboardPath }>
+			<a href={ config.Endpoints[config.DashboardPath] }>
 				← { tr("back_to") } { tr("my_sites") }
 			</a>
 		</nav>
@@ -64,7 +64,7 @@ templ SessionsTable(tr func(string) string, session db.Session, sessions []db.Se
 			</tr>
 			for _, s := range sessions {
 				<tr>
-					<td>{ s.SessionOs }</td>
+					<td>{ s.SessionDevice }</td>
 					if session.SessionID == s.SessionID {
 						<td>{ tr("session_current") }</td>
 					} else {
@@ -73,7 +73,7 @@ templ SessionsTable(tr func(string) string, session db.Session, sessions []db.Se
 					<td align="right">
 						<button
 							type="button"
-							data-on:click={ "@delete('" + config.LogoutPath + "/" + strconv.FormatInt(s.SessionID, 10) +
+							data-on:click={ "@delete('" + config.Endpoints[config.LogoutPath] + "/" + strconv.FormatInt(s.SessionID, 10) +
               "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 						>
 							{ tr("logout_device") }
