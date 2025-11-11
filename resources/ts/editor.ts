@@ -1,6 +1,7 @@
 import EditorJS from '@editorjs/editorjs'
 import Header from '@editorjs/header'
 import List from '@editorjs/list'
+import Table from '@editorjs/table'
 import edjsHTML from 'editorjs-html'
 
 interface SiteData {
@@ -10,7 +11,10 @@ interface SiteData {
 }
 
 let isFirstLoad = false
-const edjsParser = edjsHTML()
+
+const edjsParser = edjsHTML({
+  table: tableParser,
+});
 
 export async function initEditor(site: string) {
   let siteData: SiteData | null = null;
@@ -47,7 +51,8 @@ export async function initEditor(site: string) {
 
     tools: {
       header: Header,
-      list: List
+      list: List,
+      table: Table,
     },
 
     placeholder: "Lorem ipsum dolor sit amet.",
@@ -144,3 +149,50 @@ export function getEditorHtml(): string {
   return htmlEl?.value || '';
 }
 (window as any).getEditorHtml = getEditorHtml;
+
+function tableParser(block) {
+  const { withHeadings, content } = block.data;
+
+  if (!Array.isArray(content) || content.length === 0) {
+    return "";
+  }
+
+  let html = "<table>";
+
+  // if the first row should be used as a header
+  if (withHeadings) {
+    const headers = content[0];
+    html += "<thead><tr>";
+    headers.forEach(cell => {
+      html += `<th>${cell}</th>`;
+    });
+    html += "</tr></thead>";
+
+    // the rest of the rows go in the body
+    if (content.length > 1) {
+      html += "<tbody>";
+      for (let i = 1; i < content.length; i++) {
+        html += "<tr>";
+        content[i].forEach(cell => {
+          html += `<td>${cell}</td>`;
+        });
+        html += "</tr>";
+      }
+      html += "</tbody>";
+    }
+  } else {
+    // no headings, everything goes in <tbody>
+    html += "<tbody>";
+    content.forEach(row => {
+      html += "<tr>";
+      row.forEach(cell => {
+        html += `<td>${cell}</td>`;
+      });
+      html += "</tr>";
+    });
+    html += "</tbody>";
+  }
+
+  html += "</table>";
+  return html;
+}

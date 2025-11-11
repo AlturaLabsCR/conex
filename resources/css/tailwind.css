@@ -52,7 +52,48 @@ body {
 
 p {
   @apply
-  pb-4
+  py-2
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply
+  font-bold
+}
+
+h1 {
+  @apply
+  text-4xl
+}
+
+h2 {
+  @apply
+  text-3xl
+}
+
+h3 {
+  @apply
+  text-2xl
+}
+
+h4 {
+  @apply
+  text-lg
+}
+
+ul, ol {
+  @apply
+  list-inside
+  my-2
+}
+
+ul {
+  @apply
+  list-disc
+}
+
+ol {
+  @apply
+  list-decimal
 }
 
 .conex-banner nav {
@@ -237,6 +278,16 @@ table {
   mx-0
   border-collapse
   table-auto
+}
+
+thead {
+  @apply
+  font-bold
+}
+
+th {
+  @apply
+  text-left
 }
 
 th, td {
@@ -468,6 +519,7 @@ article.error {
 /* hover over popups items */
 .ce-popover__container .ce-popover-item,
 .ce-popover-item__icon,
+.tc-popover__item,
 .ce-inline-tool {
   @apply
   dark:hover:bg-gray-900!
@@ -478,31 +530,56 @@ article.error {
   dark:bg-gray-700
 }
 
+.tc-popover__item-icon {
+  @apply
+  dark:bg-black!
+  dark:border-none!
+}
+
+.tc-row {
+  @apply
+  bg-transparent!
+}
+
 /* floating popups and buttons */
 .ce-popover--opened>.ce-popover__container,
 .ce-popover__search,
 .ce-inline-tool-input,
 .ce-toolbar__plus,
-.ce-toolbar__settings-btn {
+.ce-toolbar__settings-btn,
+.cdx-list-start-with-field,
+.cdx-list__checkbox-check,
+.tc-add-column,
+.tc-add-column *,
+.tc-cell.tc-cell--selected,
+.tc-row.tc-row--selected,
+.tc-popover.tc-popover--opened {
   @apply
   dark:text-white
-  dark:bg-gray-950
-  dark:border-gray-700
+  dark:bg-gray-950!
+  dark:border-gray-700!
 }
 
 /* floating buttons */
 .ce-toolbar__plus,
-.ce-toolbar__settings-btn {
+.ce-toolbar__settings-btn,
+.tc-add-column,
+.tc-add-row {
   @apply
-  dark:hover:border-gray-500
-  dark:hover:bg-gray-900
+  dark:hover:border-gray-500!
+  dark:hover:bg-gray-900!
 }
 
 /* selection for example when clicking click to tune */
 .ce-block.ce-block--selected .ce-block__content,
 *::selection {
   @apply
-  dark:bg-blue-500/30!
+  dark:bg-blue-500/10!
+  rounded-lg
+}
+
+.tc-table *, .tc-table {
+  border-color: var(--conex-color-fg-unemph) !important;
 }
 
 dialog.open {

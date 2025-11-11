@@ -38,7 +38,7 @@ templ DashboardHeader(tr func(string) string) {
 }
 
 templ Dashboard(tr func(string) string, sites []db.SitesWithMetric) {
-	@CardsGrid(tr, sites)
+	@CardsGrid(tr, sites, true)
 	@Dialog(tr, "dashboard-modal-new-site", tr("dashboard_create_site"), newSiteForm(tr))
 }
 

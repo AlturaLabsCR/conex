@@ -6,7 +6,7 @@ import (
 	"app/internal/db"
 )
 
-templ CardsGrid(tr func(string) string, sites []db.SitesWithMetric) {
+templ CardsGrid(tr func(string) string, sites []db.SitesWithMetric, editor bool) {
 	if len(sites) > 0 {
 		<section class="mb-24">
 			<div class="mb-4">
@@ -15,15 +15,15 @@ templ CardsGrid(tr func(string) string, sites []db.SitesWithMetric) {
 					<option value="created">{ tr("recently_created") }</option>
 				</select>
 			</div>
-			@cards(tr, sites)
+			@cards(tr, sites, editor)
 		</section>
 	}
 }
 
-templ cards(tr func(string) string, ss []db.SitesWithMetric) {
+templ cards(tr func(string) string, ss []db.SitesWithMetric, editor bool) {
 	<div class="conex-cards">
 		for _, s := range ss {
-			@card(tr, s, "", true)
+			@card(tr, s, "", editor)
 		}
 	</div>
 }
