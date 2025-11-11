@@ -2,6 +2,7 @@ import EditorJS from '@editorjs/editorjs'
 import Header from '@editorjs/header'
 import List from '@editorjs/list'
 import Table from '@editorjs/table'
+import ImageTool from '@editorjs/image';
 import edjsHTML from 'editorjs-html'
 
 interface SiteData {
@@ -53,6 +54,24 @@ export async function initEditor(site: string) {
       header: Header,
       list: List,
       table: Table,
+      image: {
+        class: ImageTool,
+        config: {
+          uploader: {
+            uploadByFile: uploadFile,
+            uploadByUrl: async (url: string) => ({
+              success: 1,
+              file: { url },
+            }),
+          },
+          features: {
+            background: false,
+            caption: false,
+            stretch: false,
+            border: false,
+          },
+        }
+      }
     },
 
     placeholder: "Lorem ipsum dolor sit amet.",
@@ -150,7 +169,12 @@ export function getEditorHtml(): string {
 }
 (window as any).getEditorHtml = getEditorHtml;
 
-function tableParser(block) {
+function tableParser(block: {
+  data: {
+    withHeadings: boolean;
+    content: string[][];
+  };
+}): string {
   const { withHeadings, content } = block.data;
 
   if (!Array.isArray(content) || content.length === 0) {
@@ -195,4 +219,54 @@ function tableParser(block) {
 
   html += "</table>";
   return html;
+}
+
+/**
+ * Uploads a file to the provided endpoint and returns Editor.js-compatible response.
+ * @param {File} file - the file selected from input or drag-and-drop
+ * @param {string} endpoint - the upload API endpoint (e.g. '/upload')
+ * @returns {Promise<{ success: number, file: { url: string } }>}
+ */
+async function uploadFile(
+  file: File,
+  endpoint: string = "/upload"
+): Promise<{ success: number; file: { url: string } }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // Extract CSRF token from cookie named "csrf"
+  const csrfToken =
+    document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("csrf="))
+      ?.split("=")[1] || "";
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      body: formData,
+      headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    // Backend should return JSON like:
+    // { success: 1, file: { url: "https://example.com/file.jpg", width: 800, height: 600 } }
+    const data = await response.json();
+
+    if (data && data.success === 1 && data.file?.url) {
+      return data;
+    }
+
+    throw new Error("Invalid response from server");
+  } catch (error) {
+    console.error("File upload error:", error);
+    return {
+      success: 0,
+      file: { url: "" },
+    };
+  }
 }

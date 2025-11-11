@@ -5,6 +5,12 @@ import (
 	"app/internal/db"
 )
 
+const (
+	PublishNoticeID        string = "publishNotice"
+	UploadBannerNoticeID   string = "uploadBannerNotice"
+	UpdateSettingsNoticeID string = "uploadBannerNotice"
+)
+
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL string) {
 	<nav class="m-4">
 		<a href={ config.Endpoints[config.DashboardPath] }>
@@ -16,7 +22,16 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 				data-target="dashboard-modal-publish"
 				class="icon upload"
 			></button>
-			<button class="icon gear"></button>
+			<!-- <button -->
+			<!-- 	onclick="toggleModal(event)" -->
+			<!-- 	data-target="dashboard-modal-banner" -->
+			<!-- 	class="icon image" -->
+			<!-- ></button> -->
+			<button
+				onclick="toggleModal(event)"
+				data-target="dashboard-modal-settings"
+				class="icon gear"
+			></button>
 		</div>
 	</nav>
 	<header class="conex-banner">
@@ -61,13 +76,32 @@ templ Editor(tr func(string) string, site db.SitesWithMetric) {
     </script>
 	</section>
 	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr, site.SiteSlug))
+	@Dialog(tr, "dashboard-modal-banner", tr("editor_banner"), uploadBannerForm(tr))
+	@Dialog(tr, "dashboard-modal-settings", tr("editor_settings"), updateSettingsForm(tr))
 }
 
 templ publishSiteForm(tr func(string) string, site string) {
+	<div id={ PublishNoticeID }></div>
 	<div class="hidden" data-signals={ "{ slug: '" + site + "' }" }></div>
 	<textarea id="editor_html" class="hidden" disabled></textarea>
 	<button
 		class="text-white! bg-black dark:text-black! dark:bg-white"
-		data-on:click={ "$content = getEditorHtml(); @put('" + config.Endpoints[config.EditorPath] + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1], 'Editor-HTML': document.getElementById('editor_html')?.value || '' } })" }
+		data-on:click={ "$content = getEditorHtml(); @put('" + config.Endpoints[config.EditorPath] + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 	>{ tr("publish") }</button>
+}
+
+templ uploadBannerForm(tr func(string) string) {
+	<div id={ UploadBannerNoticeID }></div>
+	<input type="file" data-bind:files multiple/>
+	<button
+		class="text-white! bg-black dark:text-black! dark:bg-white"
+		data-attr:disabled="!$files.length"
+	>{ tr("upload_image") }</button>
+}
+
+templ updateSettingsForm(tr func(string) string) {
+	<div id={ UploadBannerNoticeID }></div>
+	<button
+		class="text-white! bg-black dark:text-black! dark:bg-white"
+	>{ tr("editor_update_settings") }</button>
 }

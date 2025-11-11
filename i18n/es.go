@@ -14,6 +14,8 @@ var ES = map[string]string{
 	"nonexistent_email": "No se encontró esta cuenta",
 	"existent_email":    "Esta cuenta ya existe",
 	"invalid_otp":       "Código incorrecto",
+	"success":           "Éxito",
+	"try_later":         "Inténtalo de nuevo más tarde",
 
 	// home
 	"create_site":      "Crear un sitio",
@@ -34,6 +36,7 @@ var ES = map[string]string{
 	"dashboard_new_site_editor":    "Crear",
 	"dashboard_edit_site":          "Editar",
 	"dashboard_slug_not_available": "Este sitio no está disponible, intenta otro",
+	"dashboard_published_site":     "Se ha publicado el contenido",
 
 	// register
 	"register":                      "Registrarse",
@@ -54,10 +57,14 @@ var ES = map[string]string{
 	"log_out": "Cerrar sesión",
 
 	// editor
-	"editor_title":       "Título",
-	"editor_description": "Descripción del nuevo sitio",
-	"editor_publish":     "Publicar cambios",
-	"publish":            "Publicar",
+	"editor_title":           "Título",
+	"editor_description":     "Descripción del nuevo sitio",
+	"editor_publish":         "Publicar cambios",
+	"publish":                "Publicar",
+	"editor_empty_title":     "El título está vacío",
+	"editor_banner":          "Banner del sitio",
+	"editor_settings":        "Ajustes del sitio",
+	"editor_update_settings": "Actualizar",
 
 	// account
 	"my_account":      "Mi cuenta",

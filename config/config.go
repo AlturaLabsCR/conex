@@ -23,6 +23,7 @@ const (
 	LogoutPath
 	PricingPath
 	AccountPath
+	UploadPath
 )
 
 var Endpoints = map[Endpoint]string{
@@ -35,6 +36,7 @@ var Endpoints = map[Endpoint]string{
 	LogoutPath:    "logout",
 	PricingPath:   "pricing",
 	AccountPath:   "account",
+	UploadPath:    "upload",
 }
 
 var (

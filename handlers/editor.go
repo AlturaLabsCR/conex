@@ -46,11 +46,17 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	tr := h.Translator(r)
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
 	if !ok {
 		h.Log().Error("error retrieving session from ctx")
-		w.WriteHeader(http.StatusInternalServerError)
+		templates.Notice(
+			templates.PublishNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
 		return
 	}
 
@@ -64,15 +70,25 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	var data PublishData
 
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		h.Log().Error("invalid publish request", "data", data)
+		templates.Notice(
+			templates.PublishNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
 		return
 	}
 	defer r.Body.Close()
 
 	if data.Title == "" {
-		http.Error(w, "Invalid Title", http.StatusBadRequest)
 		h.Log().Error("title is empty")
+		templates.Notice(
+			templates.PublishNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("editor_empty_title"),
+		).Render(ctx, w)
 		return
 	}
 
@@ -80,8 +96,13 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	site, err := queries.GetSiteBySlug(ctx, data.Slug)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		h.Log().Error("error querying site", "error", err)
+		templates.Notice(
+			templates.PublishNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
 		return
 	}
 
@@ -103,4 +124,11 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	})
 
 	h.Log().Debug("updated site", "site_id", site.SiteID, "site_html_published", data.Content)
+
+	templates.Notice(
+		templates.PublishNoticeID,
+		templates.NoticeInfo,
+		tr("success"),
+		tr("dashboard_published_site"),
+	).Render(ctx, w)
 }

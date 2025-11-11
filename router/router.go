@@ -50,6 +50,8 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 	router.Handle("POST "+config.Endpoints[config.EditorPath], middleware.With(protected, h.NewSite))
 	router.Handle("PUT "+config.Endpoints[config.EditorPath], middleware.With(protected, h.Publish))
 
+	router.Handle("POST "+config.Endpoints[config.UploadPath], middleware.With(protected, h.Upload))
+
 	router.HandleFunc("GET "+config.Endpoints[config.RootPath]+"{site}", h.Site)
 
 	return router

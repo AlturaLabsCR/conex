@@ -14,6 +14,8 @@ var EN = map[string]string{
 	"nonexistent_email": "Could not find your account",
 	"existent_email":    "Account already exists",
 	"invalid_otp":       "Invalid code",
+	"success":           "Success",
+	"try_later":         "Try again later",
 
 	// home
 	"create_site":      "Create website",
@@ -34,6 +36,7 @@ var EN = map[string]string{
 	"dashboard_new_site_editor":    "Create",
 	"dashboard_edit_site":          "Edit",
 	"dashboard_slug_not_available": "This site is not available, try another",
+	"dashboard_published_site":     "Published site content",
 
 	// register
 	"register":                      "Register",
@@ -54,10 +57,14 @@ var EN = map[string]string{
 	"log_out": "Log out",
 
 	// editor
-	"editor_title":       "New site title",
-	"editor_description": "New site description",
-	"editor_publish":     "Publish changes",
-	"publish":            "Publish",
+	"editor_title":           "New site title",
+	"editor_description":     "New site description",
+	"editor_publish":         "Publish changes",
+	"publish":                "Publish",
+	"editor_empty_title":     "Title is empty",
+	"editor_banner":          "Site banner",
+	"editor_settings":        "Site settings",
+	"editor_update_settings": "Update",
 
 	// account
 	"my_account":      "My account",
