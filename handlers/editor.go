@@ -47,6 +47,13 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Error("error retrieving session from ctx")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	type PublishData struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -71,7 +78,18 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	queries := db.New(h.DB())
 
-	site, _ := queries.GetSiteBySlug(ctx, data.Slug)
+	site, err := queries.GetSiteBySlug(ctx, data.Slug)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.Log().Error("error querying site", "error", err)
+		return
+	}
+
+	if site.SiteUser != session.SessionUser {
+		w.WriteHeader(http.StatusUnauthorized)
+		h.Log().Error("user does not own site", "site_user", session.SessionUser)
+		return
+	}
 
 	queries.UpdateSite(ctx, db.UpdateSiteParams{
 		SiteID:            site.SiteID,
