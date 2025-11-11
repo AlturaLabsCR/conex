@@ -8,10 +8,11 @@
 	- [X] Account logins, devices, etc
 	- [X] site registration
 	- [X] site update
-	- [ ] Finish templates conditions
-	- [ ] Lock down endpoints
-	- [ ] Banner
-	- [ ] Upload images
+	- [X] Finish templates conditions
+	- [X] Lock down endpoints
+	- [ ] Tags management
+	- [ ] New/Update banner
+	- [ ] S3 / Upload images
 	- [ ] Clean logger, add useful info
 	- [ ] payments, permission update
 	- [ ] site sync

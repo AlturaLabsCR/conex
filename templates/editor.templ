@@ -42,14 +42,14 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 			<textarea
 				id="editor_title"
 				data-bind:title
-				class="font-bold text-4xl resize-none text-center overflow-hidden w-full max-w-4xl mx-auto h-auto outline-none"
+				class="font-bold text-4xl resize-none text-center overflow-hidden w-full max-w-4xl mx-auto h-auto outline-none focus:underline"
 				rows="1"
 				placeholder={ tr("editor_title") }
 			></textarea>
 			<textarea
 				id="editor_description"
 				data-bind:description
-				class="resize-none text-center overflow-hidden w-full max-w-4xl mx-auto outline-none"
+				class="resize-none text-center overflow-hidden w-full max-w-4xl mx-auto outline-none focus:underline"
 				rows="1"
 				placeholder={ tr("editor_description") }
 			></textarea>
