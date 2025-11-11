@@ -14,7 +14,7 @@
     "conex": "^1.2.1",
     "editorjs-html": "^4.0.5",
     "electron-to-chromium": "^1.5.237",
-    "esbuild": "^0.25.11",
+    "esbuild": "^0.27.0",
     "escalade": "^3.2.0",
     "fraction.js": "^5.3.4",
     "nanoid": "^5.1.6",
