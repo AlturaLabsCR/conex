@@ -16,24 +16,21 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric) {
 				data-target="dashboard-modal-publish"
 				class="icon upload"
 			></button>
-			<button
-				class="icon eye"
-				onclick={ templ.JSFuncCall("window.location.assign", config.RootPrefix+site.SiteSlug) }
-			></button>
 			<button class="icon gear"></button>
 		</div>
 	</nav>
 	<header class="conex-banner">
-		<img src={ config.AssetsPath + "default-banner.svg" }/>
 		<div class="conex-banner-content flex items-center justify-center gap-y-2">
 			<textarea
 				id="editor_title"
+				data-bind:title
 				class="font-bold text-4xl resize-none text-center overflow-hidden w-full max-w-4xl mx-auto h-auto outline-none"
 				rows="1"
 				placeholder={ tr("editor_title") }
 			></textarea>
 			<textarea
 				id="editor_description"
+				data-bind:description
 				class="resize-none text-center overflow-hidden w-full max-w-4xl mx-auto outline-none"
 				rows="1"
 				placeholder={ tr("editor_description") }
@@ -60,12 +57,14 @@ templ Editor(tr func(string) string, site db.SitesWithMetric) {
       });
     </script>
 	</section>
-	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr))
+	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr, site.SiteSlug))
 }
 
-templ publishSiteForm(tr func(string) string) {
+templ publishSiteForm(tr func(string) string, site string) {
+	<div class="hidden" data-signals={ "{ slug: '" + site + "' }" }></div>
+	<textarea id="editor_html" class="hidden" disabled></textarea>
 	<button
 		class="!text-white bg-black dark:!text-black dark:bg-white"
-		data-on:click={ "@post(' " + config.EditorPath + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+		data-on:click={ "$content = getEditorHtml(); @put('" + config.EditorPath + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1], 'Editor-HTML': document.getElementById('editor_html')?.value || '' } })" }
 	>{ tr("publish") }</button>
 }

@@ -144,6 +144,27 @@ INSERT INTO sites (
   ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 ) RETURNING site_id;
 
+-- name: UpdateSite :exec
+UPDATE sites SET
+  site_title = ?,
+  site_description = ?,
+  site_tags_json = ?,
+  site_html_published = ?,
+  site_modified_unix = ?,
+  site_published = ?,
+  site_deleted = ?
+WHERE site_id = ?;
+
+-- name: PublishSite :exec
+UPDATE sites SET
+  site_published = 1
+WHERE site_id = ?;
+
+-- name: UnpublishSite :exec
+UPDATE sites SET
+  site_published = 0
+WHERE site_id = ?;
+
 -- name: InsertMetric :one
 INSERT INTO site_metrics (
   metric_site,

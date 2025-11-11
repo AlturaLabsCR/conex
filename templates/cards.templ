@@ -48,13 +48,15 @@ templ card(tr func(string) string, s db.SitesWithMetric, editor bool) {
 				<p class="description">{ s.SiteDescription }</p>
 			</div>
 		</a>
-		<button
-			class="absolute top-1 right-2 !w-fit text-sm bg-black/5 dark:bg-white/10"
-			type="button"
-			onclick={ templ.JSFuncCall("window.location.assign", config.EditorPath+s.SiteSlug) }
-		>
-			{ tr("dashboard_edit_site") }
-		</button>
+		if editor {
+			<button
+				class="absolute top-1 right-2 !w-fit !py-1 text-sm bg-black/5 dark:bg-white/10"
+				type="button"
+				onclick={ templ.JSFuncCall("window.location.assign", config.EditorPath+s.SiteSlug) }
+			>
+				{ tr("dashboard_edit_site") }
+			</button>
+		}
 	</div>
 }
 

@@ -2,12 +2,11 @@ package templates
 
 import (
 	"app/config"
-	"app/database"
 	"app/internal/db"
 )
 
 templ Site(s db.SitesWithMetric) {
-	@templ.Raw(database.SanitizeHTML(s.SiteHtmlPublished))
+	@templ.Raw(s.SiteHtmlPublished)
 }
 
 templ SiteHeader(tr func(string) string, s db.SitesWithMetric, bannerURL string, isOwner bool) {

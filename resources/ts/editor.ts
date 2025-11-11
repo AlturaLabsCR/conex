@@ -1,11 +1,19 @@
 import EditorJS from '@editorjs/editorjs'
 import Header from '@editorjs/header'
 import List from '@editorjs/list'
+import edjsHTML from 'editorjs-html'
 
-window.isFirstLoad = window.isFirstLoad ?? true;
+interface SiteData {
+  title?: string;
+  description?: string;
+  content?: any;
+}
 
-export function initEditor(site) {
-  let siteData = null
+let isFirstLoad = false
+const edjsParser = edjsHTML()
+
+export async function initEditor(site: string) {
+  let siteData: SiteData | null = null;
 
   if (site) {
     const stored = localStorage.getItem(`site:${site}`)
@@ -19,17 +27,16 @@ export function initEditor(site) {
     }
   }
 
-  const titleEl = document.getElementById('editor_title')
-  const descEl = document.getElementById('editor_description')
-
   const defaultTitle = siteData?.title || ''
   const defaultDesc = siteData?.description || ''
 
+  const titleEl = document.getElementById('editor_title') as HTMLTextAreaElement | null;
   if (titleEl) {
     titleEl.value = defaultTitle
     titleEl.dispatchEvent(new Event('input'))
   }
 
+  const descEl = document.getElementById('editor_description') as HTMLTextAreaElement | null;
   if (descEl) {
     descEl.value = defaultDesc
     descEl.dispatchEvent(new Event('input'))
@@ -43,19 +50,28 @@ export function initEditor(site) {
       list: List
     },
 
+    placeholder: "Lorem ipsum dolor sit amet.",
+
     data: siteData?.content || {
       time: Date.now(),
       blocks: [
         {
           type: "paragraph",
           data: {
-            text: "Hello, this is Editor.js!"
+            text: ""
           }
         }
       ]
     },
 
-    onReady: () => console.log("Editor.js ready"),
+    onReady: async () => {
+      const output = await editor.save()
+      const outputHTML = edjsParser.parse(output)
+      const htmlEl = document.getElementById('editor_html') as HTMLTextAreaElement | null
+      if (htmlEl) {
+        htmlEl.value = Array.isArray(outputHTML) ? outputHTML.join('') : String(outputHTML)
+      }
+    },
 
     onChange: async () => {
       const output = await editor.save()
@@ -66,14 +82,21 @@ export function initEditor(site) {
           description: descEl?.value || '',
           content: output
         }
+
         localStorage.setItem(`site:${site}`, JSON.stringify(updated))
+
+        const outputHTML = edjsParser.parse(output)
+        const htmlEl = document.getElementById('editor_html') as HTMLTextAreaElement | null;
+        if (htmlEl) {
+          htmlEl.value = Array.isArray(outputHTML) ? outputHTML.join('') : String(outputHTML)
+        }
       }
     }
-  })
+  });
 }
-window.initEditor = initEditor;
+(window as any).initEditor = initEditor;
 
-function resizeAndRun(site, el) {
+function resizeAndRun(site: string, el: HTMLTextAreaElement) {
   el.style.height = 'auto';
 
   const newHeight = el.scrollHeight;
@@ -95,7 +118,7 @@ function resizeAndRun(site, el) {
 
   // Use localStorage values on first load
   // Use element value on subsequent changes
-  if (window.isFirstLoad) {
+  if (isFirstLoad) {
     if (el.id === 'editor_title' && data.title) {
       el.value = data.title;
     } else if (el.id === 'editor_description' && data.description) {
@@ -103,7 +126,7 @@ function resizeAndRun(site, el) {
     }
   } else {
     if (el.id === 'editor_title') {
-      data.title = el.value || "{{ site.SiteTitle }}";
+      data.title = el.value;
     } else if (el.id === 'editor_description') {
       data.description = el.value;
     }
@@ -114,4 +137,10 @@ function resizeAndRun(site, el) {
   el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
 }
-window.resizeAndRun = resizeAndRun;
+(window as any).resizeAndRun = resizeAndRun;
+
+export function getEditorHtml(): string {
+  const htmlEl = document.getElementById('editor_html') as HTMLTextAreaElement | null;
+  return htmlEl?.value || '';
+}
+(window as any).getEditorHtml = getEditorHtml;
