@@ -44,9 +44,7 @@ templ card(tr func(string) string, s db.SitesWithMetric, bannerURL string, edito
 				if s.MetricVisitsTotal > 0 {
 					<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">→ { s.MetricVisitsTotal } { tr("visits") }</span>
 				}
-				<div class="tags">
-					@tags(database.JSONToTags(s.SiteTagsJson))
-				</div>
+				@Tags(database.JSONToTags(s.SiteTagsJson), "")
 				<p class="description">{ s.SiteDescription }</p>
 			</div>
 		</a>
@@ -62,8 +60,15 @@ templ card(tr func(string) string, s db.SitesWithMetric, bannerURL string, edito
 	</div>
 }
 
-templ tags(tags []database.Tag) {
-	for _, tag := range tags {
-		<span class="tag" data-color={ tag.Color }>{ tag.Name }</span>
-	}
+templ Tags(tags []database.Tag, ID string) {
+	<div
+		if ID != "" {
+			id={ ID }
+		}
+		class="tags"
+	>
+		for _, tag := range tags {
+			<span class="tag" data-color={ tag.Color }>{ tag.Name }</span>
+		}
+	</div>
 }

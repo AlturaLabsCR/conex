@@ -54,5 +54,7 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 
 	router.HandleFunc("GET "+config.Endpoints[config.RootPath]+"{site}", h.Site)
 
+	router.Handle("PATCH "+config.Endpoints[config.SettingsPath], middleware.With(protected, h.UpdateSettings))
+
 	return router
 }

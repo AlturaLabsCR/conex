@@ -173,3 +173,8 @@ INSERT INTO site_metrics (
   metric_site,
   metric_visits_total
 ) VALUES (?, ?) RETURNING metric_id;
+
+-- name: UpdateTags :exec
+UPDATE sites SET
+  site_tags_json = ?
+WHERE site_id = ?;

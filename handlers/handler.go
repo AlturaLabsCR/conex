@@ -2,9 +2,12 @@
 package handlers
 
 import (
+	"compress/gzip"
 	"database/sql"
+	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"app/i18n"
@@ -28,6 +31,36 @@ type HandlerParams struct {
 	CookieName   string
 	CookiePath   string
 	ServerSecret string
+}
+
+type gzipResponseWriter struct {
+	http.ResponseWriter
+	Writer io.Writer
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func Gzip(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		w.Header().Set("Content-Encoding", "gzip")
+
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+
+		gzw := gzipResponseWriter{
+			ResponseWriter: w,
+			Writer:         gz,
+		}
+
+		next.ServeHTTP(gzw, r)
+	})
 }
 
 func New(params HandlerParams) *Handler {

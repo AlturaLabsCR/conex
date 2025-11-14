@@ -41,7 +41,7 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 	header := templates.EditorHeader(tr, site, "")
 	content := templates.Editor(tr, site)
 
-	templates.Base(tr, header, content).Render(ctx, w)
+	templates.Base(tr, header, content, true).Render(ctx, w)
 }
 
 func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +116,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 		SiteID:            site.SiteID,
 		SiteTitle:         data.Title,
 		SiteDescription:   data.Description,
-		SiteTagsJson:      "",
+		SiteTagsJson:      site.SiteTagsJson,
 		SiteHtmlPublished: data.Content,
 		SiteModifiedUnix:  time.Now().Unix(),
 		SitePublished:     1,

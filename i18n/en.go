@@ -16,6 +16,8 @@ var EN = map[string]string{
 	"invalid_otp":       "Invalid code",
 	"success":           "Success",
 	"try_later":         "Try again later",
+	"add":               "Add",
+	"tags":              "Tags",
 
 	// home
 	"create_site":      "Create website",
@@ -65,6 +67,9 @@ var EN = map[string]string{
 	"editor_banner":          "Site banner",
 	"editor_settings":        "Site settings",
 	"editor_update_settings": "Update",
+	"editor_insert_tags":     "Tags to describe your site",
+	"editor_tags_add":        "Sports, Well-being, Health",
+	"editor_tag_limit":       "You can only choose 3 tags",
 
 	// account
 	"my_account":      "My account",

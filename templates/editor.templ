@@ -2,13 +2,18 @@ package templates
 
 import (
 	"app/config"
+	"app/database"
 	"app/internal/db"
 )
 
 const (
 	PublishNoticeID        string = "publishNotice"
 	UploadBannerNoticeID   string = "uploadBannerNotice"
-	UpdateSettingsNoticeID string = "uploadBannerNotice"
+	UpdateSettingsNoticeID string = "updateSettingsNotice"
+	EditorTagContainer     string = "editortagscontainer"
+	EditorTagContainerTags string = "editortagstags"
+	EditorTagName          string = "tags"
+	EditorSlugName         string = "slug"
 )
 
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL string) {
@@ -77,7 +82,7 @@ templ Editor(tr func(string) string, site db.SitesWithMetric) {
 	</section>
 	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr, site.SiteSlug))
 	@Dialog(tr, "dashboard-modal-banner", tr("editor_banner"), uploadBannerForm(tr))
-	@Dialog(tr, "dashboard-modal-settings", tr("editor_settings"), updateSettingsForm(tr))
+	@Dialog(tr, "dashboard-modal-settings", tr("editor_settings"), updateSettingsForm(tr, site))
 }
 
 templ publishSiteForm(tr func(string) string, site string) {
@@ -99,9 +104,45 @@ templ uploadBannerForm(tr func(string) string) {
 	>{ tr("upload_image") }</button>
 }
 
-templ updateSettingsForm(tr func(string) string) {
-	<div id={ UploadBannerNoticeID }></div>
-	<button
-		class="text-white! bg-black dark:text-black! dark:bg-white"
-	>{ tr("editor_update_settings") }</button>
+templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
+	<div id={ UpdateSettingsNoticeID }></div>
+	<hr/>
+	@EditorTags(tr, site)
+	<div data-show="$showtags">
+		<form>
+			<label for="tags">{ tr("editor_insert_tags") }</label>
+			<input
+				data-bind:tags
+				id="tags"
+				name={ EditorTagName }
+				placeholder={ tr("editor_tags_add") }
+				value={ database.TagsToCommaList(site.SiteTagsJson) }
+			/>
+			<input
+				name={ EditorSlugName }
+				value={ site.SiteSlug }
+				class="hidden"
+			/>
+			<button
+				data-attr:disabled="$tags == ''"
+				class="text-white! bg-black dark:text-black! dark:bg-white"
+				data-on:click={ "$showtags = '' ; @patch(' " + config.Endpoints[config.SettingsPath] + "', {contentType: 'form', headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			>{ tr("add") }</button>
+		</form>
+	</div>
+}
+
+templ EditorTags(tr func(string) string, site db.SitesWithMetric) {
+	<div
+		id={ EditorTagContainer }
+		if len(database.JSONToTags(site.SiteTagsJson)) == 0 {
+			data-computed:showtags="1"
+		}
+		data-show="!($showtags)"
+		data-on:click="$showtags = 1"
+	>
+		{ tr("tags") }:
+		@Tags(database.JSONToTags(site.SiteTagsJson), EditorTagContainerTags)
+		<br/>
+	</div>
 }

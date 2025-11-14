@@ -33,5 +33,5 @@ func (h *Handler) Account(w http.ResponseWriter, r *http.Request) {
 	header := templates.AccountHeader(h.Translator(r))
 	content := templates.Account(h.Translator(r), session, user, sessions)
 
-	templates.Base(h.Translator(r), header, content).Render(ctx, w)
+	templates.Base(h.Translator(r), header, content, true).Render(ctx, w)
 }

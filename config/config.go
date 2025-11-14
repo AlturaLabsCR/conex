@@ -24,6 +24,7 @@ const (
 	PricingPath
 	AccountPath
 	UploadPath
+	SettingsPath
 )
 
 var Endpoints = map[Endpoint]string{
@@ -37,6 +38,7 @@ var Endpoints = map[Endpoint]string{
 	PricingPath:   "pricing",
 	AccountPath:   "account",
 	UploadPath:    "upload",
+	SettingsPath:  "settings",
 }
 
 var (

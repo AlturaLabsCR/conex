@@ -58,7 +58,7 @@ func main() {
 		"GET "+config.Endpoints[config.AssetsPath],
 		middleware.DisableCacheInDevMode(
 			config.Production,
-			http.FileServer(http.FS(assetsFS)),
+			handlers.Gzip(http.FileServer(http.FS(assetsFS))),
 		),
 	)
 

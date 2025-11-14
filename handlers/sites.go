@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"compress/gzip"
 	"net/http"
+	"strings"
 
 	"app/internal/db"
 	"app/templates"
@@ -35,10 +37,13 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 	header := templates.SiteHeader(tr, site, "", isOwner)
 	content := templates.Site(site)
 
-	// gz := gzip.NewWriter(w)
-	// defer gz.Close()
-	// w.Header().Add("Content-Type", "text/html")
-	// w.Header().Add("Content-Encoding", "gzip")
-
-	templates.Base(h.Translator(r), header, content).Render(ctx, w)
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Encoding", "gzip")
+		templates.Base(h.Translator(r), header, content, false).Render(ctx, gz)
+	} else {
+		templates.Base(h.Translator(r), header, content, false).Render(ctx, w)
+	}
 }

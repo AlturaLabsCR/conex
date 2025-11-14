@@ -38,7 +38,7 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	header := templates.DashboardHeader(h.Translator(r))
 	content := templates.Dashboard(h.Translator(r), sites)
 
-	templates.Base(h.Translator(r), header, content).Render(ctx, w)
+	templates.Base(h.Translator(r), header, content, true).Render(ctx, w)
 }
 
 func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {

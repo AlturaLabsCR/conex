@@ -78,6 +78,12 @@ h4 {
   text-lg
 }
 
+hr {
+  color: var(--conex-color-fg-unemph);
+  @apply
+  my-4
+}
+
 ul, ol {
   @apply
   list-inside

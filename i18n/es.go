@@ -16,6 +16,8 @@ var ES = map[string]string{
 	"invalid_otp":       "Código incorrecto",
 	"success":           "Éxito",
 	"try_later":         "Inténtalo de nuevo más tarde",
+	"add":               "Añadir",
+	"tags":              "Palabras clave",
 
 	// home
 	"create_site":      "Crear un sitio",
@@ -65,6 +67,9 @@ var ES = map[string]string{
 	"editor_banner":          "Banner del sitio",
 	"editor_settings":        "Ajustes del sitio",
 	"editor_update_settings": "Actualizar",
+	"editor_insert_tags":     "Palabras clave para identificar tu sitio",
+	"editor_tags_add":        "Deporte, Bienestar, Salud",
+	"editor_tag_limit":       "Puedes escoger hasta 3 palabras clave únicamente",
 
 	// account
 	"my_account":      "Mi cuenta",
