@@ -9,28 +9,171 @@ interface SiteData {
   title?: string;
   description?: string;
   content?: any;
+  lastUpdated?: number;
 }
 
 let isFirstLoad = false
+let editorSyncTimeout = false;
+let editorModified = false
+
+const EDITOR_SYNC_REQUIRED_TIMEOUT = 15000;
+let editorSyncTimer: number | null = null;
+
+function startSyncTimeoutClock() {
+  if (editorSyncTimer) clearTimeout(editorSyncTimer);
+
+  editorSyncTimer = window.setTimeout(() => {
+    editorSyncTimeout = true;
+  }, EDITOR_SYNC_REQUIRED_TIMEOUT);
+}
+
+function startAutoSyncLoop(site: string) {
+  setInterval(() => {
+    if (!site) return;
+
+    if (editorSyncTimeout === true && editorModified === true) {
+      const stored = localStorage.getItem(`site:${site}`);
+      const localData = stored ? JSON.parse(stored) : null;
+      if (!localData) return;
+
+      editorSyncTimeout = false;
+      editorModified = false;
+      startSyncTimeoutClock();
+      editorSyncer(localData, site);
+    }
+  }, 1000);
+}
+
+function tableParser(block: {
+  data: {
+    withHeadings: boolean;
+    content: string[][];
+  };
+}): string {
+  const { withHeadings, content } = block.data;
+
+  if (!Array.isArray(content) || content.length === 0) {
+    return "";
+  }
+
+  let html = "<table>";
+
+  // if the first row should be used as a header
+  if (withHeadings) {
+    const headers = content[0];
+    html += "<thead><tr>";
+    headers.forEach(cell => {
+      html += `<th>${cell}</th>`;
+    });
+    html += "</tr></thead>";
+
+    // the rest of the rows go in the body
+    if (content.length > 1) {
+      html += "<tbody>";
+      for (let i = 1; i < content.length; i++) {
+        html += "<tr>";
+        content[i].forEach(cell => {
+          html += `<td>${cell}</td>`;
+        });
+        html += "</tr>";
+      }
+      html += "</tbody>";
+    }
+  } else {
+    // no headings, everything goes in <tbody>
+    html += "<tbody>";
+    content.forEach(row => {
+      html += "<tr>";
+      row.forEach(cell => {
+        html += `<td>${cell}</td>`;
+      });
+      html += "</tr>";
+    });
+    html += "</tbody>";
+  }
+
+  html += "</table>";
+  return html;
+}
 
 const edjsParser = edjsHTML({
   table: tableParser,
 });
 
+export async function editorSyncer(
+  localData: SiteData,
+  site: string
+): Promise<SiteData> {
+  if (!site) return localData;
+
+  const csrfToken =
+    document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("csrf="))
+      ?.split("=")[1] || "";
+
+  try {
+    const response = await fetch(`/editor/${encodeURIComponent(site)}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken ? csrfToken : "",
+      },
+      body: JSON.stringify({ localData })
+    });
+
+    if (!response.ok) {
+      console.error("Sync error:", response.statusText);
+      return localData;
+    }
+
+    const result = await response.json();
+
+    editorSyncTimeout = false;
+    startSyncTimeoutClock();
+    startAutoSyncLoop(site);
+
+    if (result.shouldPatch === true && result.siteData) {
+      if (result.siteData.localData) {
+        return result.siteData.localData;
+      }
+      return result.siteData;
+    } else {
+      // local wins
+      return localData;
+    }
+  } catch (err) {
+    console.error("Sync error:", err);
+    return localData;
+  }
+}
+
 export async function initEditor(site: string) {
-  let siteData: SiteData | null = null;
+  let localData: SiteData | null = null;
 
   if (site) {
-    const stored = localStorage.getItem(`site:${site}`)
-
+    const stored = localStorage.getItem(`site:${site}`);
     if (stored) {
       try {
-        siteData = JSON.parse(stored)
+        localData = JSON.parse(stored);
       } catch (e) {
-        console.warn("Invalid JSON for site:", site, e)
+        console.warn("Invalid JSON for site:", site, e);
       }
     }
   }
+
+  if (!localData) {
+    localData = {
+      title: "",
+      description: "",
+      content: null,
+      lastUpdated: 0
+    };
+  }
+
+  startSyncTimeoutClock();
+  const siteData = await editorSyncer(localData, site);
 
   const defaultTitle = siteData?.title || ''
   const defaultDesc = siteData?.description || ''
@@ -98,22 +241,33 @@ export async function initEditor(site: string) {
     },
 
     onChange: async () => {
-      const output = await editor.save()
+      editorModified = true;
+      const output = await editor.save();
 
-      if (site) {
-        const updated = {
-          title: titleEl?.value || '',
-          description: descEl?.value || '',
-          content: output
-        }
+      if (!site) return;
 
-        localStorage.setItem(`site:${site}`, JSON.stringify(updated))
+      const updated: SiteData = {
+        title: titleEl?.value || "",
+        description: descEl?.value || "",
+        content: output,
+        lastUpdated: Date.now()
+      };
 
-        const outputHTML = edjsParser.parse(output)
-        const htmlEl = document.getElementById('editor_html') as HTMLTextAreaElement | null;
-        if (htmlEl) {
-          htmlEl.value = Array.isArray(outputHTML) ? outputHTML.join('') : String(outputHTML)
-        }
+      localStorage.setItem(`site:${site}`, JSON.stringify(updated));
+
+      const outputHTML = edjsParser.parse(output);
+      const htmlEl = document.getElementById("editor_html") as HTMLTextAreaElement | null;
+      if (htmlEl) {
+        htmlEl.value = Array.isArray(outputHTML)
+          ? outputHTML.join("")
+          : String(outputHTML);
+      }
+
+      if (editorSyncTimeout === true && editorModified === true) {
+        editorSyncTimeout = false;
+        editorModified = false;
+        startSyncTimeoutClock();
+        editorSyncer(updated, site);
       }
     }
   });
@@ -160,6 +314,16 @@ function resizeAndRun(site: string, el: HTMLTextAreaElement) {
   // resize again after possible content change
   el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
+
+  data.lastUpdated = Date.now();
+  editorModified = true;
+
+  if (editorSyncTimeout === true && editorModified === true) {
+    editorSyncTimeout = false;
+    editorModified = false;
+    startSyncTimeoutClock();
+    editorSyncer(data, site);
+  }
 }
 (window as any).resizeAndRun = resizeAndRun;
 
@@ -168,58 +332,6 @@ export function getEditorHtml(): string {
   return htmlEl?.value || '';
 }
 (window as any).getEditorHtml = getEditorHtml;
-
-function tableParser(block: {
-  data: {
-    withHeadings: boolean;
-    content: string[][];
-  };
-}): string {
-  const { withHeadings, content } = block.data;
-
-  if (!Array.isArray(content) || content.length === 0) {
-    return "";
-  }
-
-  let html = "<table>";
-
-  // if the first row should be used as a header
-  if (withHeadings) {
-    const headers = content[0];
-    html += "<thead><tr>";
-    headers.forEach(cell => {
-      html += `<th>${cell}</th>`;
-    });
-    html += "</tr></thead>";
-
-    // the rest of the rows go in the body
-    if (content.length > 1) {
-      html += "<tbody>";
-      for (let i = 1; i < content.length; i++) {
-        html += "<tr>";
-        content[i].forEach(cell => {
-          html += `<td>${cell}</td>`;
-        });
-        html += "</tr>";
-      }
-      html += "</tbody>";
-    }
-  } else {
-    // no headings, everything goes in <tbody>
-    html += "<tbody>";
-    content.forEach(row => {
-      html += "<tr>";
-      row.forEach(cell => {
-        html += `<td>${cell}</td>`;
-      });
-      html += "</tr>";
-    });
-    html += "</tbody>";
-  }
-
-  html += "</table>";
-  return html;
-}
 
 /**
  * Uploads a file to the provided endpoint and returns Editor.js-compatible response.

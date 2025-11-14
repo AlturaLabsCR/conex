@@ -14,6 +14,7 @@ const (
 	EditorTagContainerTags string = "editortagstags"
 	EditorTagName          string = "tags"
 	EditorSlugName         string = "slug"
+	EditorSyncerID         string = "editorSyncer"
 )
 
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL string) {
@@ -33,7 +34,11 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 			<!-- 	class="icon image" -->
 			<!-- ></button> -->
 			<button
-				onclick="toggleModal(event)"
+				if len(database.JSONToTags(site.SiteTagsJson)) == 0 {
+					data-on:click="$showtags = 1; toggleModal(event)"
+				} else {
+					data-on:click="toggleModal(event)"
+				}
 				data-target="dashboard-modal-settings"
 				class="icon gear"
 			></button>
@@ -135,9 +140,6 @@ templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
 templ EditorTags(tr func(string) string, site db.SitesWithMetric) {
 	<div
 		id={ EditorTagContainer }
-		if len(database.JSONToTags(site.SiteTagsJson)) == 0 {
-			data-computed:showtags="1"
-		}
 		data-show="!($showtags)"
 		data-on:click="$showtags = 1"
 	>

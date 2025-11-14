@@ -2,12 +2,23 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
+	"app/database"
 	"app/internal/db"
 	"app/templates"
 )
+
+type SyncResponse struct {
+	ShouldPatch bool            `json:"shouldPatch"`
+	SiteData    json.RawMessage `json:"siteData,omitempty"`
+}
+
+type SyncRequest struct {
+	LocalData database.SiteData `json:"localData"`
+}
 
 func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -31,7 +42,13 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if site.SiteUser != session.SessionUser {
-		h.Log().Debug("tried to load a site without ownership", "user_id", session.SessionUser, "site_slug", site.SiteSlug)
+		h.Log().Debug(
+			"tried to load a site without ownership",
+			"user_id",
+			session.SessionUser,
+			"site_slug",
+			site.SiteSlug,
+		)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -131,4 +148,134 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 		tr("success"),
 		tr("dashboard_published_site"),
 	).Render(ctx, w)
+}
+
+func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	slug := r.PathValue("site")
+
+	if slug == "" {
+		h.Log().Error("error invalid slug", "slug", slug)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	h.Log().Debug("site slug is valid")
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Error("error retrieving session from ctx")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	h.Log().Debug("session id valid")
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		h.Log().Error("error reading patch sync body")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	h.Log().Debug("body is readable")
+
+	var req SyncRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		h.Log().Error("error invalid patch sync body")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	h.Log().Debug("body is valid")
+
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+	h.Log().Debug("started tx")
+
+	queries := db.New(h.DB()).WithTx(tx)
+
+	site, err := queries.GetSiteWithMetrics(ctx, slug)
+	if err != nil {
+		h.Log().Error("error querying site with metrics", "error", err, "slug", slug)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	h.Log().Debug("site exists")
+
+	if site.SiteUser != session.SessionUser {
+		h.Log().Error("error is not site owner")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	h.Log().Debug("session user is site owner")
+
+	serverData, err := queries.GetSyncData(ctx, site.SiteID)
+	if err != nil {
+		h.Log().Debug("server data does not exist")
+		h.Log().Debug("running patch sync on site", "slug", slug)
+
+		b, err := json.Marshal(req)
+		if err != nil {
+			h.Log().Debug("error marshalling req")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if _, err := queries.InsertSyncData(ctx, db.InsertSyncDataParams{
+			SiteSyncID:             site.SiteID,
+			SiteSyncDataStaging:    string(b),
+			SiteSyncLastUpdateUnix: time.Now().Unix(),
+		}); err != nil {
+			h.Log().Debug("error inserting client data")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if err := tx.Commit(); err != nil {
+			h.Log().Error("commit failed", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		h.Log().Debug("inserted sync data, returning patch false as client is up-to-date")
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(SyncResponse{
+			ShouldPatch: false,
+		})
+		return
+	}
+	h.Log().Debug("server data exists")
+
+	var resp SyncResponse
+	if req.LocalData.LastUpdated > serverData.SiteSyncLastUpdateUnix {
+		h.Log().Debug("client is newer, update server")
+		b, _ := json.Marshal(req)
+		if err := queries.UpdateSyncData(ctx, db.UpdateSyncDataParams{
+			SiteSyncID:             site.SiteID,
+			SiteSyncDataStaging:    string(b),
+			SiteSyncLastUpdateUnix: req.LocalData.LastUpdated,
+		}); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		h.Log().Debug("server updated")
+		resp.ShouldPatch = false
+	} else {
+		h.Log().Debug("server is newer, siteData in response")
+		resp.ShouldPatch = true
+		resp.SiteData = json.RawMessage(serverData.SiteSyncDataStaging)
+	}
+
+	if err := tx.Commit(); err != nil {
+		h.Log().Error("commit failed", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	h.Log().Debug("ended tx, responding")
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }

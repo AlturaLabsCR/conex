@@ -28,6 +28,22 @@ SELECT * FROM sites WHERE site_published = 1;
 -- name: GetMetrics :many
 SELECT * FROM site_metrics;
 
+-- name: GetSyncData :one
+SELECT * FROM site_sync WHERE site_sync_id = ?;
+
+-- name: InsertSyncData :one
+INSERT INTO site_sync(
+  site_sync_id,
+  site_sync_data_staging,
+  site_sync_last_update_unix
+) VALUES (?, ?, ?) RETURNING site_sync_id;
+
+-- name: UpdateSyncData :exec
+UPDATE site_sync SET
+  site_sync_data_staging = ?,
+  site_sync_last_update_unix = ?
+WHERE site_sync_id = ?;
+
 -- name: GetMetricsBySiteID :one
 SELECT * FROM site_metrics WHERE metric_site = ?;
 

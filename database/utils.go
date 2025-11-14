@@ -11,6 +11,13 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 )
 
+type SiteData struct {
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	LastUpdated int64           `json:"lastUpdated"`
+	Content     json.RawMessage `json:"content"`
+}
+
 type Tag struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
