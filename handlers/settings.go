@@ -38,7 +38,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
 	if !ok {
-		h.Log().Error("error retrieving session from ctx")
+		h.Log().Debug("error retrieving session from ctx")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -84,6 +84,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		SiteTagsJson: json,
 		SiteID:       site.SiteID,
 	}); err != nil {
+		h.Log().Debug("error updating tags", "error", err)
 		templates.Notice(
 			templates.UpdateSettingsNoticeID,
 			templates.NoticeError,
@@ -94,6 +95,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := tx.Commit(); err != nil {
+		h.Log().Debug("error commit tx", "error", err)
 		templates.Notice(
 			templates.UpdateSettingsNoticeID,
 			templates.NoticeError,
@@ -105,5 +107,9 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 
 	site.SiteTagsJson = json
 
-	templates.EditorTags(tr, site).Render(ctx, w)
+	if err := templates.EditorTags(tr, site).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

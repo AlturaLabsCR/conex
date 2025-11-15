@@ -12,5 +12,9 @@ func (h *Handler) Pricing(w http.ResponseWriter, r *http.Request) {
 	header := templates.PricingHeader(h.Translator((r)))
 	content := templates.Pricing(h.Translator((r)))
 
-	templates.Base(h.Translator(r), header, content, true).Render(ctx, w)
+	if err := templates.Base(h.Translator(r), header, content, true).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

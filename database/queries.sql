@@ -58,7 +58,7 @@ SELECT * FROM sites_with_metrics WHERE site_user = ?;
 SELECT * FROM sites_with_metrics WHERE site_slug = ?;
 
 -- name: GetPublishedSiteWithMetricsBySlug :one
-SELECT * FROM sites_with_metrics WHERE site_slug = ?;
+SELECT * FROM sites_with_metrics WHERE site_slug = ? AND site_published = 1;
 
 -- name: GetPublishedSitesWithMetricsFromMostTotalVisits :many
 SELECT * FROM sites_with_metrics
@@ -178,6 +178,39 @@ WHERE site_id = ?;
 UPDATE sites SET
   site_published = 1
 WHERE site_id = ?;
+
+-- name: InsertObject :one
+INSERT INTO site_objects(
+  object_site,
+  object_bucket,
+  object_key,
+  object_mime,
+  object_md5,
+  object_size_bytes,
+  object_created_unix,
+  object_modified_unix
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING *;
+
+-- name: UpdateObject :exec
+UPDATE site_objects SET
+  object_mime = ?,
+  object_md5 = ?,
+  object_size_bytes = ?,
+  object_modified_unix = ?
+WHERE object_id = ?;
+
+-- name: GetObjects :many
+SELECT * FROM site_objects;
+
+-- name: GetObject :one
+SELECT * FROM site_objects WHERE object_bucket = ? AND object_key = ?;
+
+-- name: GetObjectsBySite :many
+SELECT * FROM site_objects WHERE object_site = ?;
+
+-- name: GetObjectByMD5 :one
+SELECT * FROM site_objects WHERE object_md5 = ?;
 
 -- name: UnpublishSite :exec
 UPDATE sites SET

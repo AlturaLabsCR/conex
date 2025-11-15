@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"net/http"
 	"os"
@@ -12,6 +13,9 @@ import (
 	"app/i18n"
 	"app/middleware"
 	"app/router"
+
+	s3config "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 //go:embed assets/*
@@ -39,11 +43,20 @@ func main() {
 
 	smtpAuth := config.InitSMTPAuth()
 
+	s3c, err := s3config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		print("failed s3 initialization: %v\n", err)
+		os.Exit(1)
+	}
+
+	s3client := s3.NewFromConfig(s3c)
+
 	handler := handlers.New(
 		handlers.HandlerParams{
 			Production:   config.Production,
 			Logger:       logger,
 			Database:     database,
+			Storage:      s3client,
 			Locales:      locales,
 			SMTPAuth:     smtpAuth,
 			ServerSecret: config.ServerSecret,

@@ -113,7 +113,6 @@ CREATE TABLE site_objects (
   object_size_bytes INTEGER NOT NULL,
   object_created_unix INTEGER NOT NULL,
   object_modified_unix INTEGER NOT NULL,
-  object_deleted INTEGER NOT NULL DEFAULT 0,
 
   CONSTRAINT pk_site_objects PRIMARY KEY (object_id),
   CONSTRAINT fk_site_objects_site FOREIGN KEY (object_site) REFERENCES sites(site_id),

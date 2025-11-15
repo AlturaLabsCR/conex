@@ -14,13 +14,17 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 
 	sites, err := queries.GetPublishedSitesWithMetricsFromMostTotalVisits(ctx)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		h.Log().Error("error querying sites with metrics", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	header := templates.HomeHeader(h.Translator(r))
 	content := templates.CardsGrid(h.Translator(r), sites, false)
 
-	templates.Base(h.Translator(r), header, content, false).Render(ctx, w)
+	if err := templates.Base(h.Translator(r), header, content, false).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

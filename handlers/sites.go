@@ -18,8 +18,12 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 
 	site, err := queries.GetPublishedSiteWithMetricsBySlug(ctx, siteSlug)
 	if err != nil || site.SitePublished != 1 {
-		w.WriteHeader(http.StatusNotFound)
-		templates.NotFound(h.Translator(r)).Render(ctx, w)
+		h.Log().Debug("cannot find published site with metrics", "siteSlug", siteSlug, "sitePublished", site.SitePublished)
+		if err := templates.NotFound(h.Translator(r)).Render(ctx, w); err != nil {
+			h.Log().Error("error rendering template", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
@@ -29,6 +33,7 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 		r,
 		false,
 	); s.SessionUser == site.SiteUser && err == nil {
+		h.Log().Debug("is owner")
 		isOwner = true
 	}
 

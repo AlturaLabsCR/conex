@@ -10,10 +10,10 @@
 	- [X] site update
 	- [X] Finish templates conditions
 	- [X] Lock down endpoints
-	- [ ] Tags management
+	- [X] Tags management
+	- [X] S3 / Upload images
+	- [X] site sync
+	- [X] Clean logger, add useful info
 	- [ ] New/Update banner
-	- [ ] S3 / Upload images
-	- [ ] Clean logger, add useful info
-	- [ ] payments, permission update
-	- [ ] site sync
+	- [ ] payments, check for plans in endpoints
 

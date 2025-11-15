@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+
 	"app/i18n"
 	"app/internal/db"
 	"app/sessions"
@@ -26,6 +28,7 @@ type HandlerParams struct {
 	Production   bool
 	Logger       *slog.Logger
 	Database     *sql.DB
+	Storage      *s3.Client
 	Locales      map[string]map[string]string
 	SMTPAuth     smtp.AuthParams
 	CookieName   string
@@ -87,6 +90,10 @@ func (h *Handler) Prod() bool {
 
 func (h *Handler) DB() *sql.DB {
 	return h.params.Database
+}
+
+func (h *Handler) S3() *s3.Client {
+	return h.params.Storage
 }
 
 func (h *Handler) Log() *slog.Logger {

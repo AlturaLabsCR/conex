@@ -201,7 +201,7 @@ export async function initEditor(site: string) {
         class: ImageTool,
         config: {
           uploader: {
-            uploadByFile: uploadFile,
+            uploadByFile: (file: File) => uploadFile(file, `/upload/${site}`),
             uploadByUrl: async (url: string) => ({
               success: 1,
               file: { url },

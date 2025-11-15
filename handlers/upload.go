@@ -10,23 +10,34 @@ const maxMemory int64 = 10 << 20
 func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxMemory)
 
-	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		http.Error(w, "File too large", http.StatusBadRequest)
+	siteSlug := r.PathValue("site")
+	if siteSlug == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		h.Log().Debug("missing site pathvlaue")
 		return
 	}
 
-	file, _, err := r.FormFile("file")
+	if err := r.ParseMultipartForm(maxMemory); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		h.Log().Debug("file too large", "error", err)
+		return
+	}
+
+	file, header, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "Error retrieving file", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		h.Log().Debug("error retrieving file", "error", err)
 		return
 	}
 	defer file.Close()
 
-	// TODO: S3 logic
-	// - Limit size
-	// - User has plan that allows image uploading
-	// - Check for user's objects and verify it doesnt exceed quota
-	fileURL := "https://pet-health-content-media.chewy.com/wp-content/uploads/2024/09/11170344/202106american-eskimo-dog-5.jpg"
+	fileURL, err := h.PutObject(r.Context(), siteSlug, header.Filename, file)
+	if err != nil {
+		http.Error(w, "Upload failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	h.Log().Debug("uploaded file successfully", "url", fileURL)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{

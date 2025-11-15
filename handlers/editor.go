@@ -25,7 +25,7 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
 	if !ok {
-		h.Log().Error("error retrieving session from ctx")
+		h.Log().Debug("error retrieving session from ctx")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -36,7 +36,7 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 
 	site, err := queries.GetSiteWithMetrics(ctx, s)
 	if err != nil {
-		h.Log().Error("error loading sites", "error", err)
+		h.Log().Error("error loading site", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -67,7 +67,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
 	if !ok {
-		h.Log().Error("error retrieving session from ctx")
+		h.Log().Debug("error retrieving session from ctx")
 		templates.Notice(
 			templates.PublishNoticeID,
 			templates.NoticeError,
@@ -87,7 +87,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	var data PublishData
 
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		h.Log().Error("invalid publish request", "data", data)
+		h.Log().Debug("invalid publish request", "data", data)
 		templates.Notice(
 			templates.PublishNoticeID,
 			templates.NoticeError,
@@ -99,7 +99,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if data.Title == "" {
-		h.Log().Error("title is empty")
+		h.Log().Debug("title is empty")
 		templates.Notice(
 			templates.PublishNoticeID,
 			templates.NoticeError,
@@ -125,7 +125,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	if site.SiteUser != session.SessionUser {
 		w.WriteHeader(http.StatusUnauthorized)
-		h.Log().Error("user does not own site", "site_user", session.SessionUser)
+		h.Log().Debug("user does not own site", "site_user", session.SessionUser)
 		return
 	}
 
@@ -142,12 +142,16 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	h.Log().Debug("updated site", "site_id", site.SiteID, "site_html_published", data.Content)
 
-	templates.Notice(
+	if err := templates.Notice(
 		templates.PublishNoticeID,
 		templates.NoticeInfo,
 		tr("success"),
 		tr("dashboard_published_site"),
-	).Render(ctx, w)
+	).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
@@ -164,7 +168,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
 	if !ok {
-		h.Log().Error("error retrieving session from ctx")
+		h.Log().Debug("error retrieving session from ctx")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -172,7 +176,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		h.Log().Error("error reading patch sync body")
+		h.Log().Error("error reading patch sync body", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -181,7 +185,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 
 	var req SyncRequest
 	if err := json.Unmarshal(body, &req); err != nil {
-		h.Log().Error("error invalid patch sync body")
+		h.Log().Error("error invalid patch sync body", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -242,11 +246,16 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 		h.Log().Debug("inserted sync data, returning patch false as client is up-to-date")
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(SyncResponse{
+		if err := json.NewEncoder(w).Encode(SyncResponse{
 			ShouldPatch: false,
-		})
+		}); err != nil {
+			h.Log().Error("error encoding json", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		return
 	}
+
 	h.Log().Debug("server data exists")
 
 	var resp SyncResponse
@@ -274,8 +283,14 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	h.Log().Debug("ended tx, responding")
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		h.Log().Error("json encode failed", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

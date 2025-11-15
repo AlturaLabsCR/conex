@@ -16,6 +16,8 @@ import (
 )
 
 func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
+	h.Log().Debug("hit endpoint", "pattern", r.Pattern)
+
 	ctx := r.Context()
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
@@ -33,20 +35,20 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	h.Log().Debug("loaded user sites", "count", len(sites))
 
 	header := templates.DashboardHeader(h.Translator(r))
 	content := templates.Dashboard(h.Translator(r), sites)
 
-	templates.Base(h.Translator(r), header, content, true).Render(ctx, w)
+	if err := templates.Base(h.Translator(r), header, content, true).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	tr := h.Translator(r)
-
-	// TODO:
-	// - Check this site can be created given the user's permission
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
 	if !ok {
@@ -75,7 +77,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		used = strings.ReplaceAll(used, "/", "")
 
 		if used == endpoint {
-			h.Log().Error("endpoint already in use by app", "slug", endpoint)
+			h.Log().Debug("endpoint already in use by app", "slug", endpoint)
 			templates.Notice(
 				templates.NewSiteNoticeID,
 				templates.NoticeWarn,
@@ -114,7 +116,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if slices.Contains(slugs, endpoint) {
-		h.Log().Error("site slug/endpoint already exists", "slug", endpoint)
+		h.Log().Debug("site slug/endpoint already exists", "slug", endpoint)
 		templates.Notice(
 			templates.NewSiteNoticeID,
 			templates.NoticeWarn,
@@ -124,7 +126,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	siteID, _ := queries.InsertSite(ctx, db.InsertSiteParams{
+	siteID, err := queries.InsertSite(ctx, db.InsertSiteParams{
 		SiteUser:          session.SessionUser,
 		SiteSlug:          endpoint,
 		SiteTitle:         name,
@@ -136,15 +138,32 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		SitePublished:     0,
 		SiteDeleted:       0,
 	})
+	if err != nil {
+		h.Log().Error("error inserting site", "site", endpoint, "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	queries.InsertMetric(ctx, db.InsertMetricParams{
+	if _, err := queries.InsertMetric(ctx, db.InsertMetricParams{
 		MetricSite:        siteID,
 		MetricVisitsTotal: 0,
-	})
+	}); err != nil {
+		h.Log().Error("error inserting metric", "site", endpoint, "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		h.Log().Error("error tx commit", "site", endpoint, "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	templates.Redirect(config.Endpoints[config.EditorPath]+endpoint).Render(ctx, w)
+	if err := templates.Redirect(config.Endpoints[config.EditorPath]+endpoint).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func parseEndpoint(raw string) (string, error) {

@@ -37,7 +37,7 @@ var Endpoints = map[Endpoint]string{
 	LogoutPath:    "logout",
 	PricingPath:   "pricing",
 	AccountPath:   "account",
-	UploadPath:    "upload",
+	UploadPath:    "upload/",
 	SettingsPath:  "settings",
 }
 
@@ -45,19 +45,22 @@ var (
 	// Default values are initialized here, these will be used unless overwritten
 	// by the Init() method
 
-	AppTitle   string = "CONEX.cr"
-	CookieName string = "session"
+	AppTitle    string = "CONEX.cr"
+	CookieName  string = "session"
+	S3Bucket    string = "conex-dev"
+	S3PublicURL string
 
-	// Depends on the RootPrefix, so, must be initialized after checking for any
-	// overwrites of RootPrefix
-
-	CSRFHeaderName = "X-CSRF-Token"
+	// Misc
 
 	Production bool   = false
 	Port       string = "8080"
 	LogLevel   int    = 0 // -4:Debug 0:Info 4:Warn 8:Error
 	dbDriver   string = "sqlite"
 	dbConn     string = "./db.db"
+
+	// Credentials
+
+	CSRFHeaderName = "X-CSRF-Token"
 
 	ServerSMTPUser string
 	ServerSMTPHost string
@@ -88,6 +91,9 @@ const (
 
 	envCookieName   = envPrefix + "COOKIE_NAME"
 	envServerSecret = envPrefix + "SECRET"
+
+	envS3Bucket    = envPrefix + "S3_BUCKET"
+	envS3PublicURL = envPrefix + "S3_PUBLIC_URL"
 )
 
 func Init() {
@@ -106,6 +112,18 @@ func Init() {
 	c := os.Getenv(envCookieName)
 	if c != "" {
 		CookieName = c
+	}
+
+	s := os.Getenv(envS3Bucket)
+	if s != "" {
+		S3Bucket = s
+	}
+
+	u := os.Getenv(envS3PublicURL)
+	if u != "" {
+		S3PublicURL = u
+	} else {
+		panic("Missing S3 public URL")
 	}
 
 	// Prefix all endpoint paths with Endpoints[RootPath]
