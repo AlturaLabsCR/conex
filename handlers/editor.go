@@ -56,9 +56,30 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	bannerURL := ""
+
+	banner, err := queries.GetBanner(ctx, site.SiteID)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			h.Log().Error("error loading site", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		object, err := queries.GetObjectByID(ctx, banner.BannerObject)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				h.Log().Error("error loading site", "error", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+		bannerURL = config.S3PublicURL + "/" + object.ObjectKey
+	}
+
 	tr := h.Translator(r)
 
-	header := templates.EditorHeader(tr, site, "")
+	header := templates.EditorHeader(tr, site, bannerURL)
 	content := templates.Editor(tr, site)
 
 	templates.Base(tr, header, content, true).Render(ctx, w)
@@ -391,6 +412,7 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// If existing banner delete the old banner record first
+		// TODO: Do not delete if obj is used elsewhere
 		if oldobj.ObjectKey != obj.ObjectKey {
 			if err := h.DeleteObject(ctx, oldobj.ObjectKey, queries); err != nil {
 				h.Log().Error("delete old banner", "error", err)

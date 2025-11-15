@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"compress/gzip"
+	"database/sql"
+	"errors"
 	"net/http"
 	"strings"
 
+	"app/config"
 	"app/internal/db"
 	"app/templates"
 )
@@ -37,9 +40,30 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 		isOwner = true
 	}
 
+	bannerURL := ""
+
+	banner, err := queries.GetBanner(ctx, site.SiteID)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			h.Log().Error("error loading site", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		object, err := queries.GetObjectByID(ctx, banner.BannerObject)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				h.Log().Error("error loading site", "error", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+		bannerURL = config.S3PublicURL + "/" + object.ObjectKey
+	}
+
 	tr := h.Translator(r)
 
-	header := templates.SiteHeader(tr, site, "", isOwner)
+	header := templates.SiteHeader(tr, site, bannerURL, isOwner)
 	content := templates.Site(site)
 
 	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {

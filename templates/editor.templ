@@ -15,6 +15,7 @@ const (
 	EditorTagName          string = "tags"
 	EditorSlugName         string = "slug"
 	EditorSyncerID         string = "editorSyncer"
+	EditorImageID          string = "editorimage"
 	UploadBannerName       string = "bannerupload"
 )
 
@@ -47,7 +48,7 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 	</nav>
 	<header class="conex-banner">
 		if bannerURL != "" {
-			<img src={ bannerURL }/>
+			@Image(EditorImageID, bannerURL)
 		}
 		<div class="conex-banner-content flex items-center justify-center gap-y-2">
 			<textarea
@@ -155,4 +156,11 @@ templ EditorTags(tr func(string) string, site db.SitesWithMetric) {
 		@Tags(database.JSONToTags(site.SiteTagsJson), EditorTagContainerTags)
 		<br/>
 	</div>
+}
+
+templ Image(id, src string) {
+	<img
+		id={ id }
+		src={ src }
+	/>
 }

@@ -14,6 +14,8 @@
 	- [X] S3 / Upload images
 	- [X] site sync
 	- [X] Clean logger, add useful info
-	- [ ] New/Update banner
+	- [X] New/Update banner
+	- [ ] ImageTool also delete
 	- [ ] payments, check for plans in endpoints
+	- [ ] Loading screen for editor on slow connections
 
