@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"time"
 
+	"app/config"
 	"app/database"
 	"app/internal/db"
 	"app/templates"
@@ -164,7 +167,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	h.Log().Debug("site slug is valid")
+	h.Log().Debug("site slug is not empty valid")
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
 	if !ok {
@@ -200,7 +203,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback()
 	h.Log().Debug("started tx")
 
-	queries := db.New(h.DB()).WithTx(tx)
+	queries := db.New(tx)
 
 	site, err := queries.GetSiteWithMetrics(ctx, slug)
 	if err != nil {
@@ -293,4 +296,135 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
+	h.Log().Debug("endpoint hit", "pattern", r.Pattern)
+
+	queries := db.New(h.DB())
+
+	obj, err := h.UploadObject(w, r, "file", queries)
+	if err != nil {
+		h.Log().Debug("error uploading file", "error", err)
+	}
+
+	url := config.S3PublicURL + "/" + obj.ObjectKey
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]any{
+		"success": 1,
+		"file": map[string]any{
+			"url": url,
+		},
+	}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	slug := r.PathValue("site")
+	if slug == "" {
+		h.Log().Error("missing slug")
+		http.Error(w, "invalid slug", http.StatusBadRequest)
+		return
+	}
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("begin tx", "error", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+
+	queries := db.New(tx)
+
+	site, err := queries.GetSiteBySlug(ctx, slug)
+	if err != nil {
+		h.Log().Error("query site", "error", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if session.SessionUser != site.SiteUser {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	banner, err := queries.GetBanner(ctx, site.SiteID)
+	var hasExisting bool
+
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			h.Log().Error("query banner", "error", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+
+		hasExisting = false
+	} else {
+		hasExisting = true
+	}
+
+	// Upload new file
+	obj, err := h.UploadObject(w, r, templates.UploadBannerName, queries)
+	if err != nil {
+		h.Log().Error("upload file", "error", err)
+		return
+	}
+
+	if hasExisting {
+		oldobj, err := queries.GetObjectByID(ctx, banner.BannerObject)
+		if hasExisting && err != nil {
+			h.Log().Error("query banner obj", "error", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+
+		// If existing banner delete the old banner record first
+		if oldobj.ObjectKey != obj.ObjectKey {
+			if err := h.DeleteObject(ctx, oldobj.ObjectKey, queries); err != nil {
+				h.Log().Error("delete old banner", "error", err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if err := queries.UpdateBanner(ctx, db.UpdateBannerParams{
+			BannerID:     banner.BannerID,
+			BannerObject: obj.ObjectID,
+		}); err != nil {
+			h.Log().Error("update banner", "error", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+
+	} else {
+		// First upload
+		if _, err := queries.InsertBanner(ctx, db.InsertBannerParams{
+			BannerSite:   site.SiteID,
+			BannerObject: obj.ObjectID,
+		}); err != nil {
+			h.Log().Error("insert banner", "error", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		h.Log().Error("commit tx", "error", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	h.Log().Info("banner uploaded", "site", slug)
 }

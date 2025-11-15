@@ -18,30 +18,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func (h *Handler) PutObject(ctx context.Context, siteSlug, fileName string, body io.Reader) (string, error) {
+func (h *Handler) PutObject(ctx context.Context, siteSlug, fileName string, body io.Reader, queries *db.Queries) (db.SiteObject, error) {
 	mime, size, data, err := utils.InspectReader(body)
 	if err != nil {
-		return "", err
+		return db.SiteObject{}, err
 	}
 
 	md5sum := md5.Sum(data)
 	md5 := hex.EncodeToString(md5sum[:])
 
-	tx, err := h.DB().Begin()
-	if err != nil {
-		return "", err
-	}
-	defer tx.Rollback()
-
-	queries := db.New(tx)
-
 	site, err := queries.GetSiteBySlug(ctx, siteSlug)
 	if err != nil {
-		return "", err
+		return db.SiteObject{}, err
 	}
 
 	objKey := site.SiteSlug + "/" + fileName
-	objURL := config.S3PublicURL + "/" + objKey
 
 	now := time.Now().Unix()
 
@@ -64,14 +55,14 @@ func (h *Handler) PutObject(ctx context.Context, siteSlug, fileName string, body
 				ObjectModifiedUnix: now,
 			})
 			if err != nil {
-				return "", err
+				return db.SiteObject{}, err
 			}
 		} else {
-			return "", err
+			return db.SiteObject{}, err
 		}
 	} else {
 		if md5 == obj.ObjectMd5 {
-			return objURL, nil
+			return obj, nil
 		} else {
 			if err := queries.UpdateObject(ctx, db.UpdateObjectParams{
 				ObjectID:           obj.ObjectID,
@@ -80,12 +71,13 @@ func (h *Handler) PutObject(ctx context.Context, siteSlug, fileName string, body
 				ObjectSizeBytes:    size,
 				ObjectModifiedUnix: now,
 			}); err != nil {
-				return "", err
+				return db.SiteObject{}, err
 			}
-			// obj.ObjectMime = mime
-			// obj.ObjectMd5 = md5
-			// obj.ObjectSizeBytes = size
-			// obj.ObjectModifiedUnix = now
+
+			obj.ObjectMime = mime
+			obj.ObjectMd5 = md5
+			obj.ObjectSizeBytes = size
+			obj.ObjectModifiedUnix = now
 		}
 	}
 
@@ -94,12 +86,24 @@ func (h *Handler) PutObject(ctx context.Context, siteSlug, fileName string, body
 		Key:    aws.String(objKey),
 		Body:   bytes.NewReader(data),
 	}); err != nil {
-		return "", err
+		return db.SiteObject{}, err
 	}
 
-	if err := tx.Commit(); err != nil {
-		return "", err
+	return obj, nil
+}
+
+func (h *Handler) DeleteObject(ctx context.Context, key string, queries *db.Queries) error {
+	if _, err := h.S3().DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(config.S3Bucket),
+		Key:    aws.String(key),
+	}); err != nil {
+		return err
 	}
 
-	return objURL, nil
+	err := queries.DeleteObject(ctx, db.DeleteObjectParams{
+		ObjectKey:    key,
+		ObjectBucket: config.S3Bucket,
+	})
+
+	return err
 }

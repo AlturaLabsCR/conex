@@ -206,6 +206,9 @@ SELECT * FROM site_objects;
 -- name: GetObject :one
 SELECT * FROM site_objects WHERE object_bucket = ? AND object_key = ?;
 
+-- name: GetObjectByID :one
+SELECT * FROM site_objects WHERE object_id = ?;
+
 -- name: GetObjectsBySite :many
 SELECT * FROM site_objects WHERE object_site = ?;
 
@@ -227,3 +230,23 @@ INSERT INTO site_metrics (
 UPDATE sites SET
   site_tags_json = ?
 WHERE site_id = ?;
+
+-- name: DeleteObject :exec
+DELETE FROM site_objects WHERE object_bucket = ? AND object_key = ?;
+
+-- name: GetBanner :one
+SELECT * FROM site_banners WHERE banner_site = ?;
+
+-- name: InsertBanner :one
+INSERT INTO site_banners (
+  banner_site,
+  banner_object
+) VALUES (?, ?) RETURNING banner_id;
+
+-- name: UpdateBanner :exec
+UPDATE site_banners SET
+  banner_object = ?
+WHERE banner_id = ?;
+
+-- name: DeleteBanner :exec
+DELETE FROM site_banners WHERE banner_site = ?;

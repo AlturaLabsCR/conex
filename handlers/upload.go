@@ -1,49 +1,36 @@
 package handlers
 
 import (
-	"encoding/json"
+	"errors"
 	"net/http"
+
+	"app/internal/db"
 )
 
 const maxMemory int64 = 10 << 20
 
-func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UploadObject(w http.ResponseWriter, r *http.Request, inputName string, queries *db.Queries) (db.SiteObject, error) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxMemory)
 
 	siteSlug := r.PathValue("site")
 	if siteSlug == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		h.Log().Debug("missing site pathvlaue")
-		return
+		return db.SiteObject{}, errors.New("missing site pathvalue")
 	}
 
 	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		h.Log().Debug("file too large", "error", err)
-		return
+		return db.SiteObject{}, err
 	}
 
-	file, header, err := r.FormFile("file")
+	file, header, err := r.FormFile(inputName)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		h.Log().Debug("error retrieving file", "error", err)
-		return
+		return db.SiteObject{}, err
 	}
 	defer file.Close()
 
-	fileURL, err := h.PutObject(r.Context(), siteSlug, header.Filename, file)
+	obj, err := h.PutObject(r.Context(), siteSlug, header.Filename, file, queries)
 	if err != nil {
-		http.Error(w, "Upload failed: "+err.Error(), http.StatusInternalServerError)
-		return
+		return db.SiteObject{}, err
 	}
 
-	h.Log().Debug("uploaded file successfully", "url", fileURL)
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"success": 1,
-		"file": map[string]any{
-			"url": fileURL,
-		},
-	})
+	return obj, nil
 }

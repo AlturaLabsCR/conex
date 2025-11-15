@@ -15,6 +15,7 @@ const (
 	EditorTagName          string = "tags"
 	EditorSlugName         string = "slug"
 	EditorSyncerID         string = "editorSyncer"
+	UploadBannerName       string = "bannerupload"
 )
 
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL string) {
@@ -28,11 +29,11 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 				data-target="dashboard-modal-publish"
 				class="icon upload"
 			></button>
-			<!-- <button -->
-			<!-- 	onclick="toggleModal(event)" -->
-			<!-- 	data-target="dashboard-modal-banner" -->
-			<!-- 	class="icon image" -->
-			<!-- ></button> -->
+			<button
+				onclick="toggleModal(event)"
+				data-target="dashboard-modal-banner"
+				class="icon image"
+			></button>
 			<button
 				if len(database.JSONToTags(site.SiteTagsJson)) == 0 {
 					data-on:click="$showtags = 1; toggleModal(event)"
@@ -86,7 +87,7 @@ templ Editor(tr func(string) string, site db.SitesWithMetric) {
     </script>
 	</section>
 	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr, site.SiteSlug))
-	@Dialog(tr, "dashboard-modal-banner", tr("editor_banner"), uploadBannerForm(tr))
+	@Dialog(tr, "dashboard-modal-banner", tr("editor_banner"), uploadBannerForm(tr, site))
 	@Dialog(tr, "dashboard-modal-settings", tr("editor_settings"), updateSettingsForm(tr, site))
 }
 
@@ -100,13 +101,20 @@ templ publishSiteForm(tr func(string) string, site string) {
 	>{ tr("publish") }</button>
 }
 
-templ uploadBannerForm(tr func(string) string) {
+templ uploadBannerForm(tr func(string) string, site db.SitesWithMetric) {
 	<div id={ UploadBannerNoticeID }></div>
-	<input type="file" data-bind:files multiple/>
-	<button
-		class="text-white! bg-black dark:text-black! dark:bg-white"
-		data-attr:disabled="!$files.length"
-	>{ tr("upload_image") }</button>
+	<form enctype="multipart/form-data">
+		<input
+			data-bind:banner
+			type="file"
+			name={ UploadBannerName }
+		/>
+		<button
+			class="text-white! bg-black dark:text-black! dark:bg-white"
+			data-attr:disabled="!$banner.length"
+			data-on:click={ "@post('" + config.Endpoints[config.BannerPath] + site.SiteSlug + "', {contentType: 'form', headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+		>{ tr("upload_image") }</button>
+	</form>
 }
 
 templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {

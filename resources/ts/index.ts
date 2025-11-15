@@ -1,7 +1,13 @@
-export function toggleModal(event) {
+export function toggleModal(event: Event) {
   event.preventDefault();
-  const modal = document.getElementById(event.currentTarget.dataset.target);
+
+  const target = event.currentTarget as HTMLElement | null;
+  if (!target) return;
+
+  const modalId = target.dataset.target;
+  if (!modalId) return;
+
+  const modal = document.getElementById(modalId);
   if (modal) modal.classList.toggle('open');
 }
-
-window.toggleModal = toggleModal;
+(window as any).toggleModal = toggleModal;

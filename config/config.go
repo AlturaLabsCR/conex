@@ -25,6 +25,7 @@ const (
 	AccountPath
 	UploadPath
 	SettingsPath
+	BannerPath
 )
 
 var Endpoints = map[Endpoint]string{
@@ -39,6 +40,7 @@ var Endpoints = map[Endpoint]string{
 	AccountPath:   "account",
 	UploadPath:    "upload/",
 	SettingsPath:  "settings",
+	BannerPath:    "banner/",
 }
 
 var (
