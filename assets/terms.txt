@@ -4,20 +4,15 @@ Términos y Condiciones de CONEX
 
 1. Uso de la plataforma
 
-CONEX permite a los usuarios crear, editar y publicar sitios web sujetos a los
-límites técnicos según el plan correspondiente (cantidad de sitios, imágenes u
-otros recursos).
+CONEX permite a los usuarios crear, editar y publicar sitios web sujetos a los límites técnicos según el plan correspondiente (cantidad de sitios, imágenes u otros recursos).
 
-El usuario es responsable del contenido que publique y garantiza que posee los
-derechos necesarios para utilizar dicho contenido.
+El usuario es responsable del contenido que publique y garantiza que posee los derechos necesarios para utilizar dicho contenido.
 
-El usuario acepta que cualquier información o contenido que decida publicar
-mediante CONEX será considerado público o de acceso irrestricto.
+El usuario acepta que cualquier información o contenido que decida publicar mediante CONEX será considerado público o de acceso irrestricto.
 
 2. Datos personales y privacidad
 
-CONEX cumple con la Ley 8968 de Protección de la Persona frente al Tratamiento
-de sus Datos Personales.
+CONEX cumple con la Ley 8968 de Protección de la Persona frente al Tratamiento de sus Datos Personales.
 
 2.1. Datos personales recolectados
 
@@ -27,28 +22,21 @@ El único dato personal solicitado es el correo electrónico, requerido para:
 - Iniciar sesión
 - Cambiar el correo asociado a la cuenta
 
-CONEX no almacena el correo directamente. Este se utiliza únicamente para enviar
-un código de verificación. Una vez verificado, se guarda únicamente un hash del
-correo en la base de datos para identificar al usuario.
+CONEX no almacena el correo directamente. Este se utiliza únicamente para enviar un código de verificación. Una vez verificado, se guarda únicamente un hash del correo en la base de datos para identificar al usuario.
 
 2.2. Datos no personales
 
 Se almacenan logs anónimos de actividad sin datos personales.
 
-No se almacenan cookies en el servidor; cualquier cookie utilizada permanece en
-el navegador del usuario.
+No se almacenan cookies en el servidor; cualquier cookie utilizada permanece en el navegador del usuario.
 
-La información de sesión (identificador anonimizado del dispositivo) es privada
-y no se considera dato personal.
+La información de sesión (identificador anonimizado del dispositivo) es privada y no se considera dato personal.
 
 2.3. Acceso, rectificación y eliminación
 
-El usuario puede ejercer sus derechos de acceso, rectificación o eliminación
-mediante el apartado Cuenta -> Cambiar correo electrónico, en donde podrá
-confirmar su identidad mediante un código temporal enviado a su correo.
+El usuario puede ejercer sus derechos de acceso, rectificación o eliminación mediante el apartado Cuenta -> Cambiar correo electrónico, en donde podrá confirmar su identidad mediante un código temporal enviado a su correo.
 
-La eliminación del hash del correo se realizará de inmediato una vez verificado
-dicho código.
+La eliminación del hash del correo se realizará de inmediato una vez verificado dicho código.
 
 2.4. Transferencia de datos
 
@@ -56,14 +44,11 @@ CONEX no transfiere datos personales a terceros ni a otros países.
 
 3. Seguridad de la información
 
-CONEX aplica medidas técnicas y organizativas para proteger los datos
-personales, conforme a los requisitos de la Ley 8968, evitando accesos no
-autorizados, pérdida o alteración de la información.
+CONEX aplica medidas técnicas y organizativas para proteger los datos personales, conforme a los requisitos de la Ley 8968, evitando accesos no autorizados, pérdida o alteración de la información.
 
 4. Contenido prohibido
 
-CONEX se reserva el derecho de suspender, ocultar o eliminar cualquier sitio web
-que incluya contenido que considere inapropiado, incluyendo pero no limitado a:
+CONEX se reserva el derecho de suspender, ocultar o eliminar cualquier sitio web que incluya contenido que considere inapropiado, incluyendo pero no limitado a:
 
 - Material obsceno
 - Contenido violento
@@ -71,19 +56,15 @@ que incluya contenido que considere inapropiado, incluyendo pero no limitado a:
 - Actividades ilegales
 - Spam
 
-Cualquier otro contenido que pueda afectar a terceros, violar derechos o
-contravenir la ley, la moral o las políticas internas de CONEX.
+Cualquier otro contenido que pueda afectar a terceros, violar derechos o contravenir la ley, la moral o las políticas internas de CONEX.
 
 5. Responsabilidad del usuario
 
-El usuario reconoce que es el único responsable por el contenido que publique.
-CONEX no se hace responsable de daños, perjuicios o reclamos derivados del uso o
-interpretación del contenido creado por los usuarios.
+El usuario reconoce que es el único responsable por el contenido que publique. CONEX no se hace responsable de daños, perjuicios o reclamos derivados del uso o interpretación del contenido creado por los usuarios.
 
 6. Limitación de responsabilidad
 
-CONEX no garantiza la disponibilidad ininterrumpida del servicio y no será
-responsable por daños directos o indirectos derivados de:
+CONEX no garantiza la disponibilidad ininterrumpida del servicio y no será responsable por daños directos o indirectos derivados de:
 
 - Interrupciones, fallos o pérdidas de datos
 - Contenido generado por los usuarios
@@ -93,12 +74,8 @@ El uso del servicio es bajo responsabilidad del usuario.
 
 7. Modificaciones a los Términos
 
-CONEX podrá actualizar estos Términos y Condiciones en cualquier momento.
-La versión vigente estará siempre disponible para consulta dentro de la
-plataforma. El uso continuado del servicio implica la aceptación de las
-modificaciones.
+CONEX podrá actualizar estos Términos y Condiciones en cualquier momento. La versión vigente estará siempre disponible para consulta dentro de la plataforma. El uso continuado del servicio implica la aceptación de las modificaciones.
 
 8. Jurisdicción
 
-Estos Términos se rigen por las leyes de la República de Costa Rica. Cualquier
-conflicto será resuelto conforme a dicha jurisdicción.
+Estos Términos se rigen por las leyes de la República de Costa Rica. Cualquier conflicto será resuelto conforme a dicha jurisdicción.
