@@ -1,5 +1,5 @@
 # Replace with your output binary name
-BIN = app
+BIN = conex
 
 GO = go
 DIST_FLAGS = -ldflags "-s -w"
@@ -81,7 +81,7 @@ clean/assets:
 gen: $(GEN)
 
 $(BIN): $(GEN)
-	$(GO_ENV) $(GO) build $(LOG)
+	$(GO_ENV) $(GO) build -o $(BIN) $(LOG)
 
 .PHONY: build
 build: $(BIN)
