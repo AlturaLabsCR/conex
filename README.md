@@ -19,3 +19,4 @@
   - [ ] ImageTool also delete
   - [ ] check for plans in endpoints
   - [ ] Loading screen for editor on slow connections
+  - [ ] Auto-disable plans
