@@ -12,9 +12,7 @@ Usuario: Persona que accede o utiliza CONEX.
 
 Datos personales: Cualquier información relacionada con una persona identificada o identificable. En CONEX, el único dato personal solicitado es el correo electrónico.
 
-Hash del correo: Representación criptográfica del correo del usuario que se almacena en CONEX para permitir la identificación durante el inicio de sesión, sin conservar el correo en texto claro.
-
-Base de datos: Conjunto organizado de información, automatizado o manual, que permite el almacenamiento, gestión y consulta de datos. En el caso de CONEX, incluye únicamente elementos necesarios para el funcionamiento del servicio, como el hash del correo electrónico, datos técnicos internos y contenido generado por el usuario.
+Base de datos: Conjunto organizado de información, automatizado o manual, que permite el almacenamiento, gestión y consulta de datos. En el caso de CONEX, incluye únicamente elementos necesarios para el funcionamiento del servicio y la gestión de cuentas de usuario.
 
 Contenido del usuario: Cualquier texto, imagen, archivo o información que el usuario incluya en los sitios o páginas creadas mediante CONEX.
 
@@ -38,35 +36,40 @@ CONEX cumple con la Ley 8968 de Protección de la Persona frente al Tratamiento 
 
 2.1. Datos personales recolectados
 
-El único dato personal solicitado es el correo electrónico, requerido para:
+El único dato personal solicitado por CONEX es el correo electrónico, requerido para:
 
 - Registrarse
 - Iniciar sesión
 - Cambiar el correo asociado a la cuenta
 
-CONEX no almacena el correo directamente. Este se utiliza únicamente para enviar un código de verificación. Una vez verificado, se guarda únicamente un hash del correo en la base de datos para identificar al usuario.
+CONEX utiliza el correo electrónico únicamente para enviar códigos de verificación y para gestionar la cuenta del usuario.
 
 2.2. Datos no personales
 
-Se almacenan logs anónimos de actividad sin datos personales.
+Se almacenan logs anónimos de actividad sin información personal.
 
-No se almacenan cookies en el servidor; cualquier cookie utilizada permanece en el navegador del usuario.
+No se almacenan cookies en el servidor; cualquier cookie utilizada permanece exclusivamente en el navegador del usuario.
 
 La información de sesión (identificador anonimizado del dispositivo) es privada y no se considera dato personal.
 
 2.3. Acceso, rectificación y eliminación
 
-El usuario puede ejercer sus derechos de acceso, rectificación o eliminación mediante el apartado Cuenta -> Cambiar correo electrónico, en donde podrá confirmar la validez del correo mediante un código temporal enviado a su correo.
+El usuario puede ejercer sus derechos de acceso, rectificación o eliminación mediante los apartados:
 
-La eliminación del hash del correo se realizará de inmediato una vez verificado dicho código.
+- Cuenta -> Cambiar correo electrónico
+- Cuenta -> Eliminar cuenta
+
+El sistema enviará un código temporal para confirmar la validez del correo.
+
+La eliminación de los datos personales del usuario se realizará de inmediato una vez verificado dicho código.
 
 2.4. Transferencia de datos
 
-CONEX no transfiere datos personales a terceros ni a otros países.
+CONEX no transfiere datos personales a terceros ni a otros países, salvo los requeridos estrictamente para el procesamiento de pagos mediante plataformas externas como PayPal, cuando aplique.
 
 3. Seguridad de la información
 
-CONEX aplica medidas técnicas y organizativas para proteger los datos personales, conforme a los requisitos de la Ley 8968, evitando accesos no autorizados, pérdida o alteración de la información.
+CONEX aplica medidas técnicas y organizativas para proteger los datos personales, conforme a la Ley 8968, evitando accesos no autorizados, pérdida o alteración de la información.
 
 4. Contenido prohibido
 
@@ -96,7 +99,7 @@ El uso del servicio es bajo responsabilidad del usuario.
 
 7. Modificaciones a los Términos
 
-CONEX podrá actualizar estos Términos y Condiciones en cualquier momento. La versión vigente estará siempre disponible para consulta dentro de la plataforma. El uso continuado del servicio implica la aceptación de las modificaciones.
+CONEX podrá actualizar estos Términos y Condiciones en cualquier momento. La versión vigente estará disponible dentro de la plataforma. El uso continuado del servicio implica la aceptación de las modificaciones.
 
 8. Jurisdicción
 
