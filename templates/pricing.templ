@@ -2,19 +2,71 @@ package templates
 
 import "app/config"
 
-templ Pricing(tr func(string) string) {
-	<p>{ tr("pricing") }</p>
+const (
+	paypalButtonsID = "paypal-buttons"
+)
+
+templ Pricing(tr func(string) string, clientID string) {
+	@paypalButtons(clientID)
+	<section class="flex flex-col gap-4 max-w-2xl mx-auto">
+		<div
+			class="flex flex-row justify-between gap-4 border border-black/30 dark:border-white/30 rounded-2xl p-4 opacity-60"
+		>
+			<div>
+				<span class="text-2xl font-bold">{ tr("pricing_plan_basic_title") }</span>
+				<p class="text-4xl font-light">{ tr("pricing_plan_basic_amount") }</p>
+			</div>
+			<div>
+				<ul>
+					<li>{ tr("pricing_plan_basic_u1") }</li>
+					<li>{ tr("pricing_plan_basic_u2") }</li>
+					<li>{ tr("pricing_plan_basic_u3") }</li>
+				</ul>
+			</div>
+		</div>
+		<div
+			class="flex flex-row justify-between gap-4 border-2 border-blue-400/60 rounded-2xl p-4"
+		>
+			<div>
+				<span class="text-2xl font-bold">{ tr("pricing_plan_extended_title") }</span>
+				<p class="text-4xl font-light">{ tr("pricing_plan_extended_amount") }</p>
+			</div>
+			<div class="flex flex-col">
+				<ul class="text-blue-400">
+					<li>{ tr("pricing_plan_extended_u1") }</li>
+					<li>{ tr("pricing_plan_extended_u2") }</li>
+					<li>{ tr("pricing_plan_extended_u3") }</li>
+				</ul>
+				<button
+					onclick="toggleModal(event)"
+					data-target="pricing-modal-checkout"
+				>{ tr("subscribe") }</button>
+			</div>
+		</div>
+		@Dialog(tr, "pricing-modal-checkout", tr("pricing_checkout"), paypalCheckoutForm())
+	</section>
 }
 
 templ PricingHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<nav class="m-4">
 			<a href={ config.Endpoints[config.DashboardPath] }>
-				← { tr("back_to") } { tr("my_sites") }
+				← { tr("my_sites") }
 			</a>
 		</nav>
 		<div class="conex-banner-content">
 			<h1>{ tr("pricing") }</h1>
 		</div>
 	</header>
+}
+
+templ paypalButtons(clientID string) {
+	<script src={ config.Endpoints[config.AssetsPath] + "js/paypal.js" }></script>
+	<script>
+    initPayPalButtons({{ clientID }}, "#{{ paypalButtonsID }}")
+  </script>
+}
+
+templ paypalCheckoutForm() {
+	<div id="paypal-buttons"></div>
 }

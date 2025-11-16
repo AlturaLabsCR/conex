@@ -611,7 +611,7 @@ dialog > article {
   @apply
   p-4
   w-11/12
-  h-11/12
+  max-h-[90vh]
   max-w-3xl
   overflow-y-auto
   border

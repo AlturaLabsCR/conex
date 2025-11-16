@@ -26,13 +26,20 @@ templ DashboardHeader(tr func(string) string) {
 	<header class="conex-banner">
 		<div class="conex-banner-content">
 			<h1>{ tr("my_sites") }</h1>
-			<button
-				onclick="toggleModal(event)"
-				data-target="dashboard-modal-new-site"
-				class="max-w-fit mx-auto"
-			>
-				{ tr("create_website") }
-			</button>
+			<div class="flex flex-row max-w-fit mx-auto">
+				<button
+					onclick="toggleModal(event)"
+					data-target="dashboard-modal-new-site"
+					class="max-w-fit mx-auto mr-2 bg-black text-white dark:bg-white dark:text-black"
+				>
+					{ tr("create_website") }
+				</button>
+				<a href={ config.Endpoints[config.PricingPath] }>
+					<button class="max-w-fit mx-auto">
+						{ tr("pricing") }
+					</button>
+				</a>
+			</div>
 		</div>
 	</header>
 }

@@ -78,6 +78,22 @@ var ES = map[string]string{
 	"session_current": "Esta sesión",
 	"logout_device":   "Cerrar",
 
+	// pricing
+	"subscribe":        "Suscribir",
+	"pricing_checkout": "Suscribir",
+
+	"pricing_plan_basic_title":  "Básico",
+	"pricing_plan_basic_amount": "$0",
+	"pricing_plan_basic_u1":     "1 sitio web",
+	"pricing_plan_basic_u2":     "Gratis para siempre",
+	"pricing_plan_basic_u3":     "No requiere tarjeta",
+
+	"pricing_plan_extended_title":  "Extendido",
+	"pricing_plan_extended_amount": "$19.99/año",
+	"pricing_plan_extended_u1":     "5 sitios web con banner",
+	"pricing_plan_extended_u2":     "Hasta 10MB en imágenes por sitio",
+	"pricing_plan_extended_u3":     "Sincronización entre dispositivos",
+
 	// sites
 	"not_found":      "Sitio web no encontrado",
 	"not_found_long": "Este sitio web no existe, o no está publicado",

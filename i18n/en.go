@@ -78,6 +78,22 @@ var EN = map[string]string{
 	"session_current": "Current",
 	"logout_device":   "Log out",
 
+	// pricing
+	"subscribe":        "Subscribe",
+	"pricing_checkout": "Checkout",
+
+	"pricing_plan_basic_title":  "Basic",
+	"pricing_plan_basic_amount": "$0",
+	"pricing_plan_basic_u1":     "1 website",
+	"pricing_plan_basic_u2":     "Free forever",
+	"pricing_plan_basic_u3":     "No credit card required",
+
+	"pricing_plan_extended_title":  "Extended",
+	"pricing_plan_extended_amount": "$19.99/year",
+	"pricing_plan_extended_u1":     "5 websites with banner",
+	"pricing_plan_extended_u2":     "Up to 10MB of images per site",
+	"pricing_plan_extended_u3":     "Sync across devices",
+
 	// sites
 	"not_found":      "Website not found",
 	"not_found_long": "This website either does not exist, or is not public",

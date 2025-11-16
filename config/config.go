@@ -26,6 +26,7 @@ const (
 	UploadPath
 	SettingsPath
 	BannerPath
+	CheckoutPath
 )
 
 var Endpoints = map[Endpoint]string{
@@ -41,6 +42,7 @@ var Endpoints = map[Endpoint]string{
 	UploadPath:    "upload/",
 	SettingsPath:  "settings",
 	BannerPath:    "banner/",
+	CheckoutPath:  "checkout/",
 }
 
 var (
@@ -70,6 +72,10 @@ var (
 	ServerSMTPPass string
 
 	ServerSecret string
+
+	PayPalClientID     string
+	PayPalClientSecret string
+	PayPalEndpoint     string = "https://api-m.paypal.com"
 )
 
 const (
@@ -96,6 +102,10 @@ const (
 
 	envS3Bucket    = envPrefix + "S3_BUCKET"
 	envS3PublicURL = envPrefix + "S3_PUBLIC_URL"
+
+	envPayPalClientID     = envPrefix + "PP_CLIENT_ID"
+	envPayPalClientSecret = envPrefix + "PP_CLIENT_SECRET"
+	envPayPalEndpoint     = envPrefix + "PP_ENDPOINT"
 )
 
 func Init() {
@@ -126,6 +136,21 @@ func Init() {
 		S3PublicURL = u
 	} else {
 		panic("Missing S3 public URL")
+	}
+
+	ppi := os.Getenv(envPayPalClientID)
+	if ppi != "" {
+		PayPalClientID = ppi
+	}
+
+	pps := os.Getenv(envPayPalClientSecret)
+	if pps != "" {
+		PayPalClientSecret = pps
+	}
+
+	ppe := os.Getenv(envPayPalEndpoint)
+	if ppe != "" {
+		PayPalEndpoint = ppe
 	}
 
 	// Prefix all endpoint paths with Endpoints[RootPath]

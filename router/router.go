@@ -22,8 +22,6 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 	router.HandleFunc("PUT "+config.Endpoints[config.LoginPath], h.Login)
 	router.HandleFunc("POST "+config.Endpoints[config.LoginPath], h.LoginConfirm)
 
-	router.HandleFunc("GET "+config.Endpoints[config.PricingPath], h.Pricing)
-
 	loggedIn := middleware.Stack(
 		h.AuthenticationMiddleware(
 			false,
@@ -31,6 +29,8 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 			config.Endpoints[config.LoginPath],
 		),
 	)
+
+	router.Handle("GET "+config.Endpoints[config.PricingPath], middleware.With(loggedIn, h.Pricing))
 
 	router.Handle("GET "+config.Endpoints[config.EditorPath]+"{site...}", middleware.With(loggedIn, h.Editor))
 	router.Handle("GET "+config.Endpoints[config.DashboardPath], middleware.With(loggedIn, h.Dashboard))
@@ -59,6 +59,9 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 	router.Handle("PATCH "+config.Endpoints[config.EditorPath]+"{site}", middleware.With(protected, h.EditorSync))
 
 	router.Handle("POST "+config.Endpoints[config.BannerPath]+"{site}", middleware.With(protected, h.UploadBanner))
+
+	router.Handle("POST "+config.Endpoints[config.CheckoutPath]+"create", middleware.With(protected, h.CreateOrder))
+	router.Handle("POST "+config.Endpoints[config.CheckoutPath]+"complete", middleware.With(protected, h.CompleteOrder))
 
 	return router
 }
