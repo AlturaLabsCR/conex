@@ -16,10 +16,11 @@
   - [X] Clean logger, add useful info
   - [X] New/Update banner
   - [X] payments
-  - [ ] allow toggling home page
-  - [ ] check image endpoints are actually images
-  - [ ] check for plans in endpoints
+  - [X] allow toggling home page
+  - [X] check image endpoints are actually images
+  - [X] check for plans in endpoints
   - [ ] Loading screen for editor on slow connections
+  - [ ] Harden against db limits
   - [ ] ImageTool also delete
   - [ ] Auto-disable plans
   - [ ] save hashed email

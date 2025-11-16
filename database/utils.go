@@ -4,6 +4,7 @@ package database
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -49,20 +50,25 @@ func SanitizeHTML(s string) string {
 	return p.Sanitize(s)
 }
 
-func ParseTags(input string) []Tag {
+func ParseTags(input string) ([]Tag, error) {
 	cleaned := strings.ReplaceAll(input, ",", " ")
 
 	fields := strings.Fields(cleaned)
 
 	var tags []Tag
 	for _, f := range fields {
+		if len(f) > 24 {
+			return nil, fmt.Errorf(
+				"tags cannot be more than 24 characters long, bad tag: %s", f,
+			)
+		}
 		tags = append(tags, Tag{
 			Name:  f,
 			Color: randomColor(),
 		})
 	}
 
-	return tags
+	return tags, nil
 }
 
 func TagsToCommaList(jsonInput string) string {

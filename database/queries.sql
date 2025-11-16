@@ -47,10 +47,6 @@ WHERE site_sync_id = ?;
 -- name: GetMetricsBySiteID :one
 SELECT * FROM site_metrics WHERE metric_site = ?;
 
--- name: GetPublishedSitesWithMetrics :many
-SELECT * FROM sites_with_metrics
-WHERE site_published = 1 AND site_deleted = 0;
-
 -- name: GetSitesWithMetricsByUserID :many
 SELECT * FROM sites_with_metrics WHERE site_user = ?;
 
@@ -60,9 +56,9 @@ SELECT * FROM sites_with_metrics WHERE site_slug = ?;
 -- name: GetPublishedSiteWithMetricsBySlug :one
 SELECT * FROM sites_with_metrics WHERE site_slug = ? AND site_published = 1;
 
--- name: GetPublishedSitesWithMetricsFromMostTotalVisits :many
+-- name: GetHomePageSitesWithMetricsFromMostTotalVisits :many
 SELECT * FROM sites_with_metrics
-WHERE site_published = 1 AND site_deleted = 0
+WHERE site_published = 1 AND site_home_page = 1 AND site_deleted = 0
 ORDER BY metric_visits_total DESC, site_id ASC
 LIMIT 30;
 
@@ -178,9 +174,10 @@ INSERT INTO sites (
   site_created_unix,
   site_modified_unix,
   site_published,
+  site_home_page,
   site_deleted
 ) VALUES (
-  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 ) RETURNING site_id;
 
 -- name: UpdateSite :exec
@@ -246,8 +243,10 @@ INSERT INTO site_metrics (
   metric_visits_total
 ) VALUES (?, ?) RETURNING metric_id;
 
--- name: UpdateTags :exec
+-- name: UpdateSiteSettings :exec
 UPDATE sites SET
+  site_modified_unix = ?,
+  site_home_page = ?,
   site_tags_json = ?
 WHERE site_id = ?;
 

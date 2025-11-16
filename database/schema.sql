@@ -58,6 +58,7 @@ CREATE TABLE sites (
   site_html_published TEXT NOT NULL,
   site_created_unix INTEGER NOT NULL,
   site_modified_unix INTEGER NOT NULL,
+  site_home_page INTEGER NOT NULL DEFAULT 0,
   site_published INTEGER NOT NULL DEFAULT 1,
   site_deleted INTEGER NOT NULL DEFAULT 0,
 

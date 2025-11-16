@@ -177,15 +177,113 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	h.Log().Debug("updated site", "site_id", site.SiteID, "site_html_published", data.Content)
 
-	if err := templates.Notice(
-		templates.PublishNoticeID,
-		templates.NoticeInfo,
-		tr("success"),
-		tr("dashboard_published_site"),
+	if err := templates.UnpublishSite(
+		tr,
+		data.Slug,
+		true,
 	).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	if err := templates.ShowInHomeButton(
+		tr,
+		site.SiteHomePage == 1,
+		true,
+	).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering new shown status")
+	}
+
+	if err := templates.NoticeEmpty(templates.PublishNoticeID).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := templates.NoticeEmpty(templates.EditorMustBePublishedID).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) EditorUnpublish(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	slug := r.PathValue("site")
+
+	if slug == "" {
+		h.Log().Error("error invalid slug", "slug", slug)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	h.Log().Debug("site slug is not empty valid")
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Debug("error retrieving session from ctx")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	h.Log().Debug("session id valid")
+
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+	h.Log().Debug("started tx")
+
+	queries := db.New(tx)
+
+	site, err := queries.GetSiteWithMetrics(ctx, slug)
+	if err != nil {
+		h.Log().Error("error querying site with metrics", "error", err, "slug", slug)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	h.Log().Debug("site exists")
+
+	if site.SiteUser != session.SessionUser {
+		h.Log().Error("error is not site owner")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	h.Log().Debug("session user is site owner")
+
+	if err := queries.UnpublishSite(ctx, site.SiteID); err != nil {
+		h.Log().Error("error unpublishing site")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		h.Log().Error("error unpublishing site")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	tr := h.Translator(r)
+
+	if err := templates.UnpublishSite(
+		tr,
+		slug,
+		false,
+	).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering unpublish status")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := templates.ShowInHomeButton(
+		tr,
+		site.SiteHomePage == 1,
+		false,
+	).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering new shown status")
 	}
 }
 
@@ -209,6 +307,36 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+	h.Log().Debug("started tx")
+
+	queries := db.New(tx)
+
+	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	if err != nil {
+		h.Log().Error("error qyerying plan", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if plan.UserPlanActive != 1 || time.Now().Unix() > plan.UserPlanDueUnix {
+		h.Log().Error("sync requires plan")
+		if err := json.NewEncoder(w).Encode(SyncResponse{
+			ShouldPatch: false,
+		}); err != nil {
+			h.Log().Error("error encoding json", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		h.Log().Error("error reading patch sync body", "error", err)
@@ -225,17 +353,6 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.Log().Debug("body is valid")
-
-	tx, err := h.DB().Begin()
-	if err != nil {
-		h.Log().Error("error starting tx", "error", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer tx.Rollback()
-	h.Log().Debug("started tx")
-
-	queries := db.New(tx)
 
 	site, err := queries.GetSiteWithMetrics(ctx, slug)
 	if err != nil {
@@ -330,14 +447,36 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	h.Log().Debug("endpoint hit", "pattern", r.Pattern)
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 
 	queries := db.New(h.DB())
 
+	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	if err != nil {
+		h.Log().Error("error querying plan", "error", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if plan.UserPlanActive != 1 || time.Now().Unix() > plan.UserPlanDueUnix {
+		h.Log().Error("error uploading image, requires plan")
+		http.Error(w, "upgrade plan", http.StatusUnauthorized)
+		return
+	}
+
 	obj, err := h.UploadObject(w, r, "file", queries)
 	if err != nil {
-		h.Log().Debug("error uploading file", "error", err)
+		h.Log().Debug("error uploading image", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	url := config.S3PublicURL + "/" + obj.ObjectKey
@@ -356,6 +495,7 @@ func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	tr := h.Translator(r)
 
 	slug := r.PathValue("site")
 	if slug == "" {
@@ -379,6 +519,24 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback()
 
 	queries := db.New(tx)
+
+	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	if err != nil {
+		h.Log().Error("error querying plan", "error", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if plan.UserPlanActive != 1 || time.Now().Unix() > plan.UserPlanDueUnix {
+		h.Log().Debug("tried to upload banner without required plan", "user", session.SessionUser)
+		templates.Notice(
+			templates.UploadBannerNoticeID,
+			templates.NoticeInfo,
+			tr("info"),
+			tr("dashboard_upgrade_to_upload_banner"),
+		).Render(ctx, w)
+		return
+	}
 
 	site, err := queries.GetSiteBySlug(ctx, slug)
 	if err != nil {
@@ -422,19 +580,9 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// If existing banner delete the old banner record first
-		// TODO: Do not delete if obj is used elsewhere
-		if oldobj.ObjectKey != obj.ObjectKey {
-			if err := h.DeleteObject(ctx, oldobj.ObjectKey, queries); err != nil {
-				h.Log().Error("delete old banner", "error", err)
-				http.Error(w, "internal error", http.StatusInternalServerError)
-				return
-			}
-		}
-
 		if err := queries.UpdateBanner(ctx, db.UpdateBannerParams{
 			BannerID:     banner.BannerID,
-			BannerObject: obj.ObjectID,
+			BannerObject: oldobj.ObjectID,
 		}); err != nil {
 			h.Log().Error("update banner", "error", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)

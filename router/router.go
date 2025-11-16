@@ -50,13 +50,14 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 	router.Handle("POST "+config.Endpoints[config.EditorPath], middleware.With(protected, h.NewSite))
 	router.Handle("PUT "+config.Endpoints[config.EditorPath], middleware.With(protected, h.Publish))
 
-	router.Handle("POST "+config.Endpoints[config.UploadPath]+"{site}", middleware.With(protected, h.UploadFile))
+	router.Handle("POST "+config.Endpoints[config.UploadPath]+"{site}", middleware.With(protected, h.UploadImage))
 
 	router.HandleFunc("GET "+config.Endpoints[config.RootPath]+"{site}", h.Site)
 
 	router.Handle("PATCH "+config.Endpoints[config.SettingsPath], middleware.With(protected, h.UpdateSettings))
 
 	router.Handle("PATCH "+config.Endpoints[config.EditorPath]+"{site}", middleware.With(protected, h.EditorSync))
+	router.Handle("DELETE "+config.Endpoints[config.EditorPath]+"{site}", middleware.With(protected, h.EditorUnpublish))
 
 	router.Handle("POST "+config.Endpoints[config.BannerPath]+"{site}", middleware.With(protected, h.UploadBanner))
 

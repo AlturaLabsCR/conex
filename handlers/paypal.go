@@ -142,6 +142,7 @@ type ExperienceContext struct {
 type PayPal struct {
 	// create order
 	ExperienceContext *ExperienceContext `json:"experience_context"`
+	Address           *Address           `json:"address"`
 
 	// complete order
 	Name          *Name  `json:"name,omitempty"`
@@ -169,9 +170,9 @@ type Address struct {
 }
 
 type Shipping struct {
-	CurrencyCode string  `json:"currency_code,omitempty"`
-	Value        string  `json:"value,omitempty"`
-	Address      Address `json:"address"`
+	CurrencyCode string   `json:"currency_code,omitempty"`
+	Value        string   `json:"value,omitempty"`
+	Address      *Address `json:"address"`
 }
 
 type Breakdown struct {
@@ -258,8 +259,8 @@ type PurchaseUnits struct {
 
 	// complete order
 	ReferenceID string    `json:"reference_id,omitempty"`
-	Shipping    *Shipping `json:"shipping,omitempty"`
-	Payments    *Payments
+	Shipping    *Shipping `json:"shipping"`
+	Payments    *Payments `json:"payments"`
 }
 
 func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
@@ -468,6 +469,9 @@ func CreateOrder(currencyCode, value string) (OrderResponse, error) {
 			PayPal: &PayPal{
 				ExperienceContext: &ExperienceContext{
 					ShippingPreference: "NO_SHIPPING",
+				},
+				Address: &Address{
+					CountryCode: "CR",
 				},
 			},
 		},

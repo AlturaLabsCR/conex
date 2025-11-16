@@ -7,16 +7,19 @@ import (
 )
 
 const (
-	PublishNoticeID        string = "publishNotice"
-	UploadBannerNoticeID   string = "uploadBannerNotice"
-	UpdateSettingsNoticeID string = "updateSettingsNotice"
-	EditorTagContainer     string = "editortagscontainer"
-	EditorTagContainerTags string = "editortagstags"
-	EditorTagName          string = "tags"
-	EditorSlugName         string = "slug"
-	EditorSyncerID         string = "editorSyncer"
-	EditorImageID          string = "editorimage"
-	UploadBannerName       string = "bannerupload"
+	PublishNoticeID         string = "publishNotice"
+	UploadBannerNoticeID    string = "uploadBannerNotice"
+	UpdateSettingsNoticeID  string = "updateSettingsNotice"
+	EditorTagContainer      string = "editortagscontainer"
+	EditorTagContainerTags  string = "editortagstags"
+	EditorTagName           string = "tags"
+	EditorSlugName          string = "slug"
+	EditorSyncerID          string = "editorSyncer"
+	EditorImageID           string = "editorimage"
+	UploadBannerName        string = "bannerupload"
+	EditorMustBePublishedID string = "editormustbepublished"
+	EditorShowInHomeID      string = "editorshowinhomebutton"
+	UnpublishSiteID         string = "editorunpublishsite"
 )
 
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL string) {
@@ -75,24 +78,30 @@ templ Editor(tr func(string) string, site db.SitesWithMetric) {
 		<script src={ config.Endpoints[config.AssetsPath] + "js/editor.js" } defer></script>
 		<script>
       document.addEventListener('DOMContentLoaded', () => {
-        initEditor({{ site.SiteSlug }})
-
+        const site = "{{ site.SiteSlug }}";
         const els = document.querySelectorAll('#editor_title, #editor_description');
+
         els.forEach((el) => {
-          resizeAndRun({{ site.SiteSlug }}, el);
-          el.addEventListener('input', () => resizeAndRun({{ site.SiteSlug }}, el));
+          el.addEventListener('input', () => resizeAndRun(site, el));
+        });
+
+        initEditor(site)
+
+        els.forEach((el) => {
+          resizeAndRun(site, el);
+          el.dispatchEvent(new Event("input"));
         });
 
         window.isFirstLoad = false;
       });
     </script>
 	</section>
-	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr, site.SiteSlug))
+	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr, site.SiteSlug, site.SitePublished == 1))
 	@Dialog(tr, "dashboard-modal-banner", tr("editor_banner"), uploadBannerForm(tr, site))
 	@Dialog(tr, "dashboard-modal-settings", tr("editor_settings"), updateSettingsForm(tr, site))
 }
 
-templ publishSiteForm(tr func(string) string, site string) {
+templ publishSiteForm(tr func(string) string, site string, published bool) {
 	<div id={ PublishNoticeID }></div>
 	<div class="hidden" data-signals={ "{ slug: '" + site + "' }" }></div>
 	<textarea id="editor_html" class="hidden" disabled></textarea>
@@ -100,6 +109,21 @@ templ publishSiteForm(tr func(string) string, site string) {
 		class="text-white! bg-black dark:text-black! dark:bg-white"
 		data-on:click={ "$content = getEditorHtml(); @put('" + config.Endpoints[config.EditorPath] + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 	>{ tr("publish") }</button>
+	<hr/>
+	@UnpublishSite(tr, site, published)
+}
+
+templ UnpublishSite(tr func(string) string, site string, published bool) {
+	<div id={ UnpublishSiteID }>
+		if published {
+			<span class="text-green-700/90 dark:text-green-400/90">{ tr("editor_currently_published") } ✓</span>
+			<button
+				data-on:click={ "@delete('" + config.Endpoints[config.EditorPath] + site + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			>{ tr("editor_unpublish_site") }</button>
+		} else {
+			<span class="text-black/50 dark:text-white/50">{ tr("editor_site_not_published") }</span>
+		}
+	</div>
 }
 
 templ uploadBannerForm(tr func(string) string, site db.SitesWithMetric) {
@@ -118,8 +142,42 @@ templ uploadBannerForm(tr func(string) string, site db.SitesWithMetric) {
 	</form>
 }
 
+templ ShowInHomeButton(tr func(string) string, isShownInHome, isPublished bool) {
+	<div id={ EditorShowInHomeID }>
+		if isShownInHome && isPublished {
+			<span class="text-green-700/90 dark:text-green-400/90">{ tr("editor_currently_in_home") } ✓</span>
+		}
+		<button
+			data-signals:home_page="''"
+			if isShownInHome {
+				data-signals:_home_page_temp="'no'"
+			} else {
+				data-signals:_home_page_temp="'show'"
+				class="text-white! bg-black dark:text-black! dark:bg-white"
+			}
+			if !isPublished {
+				disabled
+			}
+			data-on:click={ "$home_page = $_home_page_temp;@patch(' " + config.Endpoints[config.SettingsPath] + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+		>
+			if isShownInHome {
+				{ tr("editor_do_not_show_in_homepage") }
+			} else {
+				{ tr("editor_show_in_homepage") }
+			}
+		</button>
+	</div>
+}
+
 templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
 	<div id={ UpdateSettingsNoticeID }></div>
+	<hr/>
+	<div>
+		if site.SitePublished == 0 {
+			@Notice(EditorMustBePublishedID, NoticeInfo, tr("info"), tr("editor_publish_to_show_in_home"))
+		}
+		@ShowInHomeButton(tr, site.SiteHomePage == 1, site.SitePublished == 1)
+	</div>
 	<hr/>
 	@EditorTags(tr, site)
 	<div data-show="$showtags">
@@ -139,8 +197,7 @@ templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
 		/>
 		<button
 			data-attr:disabled="$tags == ''"
-			class="text-white! bg-black dark:text-black! dark:bg-white"
-			data-on:click={ "$showtags = '' ; @patch(' " + config.Endpoints[config.SettingsPath] + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			data-on:click={ "$showtags = ''; $home_page = ''; @patch(' " + config.Endpoints[config.SettingsPath] + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 		>{ tr("add") }</button>
 	</div>
 }

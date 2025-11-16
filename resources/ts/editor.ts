@@ -16,7 +16,7 @@ let isFirstLoad = false
 let editorSyncTimeout = false;
 let editorModified = false
 
-const EDITOR_SYNC_REQUIRED_TIMEOUT = 15000;
+const EDITOR_SYNC_REQUIRED_TIMEOUT = 10000;
 let editorSyncTimer: number | null = null;
 
 function startSyncTimeoutClock() {
@@ -228,7 +228,7 @@ export async function initEditor(site: string) {
             text: ""
           }
         }
-      ]
+      ],
     },
 
     onReady: async () => {
@@ -316,6 +316,8 @@ function resizeAndRun(site: string, el: HTMLTextAreaElement) {
   el.style.height = el.scrollHeight + 'px';
 
   data.lastUpdated = Date.now();
+  localStorage.setItem(`site:${site}`, JSON.stringify(data));
+
   editorModified = true;
 
   if (editorSyncTimeout === true && editorModified === true) {

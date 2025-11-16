@@ -103,6 +103,33 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 
 	queries := db.New(h.DB()).WithTx(tx)
 
+	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		h.Log().Error("failed to query plan by user_id", "user", session.SessionUser)
+		return
+	}
+
+	sites, err := queries.GetSitesWithMetricsByUserID(ctx, session.SessionUser)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		h.Log().Error("failed to query sites by user_id", "user", session.SessionUser)
+		return
+	}
+
+	if len(sites)+1 > 1 {
+		if plan.UserPlanActive != 1 || time.Now().Unix() > plan.UserPlanDueUnix {
+			h.Log().Debug("tried to create a new site without required plan", "user", session.SessionUser)
+			templates.Notice(
+				templates.NewSiteNoticeID,
+				templates.NoticeInfo,
+				tr("info"),
+				tr("dashboard_upgrade_to_create_more_sites"),
+			).Render(ctx, w)
+			return
+		}
+	}
+
 	slugs, err := queries.GetSlugs(ctx)
 	if err != nil {
 		h.Log().Error("error querying all slugs", "error", err)
@@ -126,6 +153,8 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	now := time.Now().Unix()
+
 	siteID, err := queries.InsertSite(ctx, db.InsertSiteParams{
 		SiteUser:          session.SessionUser,
 		SiteSlug:          endpoint,
@@ -133,10 +162,11 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		SiteTagsJson:      "",
 		SiteDescription:   "",
 		SiteHtmlPublished: "",
-		SiteCreatedUnix:   time.Now().Unix(),
-		SiteModifiedUnix:  time.Now().Unix(),
+		SiteCreatedUnix:   now,
+		SiteModifiedUnix:  now,
 		SitePublished:     0,
 		SiteDeleted:       0,
+		SiteHomePage:      0,
 	})
 	if err != nil {
 		h.Log().Error("error inserting site", "site", endpoint, "error", err)

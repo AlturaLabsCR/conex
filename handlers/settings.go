@@ -1,23 +1,46 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
+	"time"
 
 	"app/database"
 	"app/internal/db"
 	"app/templates"
 )
 
+type updateSettingsRequest struct {
+	Slug     string `json:"slug"`
+	Tags     string `json:"tags,omitempty"`
+	HomePage string `json:"home_page,omitempty"`
+}
+
 func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
-	// TODO: Get settings from json and patch required fields
-
 	ctx := r.Context()
-
 	tr := h.Translator(r)
 
-	tagsStr := r.FormValue(templates.EditorTagName)
-	tags := database.ParseTags(tagsStr)
-	if len(tags) > 3 {
+	var req updateSettingsRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.Log().Error("failed to decode update settings req", "error", err)
+		http.Error(w, "invalid json", http.StatusBadRequest)
+		return
+	}
+
+	if req.Slug == "" {
+		templates.Notice(
+			templates.UpdateSettingsNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("editor_bad_tags"),
+		).Render(ctx, w)
+		return
+	}
+
+	tags, err := database.ParseTags(req.Tags)
+	if err != nil {
+		h.Log().Debug("failed to upadate tags", "error", err)
 		templates.Notice(
 			templates.UpdateSettingsNoticeID,
 			templates.NoticeWarn,
@@ -27,14 +50,19 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slugStr := r.FormValue(templates.EditorSlugName)
-	if slugStr == "" {
+	if len(tags) > 3 {
+		h.Log().Debug("failed to upadate tags", "error", "more than 3 tags")
 		templates.Notice(
 			templates.UpdateSettingsNoticeID,
-			templates.NoticeError,
-			tr("error"),
-			tr("editor_bad_tags"),
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("editor_tag_limit"),
 		).Render(ctx, w)
+		return
+	}
+
+	if req.HomePage == "" && len(tags) == 0 {
+		h.Log().Debug("empty request, not doing anything")
 		return
 	}
 
@@ -60,7 +88,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 
 	queries := db.New(h.DB()).WithTx(tx)
 
-	site, err := queries.GetSiteWithMetrics(ctx, slugStr)
+	site, err := queries.GetSiteWithMetrics(ctx, req.Slug)
 	if err != nil {
 		h.Log().Error("error querying site by slug", "error", err)
 		templates.Notice(
@@ -78,13 +106,30 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var showHomePage int64
+
+	switch req.HomePage {
+	case "show":
+		showHomePage = 1
+	case "no":
+		showHomePage = 0
+	default:
+		showHomePage = site.SiteHomePage
+	}
+
 	json := database.TagsToJSON(tags)
+
+	if database.TagsToCommaList(json) == database.TagsToCommaList(site.SiteTagsJson) {
+		json = site.SiteTagsJson
+	}
 
 	h.Log().Debug("updating tags", "tags", tags, "json", json)
 
-	if err := queries.UpdateTags(ctx, db.UpdateTagsParams{
-		SiteTagsJson: json,
-		SiteID:       site.SiteID,
+	if err := queries.UpdateSiteSettings(ctx, db.UpdateSiteSettingsParams{
+		SiteTagsJson:     json,
+		SiteModifiedUnix: time.Now().Unix(),
+		SiteHomePage:     showHomePage,
+		SiteID:           site.SiteID,
 	}); err != nil {
 		h.Log().Debug("error updating tags", "error", err)
 		templates.Notice(
@@ -94,6 +139,14 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 			tr("try_later"),
 		).Render(ctx, w)
 		return
+	}
+
+	if err := templates.ShowInHomeButton(
+		tr,
+		showHomePage == 1,
+		site.SitePublished == 1,
+	).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering new shown status")
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -114,4 +167,6 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	templates.NoticeEmpty(templates.UpdateSettingsNoticeID).Render(ctx, w)
 }
