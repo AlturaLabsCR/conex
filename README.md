@@ -19,6 +19,9 @@
   - [X] allow toggling home page
   - [X] check image endpoints are actually images
   - [X] check for plans in endpoints
+  - [X] terms
+  - [ ] check for site quota
+  - [ ] check for image quota per site
   - [ ] Loading screen for editor on slow connections
   - [ ] Harden against db limits
   - [ ] ImageTool also delete

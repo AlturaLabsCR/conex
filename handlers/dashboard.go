@@ -128,6 +128,17 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 			).Render(ctx, w)
 			return
 		}
+
+		if len(sites)+1 > 5 {
+			h.Log().Debug("account reached max sites", "user", session.SessionUser)
+			templates.Notice(
+				templates.NewSiteNoticeID,
+				templates.NoticeInfo,
+				tr("info"),
+				tr("dashboard_maximum_sites_reached"),
+			).Render(ctx, w)
+			return
+		}
 	}
 
 	slugs, err := queries.GetSlugs(ctx)
