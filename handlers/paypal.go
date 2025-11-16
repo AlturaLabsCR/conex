@@ -11,12 +11,15 @@ import (
 	"time"
 
 	"app/config"
+	"app/internal/db"
 )
 
 const (
-	tokenEndpoint        = "v1/oauth2/token"
-	createOrderEndpoint  = "v2/checkout/orders"
-	captureOrderEndpoint = "v2/checkout/orders"
+	tokenEndpoint               = "v1/oauth2/token"
+	createOrderEndpoint         = "v2/checkout/orders"
+	captureOrderEndpoint        = "v2/checkout/orders"
+	createSubscriptionEndpoint  = "v1/billing/subscriptions"
+	captureSubscriptionEndpoint = "v1/billing/subscriptions"
 
 	intentCapture = "capture"
 )
@@ -28,6 +31,63 @@ type AccessToken struct {
 	AppID     string `json:"app_id"`
 	ExpiresIn int64  `json:"expires_in"`
 	Nonce     string `json:"nonce"`
+}
+
+type SubscriptionResponse struct {
+	ID               string          `json:"id,omitempty"`
+	Status           string          `json:"status,omitempty"`
+	StatusUpdateTime time.Time       `json:"status_update_time"`
+	PlanID           string          `json:"plan_id,omitempty"`
+	PlanOverridden   bool            `json:"plan_overridden,omitempty"`
+	StartTime        time.Time       `json:"start_time"`
+	Quantity         string          `json:"quantity,omitempty"`
+	ShippingAmount   *ShippingAmount `json:"shipping_amount"`
+	Subscriber       *Subscriber     `json:"subscriber"`
+	CreateTime       time.Time       `json:"create_time"`
+	Links            []Links         `json:"links,omitempty"`
+}
+
+type SubscriptionRequest struct {
+	PlanID             string              `json:"plan_id,omitempty"`
+	StartTime          time.Time           `json:"start_time"`
+	Quantity           string              `json:"quantity,omitempty"`
+	ShippingAmount     *ShippingAmount     `json:"shipping_amount"`
+	Subscriber         *Subscriber         `json:"subscriber"`
+	ApplicationContext *ApplicationContext `json:"application_context"`
+}
+
+type ApplicationContext struct {
+	BrandName          string         `json:"brand_name,omitempty"`
+	Locale             string         `json:"locale,omitempty"`
+	ShippingPreference string         `json:"shipping_preference,omitempty"`
+	UserAction         string         `json:"user_action,omitempty"`
+	PaymentMethod      *PaymentMethod `json:"payment_method"`
+	ReturnURL          string         `json:"return_url,omitempty"`
+	CancelURL          string         `json:"cancel_url,omitempty"`
+}
+
+type PaymentMethod struct {
+	PayerSelected  string `json:"payer_selected,omitempty"`
+	PayeePreferred string `json:"payee_preferred,omitempty"`
+}
+
+type ShippingAmount struct {
+	CurrencyCode string `json:"currency_code,omitempty"`
+	Value        string `json:"value,omitempty"`
+}
+
+type Subscriber struct {
+	Name            *Name            `json:"name"`
+	EmailAddress    string           `json:"email_address,omitempty"`
+	ShippingAddress *ShippingAddress `json:"shipping_address"`
+
+	// subscription response
+	PayerID string `json:"payer_id,omitempty"`
+}
+
+type ShippingAddress struct {
+	Name    *Name    `json:"name"`
+	Address *Address `json:"address,omitempty"`
 }
 
 type CompleteOrderResponse struct {
@@ -42,6 +102,7 @@ type CompleteOrderResponse struct {
 type Name struct {
 	GivenName string `json:"given_name,omitempty"`
 	SurName   string `json:"surname,omitempty"`
+	FullName  string `json:"full_name,omitempty"`
 }
 
 type Payer struct {
@@ -222,8 +283,25 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CompleteOrder(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var req struct {
 		OrderID string `json:"order_id"`
+	}
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Error("error retrieving session from ctx")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	queries := db.New(h.DB())
+
+	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	if err != nil {
+		h.Log().Error("failed to query plan", "error", err)
+		http.Error(w, "failed to query plan", http.StatusInternalServerError)
+		return
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -234,8 +312,21 @@ func (h *Handler) CompleteOrder(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := CompleteOrder(req.OrderID)
 	if err != nil {
-		h.Log().Error("failed to create order", "error", err)
-		http.Error(w, "failed to create order", http.StatusInternalServerError)
+		h.Log().Error("failed to complete order", "error", err)
+		http.Error(w, "failed to complete order", http.StatusInternalServerError)
+		return
+	}
+
+	now := time.Now()
+
+	if err := queries.UpdatePlan(ctx, db.UpdatePlanParams{
+		UserPlanDueUnix:      now.Add(24 * time.Hour * 365).Unix(),
+		UserPlanModifiedUnix: now.Unix(),
+		UserPlanActive:       1,
+		UserPlanID:           plan.UserPlanID,
+	}); err != nil {
+		h.Log().Error("failed to update plan", "error", err)
+		http.Error(w, "failed to update plan", http.StatusInternalServerError)
 		return
 	}
 
@@ -249,56 +340,119 @@ func (h *Handler) CompleteOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode order", http.StatusInternalServerError)
 		return
 	}
+}
 
-	// TODO: Handle order completed
+func (h *Handler) CompleteSubscription(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		SubscriptionID string `json:"subscription_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.Log().Error("failed to decode order_id", "error", err)
+		http.Error(w, "invalid json", http.StatusBadRequest)
+		return
+	}
+
+	status, err := CompleteSubscription(req.SubscriptionID)
+	if err != nil {
+		h.Log().Error("failed to capture subscription", "error", err)
+		http.Error(w, "failed to capture subscription", http.StatusInternalServerError)
+		return
+	}
+
+	var empty struct{}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(empty); err != nil {
+		h.Log().Error("failed to encode order", "error", err)
+		http.Error(w, "Failed to encode order", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(status)
+
+	// TODO: Handle subscription completed
 	// - Assign plan & perms
 	// - Redirect to dashboard
 }
 
-func getAccessToken() (AccessToken, error) {
-	at := AccessToken{}
-	form := url.Values{}
-	form.Set("grant_type", "client_credentials")
+func (h *Handler) CreateSubscription(w http.ResponseWriter, r *http.Request) {
+	sub, err := CreateSubscription("P-9SY9600391361462VNEMUJZA")
+	if err != nil {
+		h.Log().Error("failed to create order", "error", err)
+		http.Error(w, "failed to create order", http.StatusInternalServerError)
+		return
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(sub); err != nil {
+		h.Log().Error("failed to encode order", "error", err)
+		http.Error(w, "Failed to encode order", http.StatusInternalServerError)
+		return
+	}
+}
+
+func CreateSubscription(planID string) (SubscriptionResponse, error) {
+	resp := SubscriptionResponse{}
+
+	t, err := getAccessToken()
+	if err != nil {
+		return resp, err
+	}
+	accessToken := t.Token
+
+	sub := SubscriptionRequest{
+		PlanID:    planID,
+		StartTime: time.Now().Add(24 * time.Hour),
+		ApplicationContext: &ApplicationContext{
+			ShippingPreference: "NO_SHIPPING",
+		},
+	}
+
+	b, err := json.Marshal(sub)
+	if err != nil {
+		return resp, err
+	}
+
+	body := bytes.NewReader(b)
 	req, err := http.NewRequest(
 		http.MethodPost,
-		config.PayPalEndpoint+"/"+tokenEndpoint,
-		strings.NewReader(form.Encode()),
+		config.PayPalEndpoint+"/"+createSubscriptionEndpoint,
+		body,
 	)
 	if err != nil {
-		return at, err
+		return resp, err
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.SetBasicAuth(config.PayPalClientID, config.PayPalClientSecret)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+accessToken)
 
-	resp, err := http.DefaultClient.Do(req)
+	raw, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return at, err
+		return resp, err
 	}
-	defer resp.Body.Close()
+	defer raw.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return at, fmt.Errorf("token request failed: [%s] %s", resp.Status, body)
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&at); err != nil {
-		return at, err
+	if raw.StatusCode < 200 || raw.StatusCode > 299 {
+		body, _ := io.ReadAll(raw.Body)
+		return resp, fmt.Errorf("paypal subscription error: [%s] %s", raw.Status, string(body))
 	}
 
-	return at, nil
+	if err := json.NewDecoder(raw.Body).Decode(&resp); err != nil {
+		return resp, err
+	}
+
+	return resp, nil
 }
 
 func CreateOrder(currencyCode, value string) (OrderResponse, error) {
 	resp := OrderResponse{}
 
 	t, err := getAccessToken()
-	accessToken := t.Token
-
 	if err != nil {
 		return resp, err
 	}
+	accessToken := t.Token
 
 	order := OrderRequest{
 		Intent: strings.ToUpper(intentCapture),
@@ -355,6 +509,41 @@ func CreateOrder(currencyCode, value string) (OrderResponse, error) {
 	return resp, nil
 }
 
+func CompleteSubscription(subscriptionID string) (int, error) {
+	success := 202
+
+	t, err := getAccessToken()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	accessToken := t.Token
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		config.PayPalEndpoint+"/"+captureSubscriptionEndpoint+"/"+subscriptionID+"/"+intentCapture,
+		nil,
+	)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	raw, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer raw.Body.Close()
+
+	if raw.StatusCode != success {
+		body, _ := io.ReadAll(raw.Body)
+		return http.StatusInternalServerError, fmt.Errorf("paypal order error: [%s] %s", raw.Status, string(body))
+	}
+
+	return success, nil
+}
+
 func CompleteOrder(orderID string) (CompleteOrderResponse, error) {
 	resp := CompleteOrderResponse{}
 
@@ -392,4 +581,39 @@ func CompleteOrder(orderID string) (CompleteOrderResponse, error) {
 	}
 
 	return resp, nil
+}
+
+func getAccessToken() (AccessToken, error) {
+	at := AccessToken{}
+	form := url.Values{}
+	form.Set("grant_type", "client_credentials")
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		config.PayPalEndpoint+"/"+tokenEndpoint,
+		strings.NewReader(form.Encode()),
+	)
+	if err != nil {
+		return at, err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.SetBasicAuth(config.PayPalClientID, config.PayPalClientSecret)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return at, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return at, fmt.Errorf("token request failed: [%s] %s", resp.Status, body)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&at); err != nil {
+		return at, err
+	}
+
+	return at, nil
 }

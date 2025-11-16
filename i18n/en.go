@@ -79,8 +79,10 @@ var EN = map[string]string{
 	"logout_device":   "Log out",
 
 	// pricing
-	"subscribe":        "Subscribe",
-	"pricing_checkout": "Checkout",
+	"subscribe":            "Subscribe",
+	"pricing_checkout":     "Checkout",
+	"pricing_current_plan": "Current",
+	"pricing_due":          "Due",
 
 	"pricing_plan_basic_title":  "Basic",
 	"pricing_plan_basic_amount": "$0",

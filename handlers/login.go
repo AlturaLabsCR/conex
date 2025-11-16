@@ -130,7 +130,6 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(h.DB())
 	if _, err := queries.InsertUser(ctx, db.InsertUserParams{
 		UserEmail:        email,
-		UserName:         "",
 		UserCreatedUnix:  now,
 		UserModifiedUnix: now,
 		UserDeleted:      0,

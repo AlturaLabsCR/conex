@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -57,4 +58,10 @@ func MD5FromReader(r io.Reader) (string, error) {
 	}
 	sum := h.Sum(nil)
 	return hex.EncodeToString(sum), nil
+}
+
+func UnixToYMD(timestamp int64) string {
+	loc, _ := time.LoadLocation("America/Costa_Rica")
+	t := time.Unix(timestamp, 0).In(loc)
+	return t.Format("2006-01-02")
 }

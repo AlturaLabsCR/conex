@@ -79,8 +79,10 @@ var ES = map[string]string{
 	"logout_device":   "Cerrar",
 
 	// pricing
-	"subscribe":        "Suscribir",
-	"pricing_checkout": "Suscribir",
+	"subscribe":            "Suscribir",
+	"pricing_checkout":     "Suscribir",
+	"pricing_current_plan": "Plan seleccionado",
+	"pricing_due":          "Vence",
 
 	"pricing_plan_basic_title":  "Básico",
 	"pricing_plan_basic_amount": "$0",

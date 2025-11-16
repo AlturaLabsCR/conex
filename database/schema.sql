@@ -3,7 +3,6 @@
 CREATE TABLE users (
   user_id INTEGER NOT NULL,
   user_email VARCHAR(63) NOT NULL,
-  user_name VARCHAR(63) NOT NULL,
   user_created_unix INTEGER NOT NULL,
   user_modified_unix INTEGER NOT NULL,
   user_deleted INTEGER NOT NULL DEFAULT 0,
@@ -22,23 +21,9 @@ CREATE TABLE sessions (
   CONSTRAINT pk_sessions PRIMARY KEY (session_id)
 );
 
-CREATE TABLE plans (
-  plan_id INTEGER NOT NULL,
-  plan_name VARCHAR(32) NOT NULL,
-  plan_description VARCHAR(1023) NOT NULL,
-  plan_amount REAL NOT NULL,
-  plan_created_unix INTEGER NOT NULL,
-  plan_modified_unix INTEGER NOT NULL,
-  plan_active INTEGER NOT NULL DEFAULT 1,
-
-  CONSTRAINT pk_plans PRIMARY KEY (plan_id),
-  CONSTRAINT ck_plans_active CHECK (plan_active IN (0,1))
-);
-
 CREATE TABLE user_plans (
   user_plan_id INTEGER NOT NULL,
   user_plan_user INTEGER NOT NULL,
-  user_plan_plan INTEGER NOT NULL,
   user_plan_created_unix INTEGER NOT NULL,
   user_plan_modified_unix INTEGER NOT NULL,
   user_plan_due_unix INTEGER NOT NULL,
@@ -46,15 +31,13 @@ CREATE TABLE user_plans (
 
   CONSTRAINT pk_user_plans PRIMARY KEY (user_plan_id),
   CONSTRAINT fk_user_plans_user FOREIGN KEY (user_plan_user) REFERENCES users(user_id),
-  CONSTRAINT fk_user_plans_plan FOREIGN KEY (user_plan_plan) REFERENCES plans(plan_id),
-  CONSTRAINT uq_user_plans_active UNIQUE (user_plan_user, user_plan_active),
+  CONSTRAINT uq_user_plans_user UNIQUE (user_plan_user),
   CONSTRAINT ck_user_plans_active CHECK (user_plan_active IN (0,1))
 );
 
 CREATE TABLE payments (
   payment_id INTEGER NOT NULL,
   payment_user INTEGER NOT NULL,
-  payment_plan INTEGER NOT NULL,
   payment_amount REAL NOT NULL,
   payment_date_unix INTEGER NOT NULL,
   payment_successful INTEGER NOT NULL DEFAULT 1,
@@ -62,7 +45,6 @@ CREATE TABLE payments (
 
   CONSTRAINT pk_payments PRIMARY KEY (payment_id),
   CONSTRAINT fk_payments_user FOREIGN KEY (payment_user) REFERENCES users(user_id),
-  CONSTRAINT fk_payments_plan FOREIGN KEY (payment_plan) REFERENCES plans(plan_id),
   CONSTRAINT ck_payments_successful CHECK (payment_successful IN (0,1))
 );
 

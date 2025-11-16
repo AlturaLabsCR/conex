@@ -99,10 +99,10 @@ LIMIT 30;
 
 -- name: InsertUser :one
 INSERT INTO users(
-  user_email, user_name,
+  user_email,
   user_created_unix, user_modified_unix,
   user_deleted
-) VALUES (?, ?, ?, ?, ?) RETURNING user_id;
+) VALUES (?, ?, ?, ?) RETURNING user_id;
 
 -- name: UserExists :one
 SELECT EXISTS (
@@ -139,6 +139,26 @@ SELECT EXISTS (
 
 -- name: GetSession :one
 SELECT * FROM sessions WHERE session_id = ?;
+
+-- name: InsertPlan :one
+INSERT INTO user_plans(
+  user_plan_user,
+  user_plan_created_unix,
+  user_plan_modified_unix,
+  user_plan_due_unix,
+  user_plan_active
+) VALUES (?, ?, ?, ?, ?)
+RETURNING *;
+
+-- name: UpdatePlan :exec
+UPDATE user_plans SET
+  user_plan_modified_unix = ?,
+  user_plan_due_unix = ?,
+  user_plan_active = ?
+WHERE user_plan_id = ?;
+
+-- name: GetPlan :one
+SELECT * FROM user_plans WHERE user_plan_user = ?;
 
 -- name: GetSessionsByUser :many
 SELECT * FROM sessions WHERE session_user = ?

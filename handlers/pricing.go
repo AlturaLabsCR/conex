@@ -1,26 +1,62 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
+	"time"
 
 	"app/config"
+	"app/internal/db"
 	"app/templates"
+	"app/utils"
 )
 
 func (h *Handler) Pricing(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Error("error retrieving session from ctx")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	queries := db.New(h.DB())
+
+	now := time.Now().Unix()
+
+	var plan db.UserPlan
+	var err error = nil
+
+	plan, err = queries.GetPlan(ctx, session.SessionUser)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			h.Log().Error("error retrieving plan", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		} else {
+			plan, err = queries.InsertPlan(ctx, db.InsertPlanParams{
+				UserPlanUser:         session.SessionUser,
+				UserPlanCreatedUnix:  now,
+				UserPlanModifiedUnix: now,
+				UserPlanDueUnix:      0,
+				UserPlanActive:       0,
+			})
+			if err != nil {
+				h.Log().Error("error inserting plan", "error", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
 	tr := h.Translator(r)
 
-	header := templates.PricingHeader(tr)
-	content := templates.Pricing(tr, config.PayPalClientID)
+	subscribed := plan.UserPlanActive == 1 && now < plan.UserPlanDueUnix
 
-	// order, err := CreateOrder("USD", "19.99")
-	// if err != nil {
-	// 	h.Log().Debug("access token error", "error", err)
-	// } else {
-	// 	h.Log().Debug("created order", "order", order)
-	// }
+	header := templates.PricingHeader(tr)
+	content := templates.Pricing(tr, config.PayPalClientID, subscribed, utils.UnixToYMD(plan.UserPlanDueUnix))
 
 	if err := templates.Base(tr, header, content, true).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)
