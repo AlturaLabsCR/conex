@@ -25,3 +25,5 @@
   - [ ] allow email change
   - [ ] check image endpoints are actually images
   - [ ] filter wordlists
+  - [ ] animations
+  - [ ] search
