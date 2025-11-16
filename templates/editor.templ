@@ -123,26 +123,25 @@ templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
 	<hr/>
 	@EditorTags(tr, site)
 	<div data-show="$showtags">
-		<form>
-			<label for="tags">{ tr("editor_insert_tags") }</label>
-			<input
-				data-bind:tags
-				id="tags"
-				name={ EditorTagName }
-				placeholder={ tr("editor_tags_add") }
-				value={ database.TagsToCommaList(site.SiteTagsJson) }
-			/>
-			<input
-				name={ EditorSlugName }
-				value={ site.SiteSlug }
-				class="hidden"
-			/>
-			<button
-				data-attr:disabled="$tags == ''"
-				class="text-white! bg-black dark:text-black! dark:bg-white"
-				data-on:click={ "$showtags = '' ; @patch(' " + config.Endpoints[config.SettingsPath] + "', {contentType: 'form', headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
-			>{ tr("add") }</button>
-		</form>
+		<label for="tags">{ tr("editor_insert_tags") }</label>
+		<input
+			data-bind:tags
+			id="tags"
+			name={ EditorTagName }
+			placeholder={ tr("editor_tags_add") }
+			value={ database.TagsToCommaList(site.SiteTagsJson) }
+		/>
+		<input
+			data-bind:slug
+			name={ EditorSlugName }
+			value={ site.SiteSlug }
+			class="hidden"
+		/>
+		<button
+			data-attr:disabled="$tags == ''"
+			class="text-white! bg-black dark:text-black! dark:bg-white"
+			data-on:click={ "$showtags = '' ; @patch(' " + config.Endpoints[config.SettingsPath] + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+		>{ tr("add") }</button>
 	</div>
 }
 

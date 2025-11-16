@@ -71,8 +71,8 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 		defer gz.Close()
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Content-Encoding", "gzip")
-		templates.Base(h.Translator(r), header, content, false).Render(ctx, gz)
+		templates.Base(tr, header, content, false).Render(ctx, gz)
 	} else {
-		templates.Base(h.Translator(r), header, content, false).Render(ctx, w)
+		templates.Base(tr, header, content, false).Render(ctx, w)
 	}
 }

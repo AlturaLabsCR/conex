@@ -153,16 +153,27 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries.UpdateSite(ctx, db.UpdateSiteParams{
+	sanitized := database.SanitizeHTML(data.Content)
+
+	if err := queries.UpdateSite(ctx, db.UpdateSiteParams{
 		SiteID:            site.SiteID,
 		SiteTitle:         data.Title,
 		SiteDescription:   data.Description,
 		SiteTagsJson:      site.SiteTagsJson,
-		SiteHtmlPublished: data.Content,
+		SiteHtmlPublished: sanitized,
 		SiteModifiedUnix:  time.Now().Unix(),
 		SitePublished:     1,
 		SiteDeleted:       0,
-	})
+	}); err != nil {
+		h.Log().Debug("error updating site", "error", err)
+		templates.Notice(
+			templates.PublishNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
 
 	h.Log().Debug("updated site", "site_id", site.SiteID, "site_html_published", data.Content)
 

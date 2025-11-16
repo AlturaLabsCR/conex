@@ -9,6 +9,8 @@ import (
 )
 
 func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
+	// TODO: Get settings from json and patch required fields
+
 	ctx := r.Context()
 
 	tr := h.Translator(r)
@@ -26,7 +28,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slugStr := r.FormValue(templates.EditorSlugName)
-	if tagsStr == "" {
+	if slugStr == "" {
 		templates.Notice(
 			templates.UpdateSettingsNoticeID,
 			templates.NoticeError,

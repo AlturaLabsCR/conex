@@ -17,13 +17,13 @@
   - [X] New/Update banner
   - [X] payments
   - [ ] allow toggling home page
-  - [ ] ImageTool also delete
+  - [ ] check image endpoints are actually images
   - [ ] check for plans in endpoints
   - [ ] Loading screen for editor on slow connections
+  - [ ] ImageTool also delete
   - [ ] Auto-disable plans
   - [ ] save hashed email
   - [ ] allow email change
-  - [ ] check image endpoints are actually images
   - [ ] filter wordlists
   - [ ] animations
   - [ ] search
