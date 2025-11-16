@@ -2,6 +2,28 @@ Términos y Condiciones de CONEX
 
 Última actualización: 16 de noviembre, 2025
 
+0. Definiciones
+
+Para efectos de estos Términos:
+
+CONEX: Plataforma digital operada en Costa Rica que permite a los usuarios crear, editar y publicar sitios web.
+
+Usuario: Persona que accede o utiliza CONEX.
+
+Datos personales: Cualquier información relacionada con una persona identificada o identificable. En CONEX, el único dato personal solicitado es el correo electrónico.
+
+Hash del correo: Representación criptográfica del correo del usuario que se almacena en CONEX para permitir la identificación durante el inicio de sesión, sin conservar el correo en texto claro.
+
+Base de datos: Conjunto organizado de información, automatizado o manual, que permite el almacenamiento, gestión y consulta de datos. En el caso de CONEX, incluye únicamente elementos necesarios para el funcionamiento del servicio, como el hash del correo electrónico, datos técnicos internos y contenido generado por el usuario.
+
+Contenido del usuario: Cualquier texto, imagen, archivo o información que el usuario incluya en los sitios o páginas creadas mediante CONEX.
+
+Sitio publicado: Sitio web creado por el usuario marcado como público y accesible por cualquiera.
+
+Sitio no publicado: Sitio que permanece privado y solo accesible para el usuario dentro de CONEX.
+
+Logs anónimos: Registros técnicos que no contienen datos personales ni permiten identificar a una persona.
+
 1. Uso de la plataforma
 
 CONEX permite a los usuarios crear, editar y publicar sitios web sujetos a los límites técnicos según el plan correspondiente (cantidad de sitios, imágenes u otros recursos).
@@ -34,7 +56,7 @@ La información de sesión (identificador anonimizado del dispositivo) es privad
 
 2.3. Acceso, rectificación y eliminación
 
-El usuario puede ejercer sus derechos de acceso, rectificación o eliminación mediante el apartado Cuenta -> Cambiar correo electrónico, en donde podrá confirmar su identidad mediante un código temporal enviado a su correo.
+El usuario puede ejercer sus derechos de acceso, rectificación o eliminación mediante el apartado Cuenta -> Cambiar correo electrónico, en donde podrá confirmar la validez del correo mediante un código temporal enviado a su correo.
 
 La eliminación del hash del correo se realizará de inmediato una vez verificado dicho código.
 
