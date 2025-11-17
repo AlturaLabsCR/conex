@@ -214,8 +214,6 @@ func Init() {
 	if conn != "" {
 		dbConn = conn
 	}
-
-	fmt.Printf("%s %s", dvr, conn)
 }
 
 func generateRandomSecret(n int) string {
