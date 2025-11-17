@@ -20,6 +20,7 @@ var ES = map[string]string{
 	"tags":              "Palabras clave",
 	"upload_image":      "Subir imagen",
 	"loading":           "Cargando",
+	"change_email":      "Cambiar email",
 
 	// home
 	"create_site":      "Crear un sitio",
@@ -106,6 +107,13 @@ var ES = map[string]string{
 	"pricing_plan_extended_u1":     "5 sitios web",
 	"pricing_plan_extended_u2":     "Hasta 10MB en imágenes por sitio",
 	"pricing_plan_extended_u3":     "Sincronización entre dispositivos",
+
+	// account
+	"account_change_email":                   "Cambiar correo electrónico",
+	"new_email":                              "Nuevo correo",
+	"account_change_email_send_verification": "Enviar código",
+	"account_confirm_email_otp":              "Código de verificación",
+	"account_confirm_email":                  "Confirmar y cambiar email",
 
 	// sites
 	"not_found":      "Sitio web no encontrado",

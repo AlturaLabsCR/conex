@@ -101,7 +101,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
-	queries := db.New(h.DB()).WithTx(tx)
+	queries := db.New(tx)
 
 	plan, err := queries.GetPlan(ctx, session.SessionUser)
 	if err != nil {

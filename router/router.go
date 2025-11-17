@@ -64,5 +64,8 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 	router.Handle("POST "+config.Endpoints[config.CheckoutPath]+"create", middleware.With(protected, h.CreateOrder))
 	router.Handle("POST "+config.Endpoints[config.CheckoutPath]+"complete", middleware.With(protected, h.CompleteOrder))
 
+	router.Handle("PUT "+config.Endpoints[config.AccountPath]+"{email}", middleware.With(protected, h.ChangeEmail))
+	router.Handle("PATCH "+config.Endpoints[config.AccountPath]+"{email}", middleware.With(protected, h.ChangeEmailConfirm))
+
 	return router
 }

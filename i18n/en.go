@@ -20,6 +20,7 @@ var EN = map[string]string{
 	"tags":              "Tags",
 	"upload_image":      "Upload image",
 	"loading":           "Loading",
+	"change_email":      "Change email",
 
 	// home
 	"create_site":      "Create website",
@@ -106,6 +107,13 @@ var EN = map[string]string{
 	"pricing_plan_extended_u1":     "5 websites",
 	"pricing_plan_extended_u2":     "Up to 10MB of images per site",
 	"pricing_plan_extended_u3":     "Sync across devices",
+
+	// account
+	"account_change_email":                   "Change email",
+	"new_email":                              "New email",
+	"account_confirm_email_otp":              "Send code",
+	"account_change_email_send_verification": "Verification code",
+	"account_confirm_email":                  "Verify and change email",
 
 	// sites
 	"not_found":      "Website not found",

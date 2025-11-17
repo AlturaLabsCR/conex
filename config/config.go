@@ -38,7 +38,7 @@ var Endpoints = map[Endpoint]string{
 	LoginPath:     "login",
 	LogoutPath:    "logout",
 	PricingPath:   "pricing",
-	AccountPath:   "account",
+	AccountPath:   "account/",
 	UploadPath:    "upload/",
 	SettingsPath:  "settings",
 	BannerPath:    "banner/",

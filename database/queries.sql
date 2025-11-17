@@ -100,6 +100,12 @@ INSERT INTO users(
   user_deleted
 ) VALUES (?, ?, ?, ?) RETURNING user_id;
 
+-- name: UpdateUser :exec
+UPDATE users SET
+  user_email = ?,
+  user_modified_unix = ?
+WHERE user_id = ?;
+
 -- name: UserExists :one
 SELECT EXISTS (
   SELECT 1

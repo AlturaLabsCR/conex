@@ -11,6 +11,7 @@ func (h *Handler) Account(w http.ResponseWriter, r *http.Request) {
 	h.Log().Debug("hit endpoint", "pattern", r.Pattern)
 
 	ctx := r.Context()
+	tr := h.Translator(r)
 
 	session, ok := ctx.Value(ctxSessionKey).(db.Session)
 	if !ok {
@@ -35,8 +36,8 @@ func (h *Handler) Account(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	header := templates.AccountHeader(h.Translator(r))
-	content := templates.Account(h.Translator(r), session, user, sessions)
+	header := templates.AccountHeader(tr, user.UserEmail)
+	content := templates.Account(tr, session, user, sessions)
 
 	if err := templates.Base(h.Translator(r), header, content, true).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)

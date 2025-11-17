@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"net/mail"
@@ -79,13 +81,16 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		templates.Notice(
 			templates.RegisterNoticeID,
 			templates.NoticeWarn,
-			tr("warn"),
-			tr("invalid_otp"),
+			tr("error"),
+			tr("try_later"),
 		).Render(ctx, w)
 		return
 	}
 
-	templates.RegisterConfirmEmail(h.Translator(r), token, email).Render(ctx, w)
+	if err := templates.RegisterConfirmEmail(h.Translator(r), token, email).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		return
+	}
 }
 
 func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
@@ -192,6 +197,254 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 	templates.Redirect(config.Endpoints[config.DashboardPath]).Render(ctx, w)
 }
 
+func (h *Handler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	tr := h.Translator(r)
+
+	oldEmail := r.PathValue("email")
+
+	if oldEmail == "" {
+		h.Log().Error("error invalid email", "old_email", oldEmail)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	h.Log().Debug("site slug is not empty valid")
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Debug("error retrieving session from ctx")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	h.Log().Debug("session id valid")
+
+	queries := db.New(h.DB())
+
+	user, err := queries.GetUserByID(ctx, session.SessionUser)
+	if err != nil {
+		h.Log().Error("error querying user by id", "error", err)
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if user.UserEmail != oldEmail {
+		h.Log().Error("tried to change account email without having account ownership", "error", err)
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		h.Log().Error("error reading update email body", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var req struct {
+		Email string `json:"email"`
+	}
+
+	if err := json.Unmarshal(body, &req); err != nil {
+		h.Log().Error("error invalid update email body", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if _, err := mail.ParseAddress(req.Email); err != nil {
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_email"),
+		).Render(ctx, w)
+		h.Log().Debug("failed to parse email address")
+		return
+	}
+
+	if _, err := queries.GetUserByEmail(ctx, req.Email); err == nil {
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("account_change_email_already_exists"),
+		).Render(ctx, w)
+		h.Log().Debug("failed to parse email address")
+		return
+	}
+
+	token, err := h.issueOTP(tr, req.Email)
+	if err != nil {
+		h.Log().Error("error issuing otp", "error", err)
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeWarn,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if err := templates.ChangeEmailConfirm(tr, token, oldEmail).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		return
+	}
+}
+
+func (h *Handler) ChangeEmailConfirm(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	tr := h.Translator(r)
+
+	oldEmail := r.PathValue("email")
+
+	if oldEmail == "" {
+		h.Log().Error("error invalid email", "old_email", oldEmail)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	h.Log().Debug("site slug is not empty valid")
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Debug("error retrieving session from ctx")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	h.Log().Debug("session id valid")
+
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		templates.Notice(
+			templates.NewSiteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+	defer tx.Rollback()
+
+	queries := db.New(tx)
+
+	user, err := queries.GetUserByID(ctx, session.SessionUser)
+	if err != nil {
+		h.Log().Error("error querying user by id", "error", err)
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if user.UserEmail != oldEmail {
+		h.Log().Error("tried to change account email without having account ownership", "error", err)
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		h.Log().Error("error reading update email confirm body", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var req struct {
+		Email string `json:"email"`
+		OTP   string `json:"otp"`
+		Token string `json:"token"`
+	}
+
+	if err := json.Unmarshal(body, &req); err != nil {
+		h.Log().Error("error invalid update email confirm body", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	key, ok := keys[req.Token]
+	if !ok {
+		h.Log().Debug("invalid token", "token", req.Token)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if err := h.verifyOTP(key, req.Email, req.Token, req.OTP); err != nil {
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeWarn,
+			tr("warn"),
+			tr("invalid_otp"),
+		).Render(ctx, w)
+		h.Log().Debug("failed to verify otp", "error", err)
+		return
+	}
+
+	if err := queries.UpdateUser(ctx, db.UpdateUserParams{
+		UserEmail:        req.Email,
+		UserModifiedUnix: time.Now().Unix(),
+		UserID:           session.SessionUser,
+	}); err != nil {
+		h.Log().Error("error updating user", "error", err)
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		h.Log().Error("error updating user", "error", err)
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if err := templates.AccountHeaderEmail(req.Email).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		return
+	}
+
+	if err := templates.ChangeEmailForm(tr, req.Email).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		return
+	}
+
+	if err := templates.Notice(
+		templates.ChangeEmailNoticeID,
+		templates.NoticeInfo,
+		tr("info"),
+		tr("account_change_email_success"),
+	).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		return
+	}
+}
+
 func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -220,7 +473,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			tr("warn"),
 			tr("invalid_email"),
 		).Render(ctx, w)
-		h.Log().Debug("failed to parse email address", "email", email)
+		h.Log().Debug("failed to parse email address")
 		return
 	}
 

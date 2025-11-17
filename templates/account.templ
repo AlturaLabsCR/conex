@@ -9,35 +9,74 @@ import (
 	"strconv"
 )
 
-func unixDateLong(timestamp int64) string {
-	loc, _ := time.LoadLocation("America/Costa_Rica")
-	t := time.Unix(timestamp, 0).In(loc)
+const (
+	ChangeEmailNoticeID = "changeemailnotice"
+	changeEmailFormID   = "changeemailform"
 
-	days := []string{"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"}
-	months := []string{
-		"enero", "febrero", "marzo", "abril", "mayo", "junio",
-		"julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-	}
+	AccountHeaderEmailID = "accountheaderemailid"
+)
 
-	dayName := days[t.Weekday()]
-	monthName := months[t.Month()-1]
-
-	hour := t.Hour()
-	ampm := "AM"
-	if hour >= 12 {
-		ampm = "PM"
-	}
-	hour12 := hour % 12
-	if hour12 == 0 {
-		hour12 = 12
-	}
-
-	return fmt.Sprintf("%d:%02d%s %s %d de %s, %d",
-		hour12, t.Minute(), ampm,
-		dayName, t.Day(), monthName, t.Year())
+templ changeEmail(tr func(string) string, email string) {
+	@Dialog(tr, "account-modal-change-email", tr("account_change_email"), ChangeEmailForm(tr, email))
+	<div>
+		<button
+			onclick="toggleModal(event)"
+			data-target="account-modal-change-email"
+			class="max-w-fit mx-auto mt-4"
+		>{ tr("change_email") }</button>
+	</div>
 }
 
-templ AccountHeader(tr func(string) string) {
+templ ChangeEmailForm(tr func(string) string, email string) {
+	<div id={ changeEmailFormID }>
+		<div id={ ChangeEmailNoticeID }></div>
+		<input
+			id="changeEmailFormEmail"
+			data-bind:email
+			data-signals:_old_email={ "'" + email + "'" }
+			type="email"
+			placeholder={ tr("new_email") }
+		/>
+		<button
+			class="text-white! bg-black dark:text-black! dark:bg-white"
+			data-on:click={ "@put(' " + config.Endpoints[config.AccountPath] + "/" + email + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			disabled
+			data-attr:disabled="$_change_email.busy || $email == $_old_email || !($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
+			data-indicator:_change_email.busy
+			data-attr:aria-busy="$_change_email.busy && 'true'"
+		>
+			{ tr("account_change_email_send_verification") }
+		</button>
+	</div>
+}
+
+templ ChangeEmailConfirm(tr func(string) string, token, oldEmail string) {
+	<div id={ changeEmailFormID }>
+		<div id={ ChangeEmailNoticeID }></div>
+		<input
+			id="changeEmailFormOTP"
+			data-bind:_otpraw
+			data-signals:token={ "'" + token + "'" }
+			data-computed:otp="$_otpraw.replaceAll(' ', '')"
+			inputmode="numeric"
+			pattern="[0-9 ]*"
+			placeholder={ tr("account_confirm_email_otp") }
+			step="1"
+		/>
+		<button
+			class="text-white! bg-black dark:text-black! dark:bg-white"
+			data-on:click={ "@patch(' " + config.Endpoints[config.AccountPath] + "/" + oldEmail + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			disabled
+			data-attr:disabled="$_change_email_confirm.busy || !(/^[0-9]{6}$/.test(String($otp)))"
+			data-indicator:_change_email_confirm.busy
+			data-attr:aria-busy="$_change_email_confirm.busy && 'true'"
+		>
+			{ tr("account_confirm_email") }
+		</button>
+	</div>
+}
+
+templ AccountHeader(tr func(string) string, email string) {
 	<header class="conex-banner">
 		<nav class="m-4">
 			<a href={ config.Endpoints[config.DashboardPath] }>
@@ -45,9 +84,16 @@ templ AccountHeader(tr func(string) string) {
 			</a>
 		</nav>
 		<div class="conex-banner-content">
-			<h1>{ tr("my_account") }</h1>
+			<h1>
+				@AccountHeaderEmail(email)
+			</h1>
+			@changeEmail(tr, email)
 		</div>
 	</header>
+}
+
+templ AccountHeaderEmail(email string) {
+	<div id={ AccountHeaderEmailID }>{ email }</div>
 }
 
 templ Account(tr func(string) string, session db.Session, user db.User, sessions []db.Session) {
@@ -85,4 +131,32 @@ templ SessionsTable(tr func(string) string, session db.Session, sessions []db.Se
 			}
 		</table>
 	</div>
+}
+
+func unixDateLong(timestamp int64) string {
+	loc, _ := time.LoadLocation("America/Costa_Rica")
+	t := time.Unix(timestamp, 0).In(loc)
+
+	days := []string{"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"}
+	months := []string{
+		"enero", "febrero", "marzo", "abril", "mayo", "junio",
+		"julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+	}
+
+	dayName := days[t.Weekday()]
+	monthName := months[t.Month()-1]
+
+	hour := t.Hour()
+	ampm := "AM"
+	if hour >= 12 {
+		ampm = "PM"
+	}
+	hour12 := hour % 12
+	if hour12 == 0 {
+		hour12 = 12
+	}
+
+	return fmt.Sprintf("%d:%02d%s %s %d de %s, %d",
+		hour12, t.Minute(), ampm,
+		dayName, t.Day(), monthName, t.Year())
 }
