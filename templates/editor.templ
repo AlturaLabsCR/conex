@@ -4,6 +4,8 @@ import (
 	"app/config"
 	"app/database"
 	"app/internal/db"
+	"net/url"
+	"strings"
 )
 
 const (
@@ -76,7 +78,7 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 	</header>
 }
 
-templ Editor(tr func(string) string, site db.SitesWithMetric) {
+templ Editor(tr func(string) string, site db.SitesWithMetric, siteURL string) {
 	<section>
 		<div id="editorjs"></div>
 		<script src={ config.Endpoints[config.AssetsPath] + "js/editor.js" } defer></script>
@@ -100,12 +102,12 @@ templ Editor(tr func(string) string, site db.SitesWithMetric) {
       });
     </script>
 	</section>
-	@Dialog(tr, "dashboard-modal-publish", tr("publish"), publishSiteForm(tr, site.SiteSlug, site.SitePublished == 1))
+	@Dialog(tr, "dashboard-modal-publish", tr("publish"), publishSiteForm(tr, siteURL, site.SiteSlug, site.SitePublished == 1))
 	@Dialog(tr, "dashboard-modal-banner", tr("editor_banner"), uploadBannerForm(tr, site))
 	@Dialog(tr, "dashboard-modal-settings", tr("editor_settings"), updateSettingsForm(tr, site))
 }
 
-templ publishSiteForm(tr func(string) string, site string, published bool) {
+templ publishSiteForm(tr func(string) string, siteURL, site string, published bool) {
 	<div id={ PublishNoticeID }></div>
 	<div class="hidden" data-signals={ "{ slug: '" + site + "' }" }></div>
 	<textarea id="editor_html" class="hidden" disabled></textarea>
@@ -116,10 +118,10 @@ templ publishSiteForm(tr func(string) string, site string, published bool) {
 		data-attr:aria-busy="$_publish.busy && 'true'"
 	>{ tr("editor_publish") }</button>
 	<hr/>
-	@UnpublishSite(tr, site, published)
+	@UnpublishSite(tr, site, siteURL, published)
 }
 
-templ UnpublishSite(tr func(string) string, site string, published bool) {
+templ UnpublishSite(tr func(string) string, site, siteURL string, published bool) {
 	<div id={ UnpublishSiteID }>
 		if published {
 			<span
@@ -128,6 +130,7 @@ templ UnpublishSite(tr func(string) string, site string, published bool) {
 			<span class="text-sm text-black/60 dark:text-white/40">
 				{ tr("editor_currently_published") }
 			</span>
+			@urlStyled(splitURL(siteURL))
 			<button
 				data-on:click={ "@delete('" + config.Endpoints[config.EditorPath] + site + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 				data-indicator:_unpublish.busy
@@ -259,4 +262,27 @@ templ Image(id, src string) {
 			src={ src }
 		/>
 	</div>
+}
+
+templ urlStyled(host, domain, path string) {
+	<pre class="my-4 mx-auto w-full text-center">
+		<span class="text-black/40 dark:text-white/40">{ host }</span><span>{ domain }</span><span class="font-bold">{ path }</span>
+	</pre>
+}
+
+func splitURL(raw string) (string, string, string) {
+	if !strings.HasPrefix(raw, "http://") && !strings.HasPrefix(raw, "https://") {
+		raw = "https://" + raw
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "", "", ""
+	}
+	scheme := u.Scheme + "://"
+	host := u.Host
+	if !strings.HasSuffix(host, "/") {
+		host += "/"
+	}
+	path := strings.TrimPrefix(u.Path, "/")
+	return scheme, host, path
 }

@@ -79,8 +79,19 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 
 	tr := h.Translator(r)
 
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	hostURL := scheme + "://" + r.Host
+	siteURL := hostURL + config.Endpoints[config.RootPath] + site.SiteSlug
+
 	header := templates.EditorHeader(tr, site, bannerURL)
-	content := templates.Editor(tr, site)
+	content := templates.Editor(
+		tr,
+		site,
+		siteURL,
+	)
 
 	templates.Base(tr, header, content, true).Render(ctx, w)
 }
@@ -177,9 +188,17 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	h.Log().Debug("updated site", "site_id", site.SiteID, "site_html_published", data.Content)
 
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	hostURL := scheme + "://" + r.Host
+	siteURL := hostURL + config.Endpoints[config.RootPath] + site.SiteSlug
+
 	if err := templates.UnpublishSite(
 		tr,
 		data.Slug,
+		siteURL,
 		true,
 	).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)
@@ -262,9 +281,17 @@ func (h *Handler) EditorUnpublish(w http.ResponseWriter, r *http.Request) {
 
 	tr := h.Translator(r)
 
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	hostURL := scheme + "://" + r.Host
+	siteURL := hostURL + config.Endpoints[config.RootPath] + site.SiteSlug
+
 	if err := templates.UnpublishSite(
 		tr,
 		slug,
+		siteURL,
 		false,
 	).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering unpublish status")
