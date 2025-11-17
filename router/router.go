@@ -14,6 +14,8 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 
 	router.HandleFunc("GET "+config.Endpoints[config.RootPath], h.Home)
 
+	router.HandleFunc("GET "+config.Endpoints[config.SearchPath], h.Search)
+
 	router.HandleFunc("GET "+config.Endpoints[config.RegisterPath], h.RegisterForm)
 	router.HandleFunc("PUT "+config.Endpoints[config.RegisterPath], h.Register)
 	router.HandleFunc("POST "+config.Endpoints[config.RegisterPath], h.RegisterConfirm)

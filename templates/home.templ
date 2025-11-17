@@ -23,6 +23,8 @@ templ floatingSearch(tr func(string) string) {
 			<input
 				type="text"
 				placeholder={ tr("describe_site") }
+				data-bind:search
+				data-on:input__debounce.1s="@get('/search')"
 			/>
 		</div>
 	</div>

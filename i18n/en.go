@@ -21,6 +21,7 @@ var EN = map[string]string{
 	"upload_image":      "Upload image",
 	"loading":           "Loading",
 	"change_email":      "Change email",
+	"visits":            "visits",
 
 	// home
 	"create_site":      "Create website",

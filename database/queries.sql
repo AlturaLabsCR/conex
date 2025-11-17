@@ -25,6 +25,11 @@ SELECT * FROM sites WHERE site_deleted = 0;
 -- name: GetPublishedSites :many
 SELECT * FROM sites WHERE site_published = 1;
 
+-- name: GetPublishedSitesWithMetrics :many
+SELECT * FROM sites_with_metrics
+ORDER BY metric_visits_total DESC,
+site_id ASC LIMIT 30;
+
 -- name: GetMetrics :many
 SELECT * FROM site_metrics;
 

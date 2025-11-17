@@ -10,15 +10,9 @@ import (
 
 templ CardsGrid(tr func(string) string, sites []db.SitesWithMetric, editor bool) {
 	if len(sites) > 0 {
-		<section class="mb-24">
-			<div class="mb-4">
-				<select>
-					<option value="visits">{ tr("most_visited") }</option>
-					<option value="created">{ tr("recently_created") }</option>
-				</select>
-			</div>
+		<div id="conexcardscontainer" class="mb-24">
 			@cards(tr, sites, editor)
-		</section>
+		</div>
 	}
 }
 
@@ -52,7 +46,7 @@ templ card(tr func(string) string, s db.SitesWithMetric, bannerURL string, edito
 		</a>
 		if editor {
 			<button
-				class="absolute top-1 right-2 w-fit! py-1! text-sm bg-black/5 dark:bg-white/10"
+				class="absolute -right-2 -top-4 w-fit! py-1! text-sm text-gray-600 bg-slate-300/70 dark:text-gray-400 dark:bg-gray-700/85"
 				type="button"
 				onclick={ templ.JSFuncCall("window.location.assign", config.Endpoints[config.EditorPath]+s.SiteSlug) }
 			>
