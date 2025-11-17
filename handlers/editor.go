@@ -14,6 +14,8 @@ import (
 	"app/templates"
 )
 
+const MaxHTMLSize = 10 * 1024000 // 10MB
+
 type SyncResponse struct {
 	ShouldPatch bool            `json:"shouldPatch"`
 	SiteData    json.RawMessage `json:"siteData,omitempty"`
@@ -165,6 +167,17 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sanitized := database.SanitizeHTML(data.Content)
+
+	if len(data.Title) > 63 || len(data.Description) > 255 || len([]byte(sanitized)) > MaxHTMLSize {
+		h.Log().Debug("exceeds capacity")
+		templates.Notice(
+			templates.PublishNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("publish_too_large"),
+		).Render(ctx, w)
+		return
+	}
 
 	if err := queries.UpdateSite(ctx, db.UpdateSiteParams{
 		SiteID:            site.SiteID,

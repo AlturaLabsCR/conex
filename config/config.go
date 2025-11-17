@@ -75,9 +75,11 @@ var (
 
 	ServerSecret string
 
-	PayPalClientID     string
-	PayPalClientSecret string
-	PayPalEndpoint     string = "https://api-m.paypal.com"
+	PayPalClientID         string
+	PayPalClientSecret     string
+	PayPalEndpoint         string  = "https://api-m.paypal.com"
+	PayPalPurchaseValueStr string  = "20.00"
+	PayPalPurchaseValue    float64 = 20.00
 )
 
 const (
@@ -105,9 +107,10 @@ const (
 	envS3Bucket    = envPrefix + "S3_BUCKET"
 	envS3PublicURL = envPrefix + "S3_PUBLIC_URL"
 
-	envPayPalClientID     = envPrefix + "PP_CLIENT_ID"
-	envPayPalClientSecret = envPrefix + "PP_CLIENT_SECRET"
-	envPayPalEndpoint     = envPrefix + "PP_ENDPOINT"
+	envPayPalClientID         = envPrefix + "PP_CLIENT_ID"
+	envPayPalClientSecret     = envPrefix + "PP_CLIENT_SECRET"
+	envPayPalEndpoint         = envPrefix + "PP_ENDPOINT"
+	envPayPalPurchaseValueStr = envPrefix + "PP_VALUE"
 )
 
 func Init() {
@@ -153,6 +156,14 @@ func Init() {
 	ppe := os.Getenv(envPayPalEndpoint)
 	if ppe != "" {
 		PayPalEndpoint = ppe
+	}
+
+	ppvs := os.Getenv(envPayPalPurchaseValueStr)
+	if ppvs != "" {
+		if val, err := strconv.ParseFloat(ppvs, 64); err == nil {
+			PayPalPurchaseValueStr = ppvs
+			PayPalPurchaseValue = val
+		}
 	}
 
 	// Prefix all endpoint paths with Endpoints[RootPath]

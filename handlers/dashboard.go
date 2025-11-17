@@ -72,6 +72,16 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(name) > 63 || len(endpoint) > 63 {
+		templates.Notice(
+			templates.NewSiteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("publish_too_large"),
+		).Render(ctx, w)
+		return
+	}
+
 	for _, e := range config.Endpoints {
 		used := strings.ReplaceAll(e, config.Endpoints[config.RootPath], "")
 		used = strings.ReplaceAll(used, "/", "")

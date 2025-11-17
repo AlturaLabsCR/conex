@@ -22,6 +22,7 @@ var ES = map[string]string{
 	"loading":           "Cargando",
 	"change_email":      "Cambiar email",
 	"visits":            "visitas",
+	"publish_too_large": "El título, la descripción o el contenido son demasiado extensos para publicarse",
 
 	// home
 	"create_site":      "Crear un sitio",

@@ -267,7 +267,7 @@ type PurchaseUnits struct {
 }
 
 func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
-	ord, err := CreateOrder("USD", "19.99")
+	ord, err := CreateOrder("USD", config.PayPalPurchaseValueStr)
 	if err != nil {
 		h.Log().Error("failed to create order", "error", err)
 		http.Error(w, "failed to create order", http.StatusInternalServerError)
@@ -335,7 +335,7 @@ func (h *Handler) CompleteOrder(w http.ResponseWriter, r *http.Request) {
 
 	if _, err = queries.InsertPayment(ctx, db.InsertPaymentParams{
 		PaymentUser:       session.SessionUser,
-		PaymentAmount:     19.99,
+		PaymentAmount:     config.PayPalPurchaseValue,
 		PaymentDateUnix:   now.Unix(),
 		PaymentSuccessful: success,
 		PaymentReference:  resp.ID + ":" + resp.Status,

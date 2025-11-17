@@ -25,7 +25,7 @@
   - [X] ! allow email change
   - [X] ! allow account delete
   - [X] ! allow site delete
-  - [ ] ! search
+  - [X] ! search
   - [ ] ! Harden against db limits
   - [ ] spinner on subscribe
   - [ ] filter wordlists

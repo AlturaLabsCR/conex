@@ -64,6 +64,16 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(email) > 63 {
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("invalid_email"),
+		).Render(ctx, w)
+		return
+	}
+
 	queries := db.New(h.DB())
 
 	if _, err := queries.GetUserByEmail(ctx, email); err == nil {
@@ -273,6 +283,16 @@ func (h *Handler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
 			tr("invalid_email"),
 		).Render(ctx, w)
 		h.Log().Debug("failed to parse email address")
+		return
+	}
+
+	if len(req.Email) > 63 {
+		templates.Notice(
+			templates.ChangeEmailNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("invalid_email"),
+		).Render(ctx, w)
 		return
 	}
 

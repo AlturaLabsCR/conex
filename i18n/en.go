@@ -22,6 +22,7 @@ var EN = map[string]string{
 	"loading":           "Loading",
 	"change_email":      "Change email",
 	"visits":            "visits",
+	"publish_too_large": "Title, description or content are too large",
 
 	// home
 	"create_site":      "Create website",
