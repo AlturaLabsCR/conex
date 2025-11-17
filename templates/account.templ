@@ -87,9 +87,9 @@ templ AccountHeader(tr func(string) string, email string) {
 			</a>
 		</nav>
 		<div class="conex-banner-content">
-			<h1>
+			<h3>
 				@AccountHeaderEmail(email)
-			</h1>
+			</h3>
 			@changeEmail(tr, email)
 		</div>
 	</header>
@@ -100,14 +100,16 @@ templ AccountHeaderEmail(email string) {
 }
 
 templ Account(tr func(string) string, session db.Session, user db.User, sessions []db.Session) {
-	<hr/>
 	@SessionsTable(tr, session, sessions)
-	<hr/>
+	<br/>
 	@DeleteAccount(tr, user.UserEmail)
+	<div class="my-6 text-center">
+		<a href={ config.Endpoints[config.TermsPath] }>{ tr("terms") }</a>
+	</div>
 }
 
 templ DeleteAccount(tr func(string) string, email string) {
-	<h2>{ tr("account_delete") }</h2>
+	<h3>{ tr("account_delete") }</h3>
 	@Dialog(tr, "account-modal-delete-account", tr("account_delete_modal"), DeleteAccountForm(tr, email))
 	<div>
 		<button
@@ -133,7 +135,7 @@ templ DeleteAccountForm(tr func(string) string, email string) {
 }
 
 templ SessionsTable(tr func(string) string, session db.Session, sessions []db.Session) {
-	<h2>{ tr("account_devices") }</h2>
+	<h3>{ tr("account_devices") }</h3>
 	<div id="sessionsContainer">
 		<table>
 			<tr>

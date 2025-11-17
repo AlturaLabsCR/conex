@@ -23,6 +23,8 @@ var EN = map[string]string{
 	"change_email":      "Change email",
 	"visits":            "visits",
 	"publish_too_large": "Title, description or content are too large",
+	"by_continuing":     "By continuing, you agree to our",
+	"terms":             "terms and conditions",
 
 	// home
 	"create_site":      "Create website",
@@ -54,6 +56,8 @@ var EN = map[string]string{
 	"register_insert_verification":  "Verification code",
 	"register_confirm_email":        "Confirm and register",
 	"register_error":                "Error registering user, try again later",
+	"otp_code_email_subject":        "CONEX Verification Code",
+	"otp_code_email_body":           "OTP:",
 
 	// login
 	"log_in":                  "Log in",
@@ -128,6 +132,7 @@ var EN = map[string]string{
 	"account_delete_modal":                   "Delete account",
 	"account_delete_prompt":                  "By deleting this account, all websites will be deleted. You will not be able to restore the account once deleted.",
 	"account_delete_account_permanent":       "Delete permanently",
+	"account_change_email_already_exists":    "This email address is not available",
 
 	// sites
 	"not_found":      "Website not found",

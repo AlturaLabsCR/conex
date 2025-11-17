@@ -39,13 +39,13 @@ SELECT * FROM site_sync WHERE site_sync_id = ?;
 -- name: InsertSyncData :one
 INSERT INTO site_sync(
   site_sync_id,
-  site_sync_data_staging,
+  site_sync_data_gz,
   site_sync_last_update_unix
 ) VALUES (?, ?, ?) RETURNING site_sync_id;
 
 -- name: UpdateSyncData :exec
 UPDATE site_sync SET
-  site_sync_data_staging = ?,
+  site_sync_data_gz = ?,
   site_sync_last_update_unix = ?
 WHERE site_sync_id = ?;
 
@@ -181,7 +181,7 @@ INSERT INTO sites (
   site_title,
   site_tags_json,
   site_description,
-  site_html_published,
+  site_html_gz,
   site_created_unix,
   site_modified_unix,
   site_published,
@@ -196,7 +196,7 @@ UPDATE sites SET
   site_title = ?,
   site_description = ?,
   site_tags_json = ?,
-  site_html_published = ?,
+  site_html_gz = ?,
   site_modified_unix = ?,
   site_published = ?,
   site_deleted = ?

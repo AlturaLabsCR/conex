@@ -177,17 +177,17 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().Unix()
 
 	siteID, err := queries.InsertSite(ctx, db.InsertSiteParams{
-		SiteUser:          session.SessionUser,
-		SiteSlug:          endpoint,
-		SiteTitle:         name,
-		SiteTagsJson:      "",
-		SiteDescription:   "",
-		SiteHtmlPublished: "",
-		SiteCreatedUnix:   now,
-		SiteModifiedUnix:  now,
-		SitePublished:     0,
-		SiteDeleted:       0,
-		SiteHomePage:      0,
+		SiteUser:         session.SessionUser,
+		SiteSlug:         endpoint,
+		SiteTitle:        name,
+		SiteTagsJson:     "",
+		SiteDescription:  "",
+		SiteHtmlGz:       []byte{},
+		SiteCreatedUnix:  now,
+		SiteModifiedUnix: now,
+		SitePublished:    0,
+		SiteDeleted:      0,
+		SiteHomePage:     0,
 	})
 	if err != nil {
 		h.Log().Error("error inserting site", "site", endpoint, "error", err)

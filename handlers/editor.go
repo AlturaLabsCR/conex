@@ -12,6 +12,7 @@ import (
 	"app/database"
 	"app/internal/db"
 	"app/templates"
+	"app/utils"
 )
 
 const MaxHTMLSize = 10 * 1024000 // 10MB
@@ -168,7 +169,14 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 
 	sanitized := database.SanitizeHTML(data.Content)
 
-	if len(data.Title) > 63 || len(data.Description) > 255 || len([]byte(sanitized)) > MaxHTMLSize {
+	sanitizedGz, err := utils.Gzip([]byte((sanitized)))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.Log().Debug("failed to gzip html", "error", err)
+		return
+	}
+
+	if len(data.Title) > 63 || len(data.Description) > 255 || len(sanitizedGz) > MaxHTMLSize {
 		h.Log().Debug("exceeds capacity")
 		templates.Notice(
 			templates.PublishNoticeID,
@@ -180,14 +188,14 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := queries.UpdateSite(ctx, db.UpdateSiteParams{
-		SiteID:            site.SiteID,
-		SiteTitle:         data.Title,
-		SiteDescription:   data.Description,
-		SiteTagsJson:      site.SiteTagsJson,
-		SiteHtmlPublished: sanitized,
-		SiteModifiedUnix:  time.Now().Unix(),
-		SitePublished:     1,
-		SiteDeleted:       0,
+		SiteID:           site.SiteID,
+		SiteTitle:        data.Title,
+		SiteDescription:  data.Description,
+		SiteTagsJson:     site.SiteTagsJson,
+		SiteHtmlGz:       sanitizedGz,
+		SiteModifiedUnix: time.Now().Unix(),
+		SitePublished:    1,
+		SiteDeleted:      0,
 	}); err != nil {
 		h.Log().Debug("error updating site", "error", err)
 		templates.Notice(
@@ -410,13 +418,21 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 
 		b, err := json.Marshal(req)
 		if err != nil {
-			h.Log().Debug("error marshalling req")
+			h.Log().Debug("error marshalling req", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		bgz, err := utils.Gzip(b)
+		if err != nil {
+			h.Log().Debug("error gzip req", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		if _, err := queries.InsertSyncData(ctx, db.InsertSyncDataParams{
 			SiteSyncID:             site.SiteID,
-			SiteSyncDataStaging:    string(b),
+			SiteSyncDataGz:         bgz,
 			SiteSyncLastUpdateUnix: time.Now().Unix(),
 		}); err != nil {
 			h.Log().Debug("error inserting client data")
@@ -447,21 +463,45 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 	var resp SyncResponse
 	if req.LocalData.LastUpdated > serverData.SiteSyncLastUpdateUnix {
 		h.Log().Debug("client is newer, update server")
-		b, _ := json.Marshal(req)
+
+		b, err := json.Marshal(req)
+		if err != nil {
+			h.Log().Debug("error marshalling req", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		bgz, err := utils.Gzip(b)
+		if err != nil {
+			h.Log().Debug("error gzip req", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		if err := queries.UpdateSyncData(ctx, db.UpdateSyncDataParams{
 			SiteSyncID:             site.SiteID,
-			SiteSyncDataStaging:    string(b),
+			SiteSyncDataGz:         bgz,
 			SiteSyncLastUpdateUnix: req.LocalData.LastUpdated,
 		}); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
 		h.Log().Debug("server updated")
 		resp.ShouldPatch = false
 	} else {
 		h.Log().Debug("server is newer, siteData in response")
+
+		data, err := utils.Gunzip(serverData.SiteSyncDataGz)
+		if err != nil {
+			h.Log().Debug("error gunzip resp", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		resp.ShouldPatch = true
-		resp.SiteData = json.RawMessage(serverData.SiteSyncDataStaging)
+
+		resp.SiteData = json.RawMessage(data)
 	}
 
 	if err := tx.Commit(); err != nil {

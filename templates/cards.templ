@@ -46,7 +46,7 @@ templ card(tr func(string) string, s db.SitesWithMetric, bannerURL string, edito
 		</a>
 		if editor {
 			<button
-				class="absolute -right-2 -top-4 w-fit! py-1! text-sm text-gray-600 bg-slate-300/70 dark:text-gray-400 dark:bg-gray-700/85"
+				class="absolute right-2 top-1 w-fit! py-1! text-sm text-gray-600 bg-slate-300 dark:text-gray-400 dark:bg-gray-700"
 				type="button"
 				onclick={ templ.JSFuncCall("window.location.assign", config.Endpoints[config.EditorPath]+s.SiteSlug) }
 			>

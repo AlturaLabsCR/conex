@@ -35,6 +35,21 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) Terms(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	tr := h.Translator(r)
+
+	header := templates.Empty()
+	content := templates.Terms()
+
+	if err := templates.Base(tr, header, content, false).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	tr := h.Translator(r)
 	ctx := r.Context()

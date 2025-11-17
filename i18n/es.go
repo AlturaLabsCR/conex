@@ -23,6 +23,8 @@ var ES = map[string]string{
 	"change_email":      "Cambiar email",
 	"visits":            "visitas",
 	"publish_too_large": "El título, la descripción o el contenido son demasiado extensos para publicarse",
+	"by_continuing":     "Al continuar, confirmas que aceptas los",
+	"terms":             "términos y condiciones",
 
 	// home
 	"create_site":      "Crear un sitio",
@@ -54,6 +56,8 @@ var ES = map[string]string{
 	"register_insert_verification":  "Código de verificación",
 	"register_confirm_email":        "Confirmar y registrarse",
 	"register_error":                "Error realizando el registro, intenta de nuevo más tarde",
+	"otp_code_email_subject":        "Código de Verificación de CONEX",
+	"otp_code_email_body":           "El código de verificación es:",
 
 	// login
 	"log_in":                  "Iniciar sesión",
@@ -128,6 +132,7 @@ var ES = map[string]string{
 	"account_delete_modal":                   "Eliminar cuenta",
 	"account_delete_prompt":                  "Al eliminar la cuenta, se eliminarán todos los sitios web del usuario. No podrá recuperar la cuenta luego de esta acción.",
 	"account_delete_account_permanent":       "Eliminar permanentemente",
+	"account_change_email_already_exists":    "Este correo no está disponible",
 
 	// sites
 	"not_found":      "Sitio web no encontrado",

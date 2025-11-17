@@ -28,6 +28,7 @@ const (
 	BannerPath
 	CheckoutPath
 	SearchPath
+	TermsPath
 )
 
 var Endpoints = map[Endpoint]string{
@@ -45,6 +46,7 @@ var Endpoints = map[Endpoint]string{
 	BannerPath:    "banner/",
 	CheckoutPath:  "checkout/",
 	SearchPath:    "search",
+	TermsPath:     "terms",
 }
 
 var (

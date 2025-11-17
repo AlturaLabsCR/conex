@@ -58,7 +58,7 @@ CREATE TABLE sites (
   site_title VARCHAR(63) NOT NULL,
   site_tags_json VARCHAR(255) NOT NULL,
   site_description VARCHAR(255) NOT NULL,
-  site_html_published TEXT NOT NULL,
+  site_html_gz BLOB NOT NULL,
   site_created_unix INTEGER NOT NULL,
   site_modified_unix INTEGER NOT NULL,
   site_home_page INTEGER NOT NULL DEFAULT 0,
@@ -73,7 +73,7 @@ CREATE TABLE sites (
 
 CREATE TABLE site_sync (
   site_sync_id INTEGER NOT NULL,
-  site_sync_data_staging TEXT NOT NULL,
+  site_sync_data_gz BLOB NOT NULL,
   site_sync_last_update_unix INTEGER NOT NULL,
 
   CONSTRAINT pk_site_sync PRIMARY KEY (site_sync_id),

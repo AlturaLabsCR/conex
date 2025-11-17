@@ -5,7 +5,7 @@ templ Dialog(tr func(string) string, id, header string, body templ.Component) {
 		<article>
 			<header>
 				<button rel="prev" data-target={ id } onclick="toggleModal(event)"></button>
-				<h1>{ header }</h1>
+				<h3>{ header }</h3>
 			</header>
 			if body != nil {
 				@body

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"app/config"
+	"app/database"
 	"app/internal/db"
 	"app/utils"
 
@@ -33,6 +34,10 @@ func (h *Handler) PutObject(ctx context.Context, siteSlug, fileName string, body
 	}
 
 	objKey := site.SiteSlug + "/" + fileName
+
+	if err := database.ValidateObjectStrings(config.S3Bucket, objKey, mime, md5); err != nil {
+		return db.SiteObject{}, err
+	}
 
 	now := time.Now().Unix()
 

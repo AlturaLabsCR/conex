@@ -26,7 +26,7 @@
   - [X] ! allow account delete
   - [X] ! allow site delete
   - [X] ! search
-  - [ ] ! Harden against db limits
+  - [X] ! Harden against db limits
   - [ ] spinner on subscribe
   - [ ] filter wordlists
   - [ ] Auto-disable plans

@@ -102,3 +102,19 @@ func randomColor() string {
 		len(tagColors),
 	)]
 }
+
+func ValidateObjectStrings(bucket, key, mime, md5 string) error {
+	if len(bucket) > 63 {
+		return fmt.Errorf("object_bucket exceeds max length 63 (got %d)", len(bucket))
+	}
+	if len(key) > 255 {
+		return fmt.Errorf("object_key exceeds max length 255 (got %d)", len(key))
+	}
+	if len(mime) > 63 {
+		return fmt.Errorf("object_mime exceeds max length 63 (got %d)", len(mime))
+	}
+	if len(md5) > 32 {
+		return fmt.Errorf("object_md5 exceeds max length 32 (got %d)", len(md5))
+	}
+	return nil
+}

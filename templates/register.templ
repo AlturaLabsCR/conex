@@ -17,6 +17,9 @@ templ RegisterHeader(tr func(string) string) {
 
 templ registerSendEmailForm(tr func(string) string) {
 	<form>
+		<div class="text-center">
+			<p>{ tr("by_continuing") } <a href={ config.Endpoints[config.TermsPath] }>{ tr("terms") }</a></p>
+		</div>
 		<input
 			data-bind:email
 			id="registerEmail"

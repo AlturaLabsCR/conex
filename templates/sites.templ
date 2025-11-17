@@ -3,10 +3,11 @@ package templates
 import (
 	"app/config"
 	"app/internal/db"
+	"app/utils"
 )
 
 templ Site(s db.SitesWithMetric) {
-	@templ.Raw(s.SiteHtmlPublished)
+	@templ.Raw(decompressSafe(s.SiteHtmlGz))
 }
 
 templ SiteHeader(tr func(string) string, s db.SitesWithMetric, bannerURL string, isOwner bool) {
@@ -32,4 +33,9 @@ templ SiteHeader(tr func(string) string, s db.SitesWithMetric, bannerURL string,
 			<p>{ s.SiteDescription }</p>
 		</div>
 	</header>
+}
+
+func decompressSafe(data []byte) string {
+	str, _ := utils.Gunzip(data)
+	return string(str)
 }
