@@ -628,9 +628,11 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := templates.Image(
+	imageComp := templates.Image(config.S3PublicURL + "/" + obj.ObjectKey)
+
+	if err := templates.Div(
 		templates.EditorBannerID,
-		config.S3PublicURL+"/"+obj.ObjectKey,
+		imageComp,
 	).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)
 		return

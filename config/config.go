@@ -40,7 +40,7 @@ var Endpoints = map[Endpoint]string{
 	PricingPath:   "pricing",
 	AccountPath:   "account/",
 	UploadPath:    "upload/",
-	SettingsPath:  "settings",
+	SettingsPath:  "settings/",
 	BannerPath:    "banner/",
 	CheckoutPath:  "checkout/",
 }
@@ -201,6 +201,8 @@ func Init() {
 	if conn != "" {
 		dbConn = conn
 	}
+
+	fmt.Printf("%s %s", dvr, conn)
 }
 
 func generateRandomSecret(n int) string {

@@ -43,6 +43,7 @@ var ES = map[string]string{
 	"dashboard_slug_not_available":           "Este sitio no está disponible, intenta otro",
 	"dashboard_published_site":               "Se ha publicado el contenido",
 	"dashboard_upgrade_to_create_more_sites": "Mejora tu plan para crear más sitios",
+	"dashboard_maximum_sites_reached":        "Se ha alcanzado la máxima cantidad de sitios permitida para esta cuenta",
 
 	// register
 	"register":                      "Registrarse",
@@ -114,6 +115,13 @@ var ES = map[string]string{
 	"account_change_email_send_verification": "Enviar código",
 	"account_confirm_email_otp":              "Código de verificación",
 	"account_confirm_email":                  "Confirmar y cambiar email",
+	"account_change_email_success":           "Correo electrónico actualizado",
+	"account_devices":                        "Dispositivos",
+	"account_delete":                         "Eliminar Cuenta",
+	"account_delete_button":                  "Eliminar",
+	"account_delete_modal":                   "Eliminar cuenta",
+	"account_delete_prompt":                  "Al eliminar la cuenta, se eliminarán todos los sitios web del usuario. No podrá recuperar la cuenta luego de esta acción.",
+	"account_delete_account_permanent":       "Eliminar permanentemente",
 
 	// sites
 	"not_found":      "Sitio web no encontrado",

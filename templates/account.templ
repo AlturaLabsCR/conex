@@ -14,6 +14,9 @@ const (
 	changeEmailFormID   = "changeemailform"
 
 	AccountHeaderEmailID = "accountheaderemailid"
+
+	accountDeleteFormID   = "accountdeleteformid"
+	AccountDeleteNoticeID = "accountdeletenoticeid"
 )
 
 templ changeEmail(tr func(string) string, email string) {
@@ -97,10 +100,40 @@ templ AccountHeaderEmail(email string) {
 }
 
 templ Account(tr func(string) string, session db.Session, user db.User, sessions []db.Session) {
+	<hr/>
 	@SessionsTable(tr, session, sessions)
+	<hr/>
+	@DeleteAccount(tr, user.UserEmail)
+}
+
+templ DeleteAccount(tr func(string) string, email string) {
+	<h2>{ tr("account_delete") }</h2>
+	@Dialog(tr, "account-modal-delete-account", tr("account_delete_modal"), DeleteAccountForm(tr, email))
+	<div>
+		<button
+			onclick="toggleModal(event)"
+			data-target="account-modal-delete-account"
+		>{ tr("account_delete_button") }</button>
+	</div>
+}
+
+templ DeleteAccountForm(tr func(string) string, email string) {
+	<div id={ accountDeleteFormID }>
+		<div id={ AccountDeleteNoticeID }></div>
+		@Notice("accountnoticedeletesite", NoticeWarn, tr("warn"), tr("account_delete_prompt"))
+		<button
+			data-color="red"
+			data-on:click={ "@delete(' " + config.Endpoints[config.AccountPath] + "/" + email + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			data-indicator:_delete_account.busy
+			data-attr:aria-busy="$_delete_account.busy && 'true'"
+		>
+			{ tr("account_delete_account_permanent") }
+		</button>
+	</div>
 }
 
 templ SessionsTable(tr func(string) string, session db.Session, sessions []db.Session) {
+	<h2>{ tr("account_devices") }</h2>
 	<div id="sessionsContainer">
 		<table>
 			<tr>

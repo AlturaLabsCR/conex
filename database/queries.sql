@@ -284,3 +284,13 @@ INSERT INTO payments (
   payment_successful,
   payment_reference
 ) VALUES (?, ?, ?, ?, ?) RETURNING payment_id;
+
+-- name: DeleteUser :exec
+UPDATE users SET
+  user_email = '',
+  user_modified_unix = ?,
+  user_deleted = 1
+WHERE user_id = ?;
+
+-- name: DeleteSite :exec
+DELETE FROM sites WHERE site_id = ?;

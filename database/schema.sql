@@ -8,9 +8,12 @@ CREATE TABLE users (
   user_deleted INTEGER NOT NULL DEFAULT 0,
 
   CONSTRAINT pk_users PRIMARY KEY (user_id),
-  CONSTRAINT uq_users_email UNIQUE (user_email),
   CONSTRAINT ck_users_deleted CHECK (user_deleted IN (0,1))
 );
+
+CREATE UNIQUE INDEX uq_users_email_active_only
+ON users(user_email)
+WHERE user_email <> '' AND user_deleted = 0;
 
 CREATE TABLE sessions (
   session_id INTEGER NOT NULL,
@@ -74,7 +77,7 @@ CREATE TABLE site_sync (
   site_sync_last_update_unix INTEGER NOT NULL,
 
   CONSTRAINT pk_site_sync PRIMARY KEY (site_sync_id),
-  CONSTRAINT fk_site_sync FOREIGN KEY (site_sync_id) REFERENCES sites(site_id)
+  CONSTRAINT fk_site_sync FOREIGN KEY (site_sync_id) REFERENCES sites(site_id) ON DELETE CASCADE
 );
 
 CREATE TABLE site_metrics (
@@ -83,12 +86,13 @@ CREATE TABLE site_metrics (
   metric_visits_total INTEGER NOT NULL,
 
   CONSTRAINT pk_site_metrics PRIMARY KEY (metric_id),
+  CONSTRAINT fk_sites_metrics_site FOREIGN KEY (metric_site) REFERENCES sites(site_id) ON DELETE CASCADE,
   CONSTRAINT uq_site_metrics UNIQUE (metric_site)
 );
 
 CREATE TABLE site_objects (
   object_id INTEGER NOT NULL,
-  object_site INTEGER NOT NULL,
+  object_site INTEGER NOT NULL DEFAULT 0,
   object_bucket VARCHAR(63) NOT NULL,
   object_key VARCHAR(255) NOT NULL,
   object_mime VARCHAR(63) NOT NULL,
@@ -98,7 +102,7 @@ CREATE TABLE site_objects (
   object_modified_unix INTEGER NOT NULL,
 
   CONSTRAINT pk_site_objects PRIMARY KEY (object_id),
-  CONSTRAINT fk_site_objects_site FOREIGN KEY (object_site) REFERENCES sites(site_id),
+  CONSTRAINT fk_site_objects_site FOREIGN KEY (object_site) REFERENCES sites(site_id) ON DELETE CASCADE,
   CONSTRAINT uq_site_objects_address UNIQUE (object_bucket, object_key),
   CONSTRAINT uq_site_objects_md5 UNIQUE (object_bucket, object_md5)
 );
@@ -110,7 +114,7 @@ CREATE TABLE site_banners (
 
   CONSTRAINT pk_site_banners PRIMARY KEY (banner_id),
   CONSTRAINT uq_site_banners_site UNIQUE (banner_site),
-  CONSTRAINT fk_site_banners_site FOREIGN KEY (banner_site) REFERENCES sites(site_id),
+  CONSTRAINT fk_site_banners_site FOREIGN KEY (banner_site) REFERENCES sites(site_id) ON DELETE CASCADE,
   CONSTRAINT fk_site_banners_object FOREIGN KEY (banner_object) REFERENCES site_objects(object_id)
 );
 

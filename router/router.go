@@ -66,6 +66,9 @@ func Routes(h *handlers.Handler) *http.ServeMux {
 
 	router.Handle("PUT "+config.Endpoints[config.AccountPath]+"{email}", middleware.With(protected, h.ChangeEmail))
 	router.Handle("PATCH "+config.Endpoints[config.AccountPath]+"{email}", middleware.With(protected, h.ChangeEmailConfirm))
+	router.Handle("DELETE "+config.Endpoints[config.AccountPath]+"{email}", middleware.With(protected, h.DeleteAccount))
+
+	router.Handle("DELETE "+config.Endpoints[config.SettingsPath]+"{site}", middleware.With(protected, h.DeleteSite))
 
 	return router
 }

@@ -43,6 +43,7 @@ var EN = map[string]string{
 	"dashboard_slug_not_available":           "This site is not available, try another",
 	"dashboard_published_site":               "Published site content",
 	"dashboard_upgrade_to_create_more_sites": "Upgrade plan to create more sites",
+	"dashboard_maximum_sites_reached":        "Reached maximum number of sites allowed",
 
 	// register
 	"register":                      "Register",
@@ -114,6 +115,13 @@ var EN = map[string]string{
 	"account_confirm_email_otp":              "Send code",
 	"account_change_email_send_verification": "Verification code",
 	"account_confirm_email":                  "Verify and change email",
+	"account_change_email_success":           "Successfully changed email",
+	"account_devices":                        "Devices",
+	"account_delete":                         "Delete account",
+	"account_delete_button":                  "Delete",
+	"account_delete_modal":                   "Delete account",
+	"account_delete_prompt":                  "By deleting this account, all websites will be deleted. You will not be able to restore the account once deleted.",
+	"account_delete_account_permanent":       "Delete permanently",
 
 	// sites
 	"not_found":      "Website not found",

@@ -301,6 +301,209 @@ func (h *Handler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) DeleteSite(w http.ResponseWriter, r *http.Request) {
+	h.Log().Debug("endpoint hit", "pattern", r.Pattern)
+
+	ctx := r.Context()
+	tr := h.Translator(r)
+
+	slug := r.PathValue("site")
+
+	if slug == "" {
+		h.Log().Error("error invalid site", "slug", slug)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	h.Log().Debug("site slug is not empty valid")
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Debug("error retrieving session from ctx")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	h.Log().Debug("session id valid")
+
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		templates.Notice(
+			templates.EditorDeleteSiteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+	defer tx.Rollback()
+
+	queries := db.New(tx)
+
+	site, err := queries.GetSiteBySlug(ctx, slug)
+	if err != nil {
+		h.Log().Error("error querying site by slug", "error", err)
+		templates.Notice(
+			templates.EditorDeleteSiteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if session.SessionUser != site.SiteUser {
+		h.Log().Error("error tried to delete not owned site")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if err := queries.DeleteSite(ctx, site.SiteID); err != nil {
+		h.Log().Error("error deleting site", "error", err)
+		templates.Notice(
+			templates.AccountDeleteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		h.Log().Error("error tx commit", "error", err)
+		templates.Notice(
+			templates.AccountDeleteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if err := templates.Redirect(config.Endpoints[config.DashboardPath]).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		return
+	}
+}
+
+func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	tr := h.Translator(r)
+
+	email := r.PathValue("email")
+
+	if email == "" {
+		h.Log().Error("error invalid email", "email", email)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	h.Log().Debug("site slug is not empty valid")
+
+	session, ok := ctx.Value(ctxSessionKey).(db.Session)
+	if !ok {
+		h.Log().Debug("error retrieving session from ctx")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	h.Log().Debug("session id valid")
+
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		templates.Notice(
+			templates.NewSiteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+	defer tx.Rollback()
+
+	queries := db.New(tx)
+
+	user, err := queries.GetUserByID(ctx, session.SessionUser)
+	if err != nil {
+		h.Log().Error("error querying user by id", "error", err)
+		templates.Notice(
+			templates.AccountDeleteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if user.UserEmail != email {
+		h.Log().Error("tried to delete account without having ownership", "error", err)
+		templates.Notice(
+			templates.AccountDeleteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	sites, err := queries.GetSitesWithMetricsByUserID(ctx, session.SessionUser)
+	if err != nil {
+		h.Log().Error("error querying sites by account", "error", err)
+		templates.Notice(
+			templates.AccountDeleteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	for _, site := range sites {
+		if err := queries.DeleteSite(ctx, site.SiteID); err != nil {
+			h.Log().Error("error deleting site", "error", err)
+			templates.Notice(
+				templates.AccountDeleteNoticeID,
+				templates.NoticeError,
+				tr("error"),
+				tr("try_later"),
+			).Render(ctx, w)
+			return
+		}
+	}
+
+	now := time.Now().Unix()
+
+	if err := queries.DeleteUser(ctx, db.DeleteUserParams{
+		UserModifiedUnix: now,
+		UserID:           session.SessionUser,
+	}); err != nil {
+		h.Log().Error("error deleting user", "error", err)
+		templates.Notice(
+			templates.AccountDeleteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		h.Log().Error("error deleting account", "error", err)
+		templates.Notice(
+			templates.AccountDeleteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+
+	h.Logout(w, r)
+
+	if err := templates.Redirect(config.Endpoints[config.RootPath]).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		return
+	}
+}
+
 func (h *Handler) ChangeEmailConfirm(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	tr := h.Translator(r)

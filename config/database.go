@@ -15,6 +15,10 @@ func InitDB() (*sql.DB, error) {
 		return nil, err
 	}
 
+	if dbDriver == "sqlite" || dbDriver == "sqlite3" {
+		db.Exec("PRAGMA foreign_keys = ON")
+	}
+
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}

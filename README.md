@@ -22,7 +22,7 @@
   - [X] terms
   - [X] check for site quota
   - [X] Loading screen for editor on slow connections
-  - [ ] ! allow email change
+  - [X] ! allow email change
   - [ ] ! allow account delete
   - [ ] ! search
   - [ ] ! Harden against db limits
@@ -30,3 +30,6 @@
   - [ ] filter wordlists
   - [ ] Auto-disable plans
   - [ ] check for image quota per site
+
+## bugs
+  - [ ] tags on first load with no tags when closing the modal still does $showtags until reload with tags

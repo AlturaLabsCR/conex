@@ -9,19 +9,21 @@ import (
 )
 
 const (
-	PublishNoticeID         string = "publishNotice"
-	UploadBannerNoticeID    string = "uploadBannerNotice"
-	UpdateSettingsNoticeID  string = "updateSettingsNotice"
-	EditorTagContainer      string = "editortagscontainer"
-	EditorTagContainerTags  string = "editortagstags"
-	EditorTagName           string = "tags"
-	EditorSlugName          string = "slug"
-	EditorSyncerID          string = "editorSyncer"
-	EditorBannerID          string = "editorbanner"
-	UploadBannerName        string = "bannerupload"
-	EditorMustBePublishedID string = "editormustbepublished"
-	EditorShowInHomeID      string = "editorshowinhomebutton"
-	UnpublishSiteID         string = "editorunpublishsite"
+	PublishNoticeID          string = "publishNotice"
+	UploadBannerNoticeID     string = "uploadBannerNotice"
+	UpdateSettingsNoticeID   string = "updateSettingsNotice"
+	EditorTagContainer       string = "editortagscontainer"
+	EditorTagContainerTags   string = "editortagstags"
+	EditorTagName            string = "tags"
+	EditorSlugName           string = "slug"
+	EditorSyncerID           string = "editorSyncer"
+	EditorBannerID           string = "editorbanner"
+	UploadBannerName         string = "bannerupload"
+	EditorMustBePublishedID  string = "editormustbepublished"
+	EditorShowInHomeID       string = "editorshowinhomebutton"
+	UnpublishSiteID          string = "editorunpublishsite"
+	editorDeleteSiteFormID          = "editordeletesiteformid"
+	EditorDeleteSiteNoticeID        = "editordeletesitenoticeid"
 )
 
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL string) {
@@ -56,8 +58,9 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 		</div>
 	</nav>
 	<header class="conex-banner">
+		<div id={ EditorBannerID }></div>
 		if bannerURL != "" {
-			@Image(EditorBannerID, bannerURL)
+			@Image(bannerURL)
 		}
 		<div class="conex-banner-content flex items-center justify-center gap-y-2">
 			<textarea
@@ -76,6 +79,12 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 			></textarea>
 		</div>
 	</header>
+}
+
+templ Image(src string) {
+	<img
+		src={ src }
+	/>
 }
 
 templ Editor(tr func(string) string, site db.SitesWithMetric, siteURL string) {
@@ -242,6 +251,33 @@ templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
 			class="text-white! bg-black dark:text-black! dark:bg-white"
 		>{ tr("add") }</button>
 	</div>
+	<hr/>
+	@deleteSite(tr, site.SiteSlug)
+}
+
+templ deleteSite(tr func(string) string, site string) {
+	<h2>{ tr("editor_delete_site") }</h2>
+	@Dialog(tr, "editor-modal-delete-site", tr("editor_delete_site"), deleteSiteForm(tr, site))
+	<div>
+		<button
+			onclick="toggleModal(event)"
+			data-target="editor-modal-delete-site"
+		>{ tr("editor_delete_site_button") }</button>
+	</div>
+}
+
+templ deleteSiteForm(tr func(string) string, site string) {
+	<div id={ editorDeleteSiteFormID }>
+		@Notice(EditorDeleteSiteNoticeID, NoticeWarn, tr("warn"), tr("editor_delete_site_prompt"))
+		<button
+			data-color="red"
+			data-on:click={ "@delete(' " + config.Endpoints[config.SettingsPath] + site + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			data-indicator:_delete_site.busy
+			data-attr:aria-busy="$_delete_site.busy && 'true'"
+		>
+			{ tr("editor_delete_site_permanent") }
+		</button>
+	</div>
 }
 
 templ EditorTags(tr func(string) string, site db.SitesWithMetric) {
@@ -256,11 +292,9 @@ templ EditorTags(tr func(string) string, site db.SitesWithMetric) {
 	</div>
 }
 
-templ Image(id, src string) {
+templ Div(id string, content templ.Component) {
 	<div id={ id }>
-		<img
-			src={ src }
-		/>
+		@content
 	</div>
 }
 

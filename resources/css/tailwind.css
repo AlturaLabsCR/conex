@@ -107,6 +107,11 @@ img {
   my-4
 }
 
+::selection {
+  @apply
+  bg-blue-500/30
+}
+
 .conex-banner nav {
   @apply
   relative
@@ -157,6 +162,11 @@ nav ul {
   @apply
   text-white
   bg-black/25
+}
+
+.conex-banner:has(img) .conex-banner-content textarea::placeholder {
+  @apply
+  text-white/80
 }
 
 .conex-banner h1,
@@ -448,7 +458,7 @@ article.error {
   dark:bg-gray-800
 }
 
-.tag[data-color="blue"] {
+[data-color="blue"] {
   @apply
   border-blue-300
   text-blue-500
@@ -458,7 +468,7 @@ article.error {
   dark:bg-blue-950
 }
 
-.tag[data-color="purple"] {
+[data-color="purple"] {
   @apply
   border-purple-300
   text-purple-500
@@ -468,7 +478,7 @@ article.error {
   dark:bg-purple-950
 }
 
-.tag[data-color="cyan"] {
+[data-color="cyan"] {
   @apply
   border-cyan-300
   text-cyan-600
@@ -478,7 +488,7 @@ article.error {
   dark:bg-cyan-950
 }
 
-.tag[data-color="green"] {
+[data-color="green"] {
   @apply
   border-green-400
   text-green-600
@@ -488,7 +498,7 @@ article.error {
   dark:bg-green-950
 }
 
-.tag[data-color="yellow"] {
+[data-color="yellow"] {
   @apply
   border-yellow-400
   text-yellow-600
@@ -498,7 +508,7 @@ article.error {
   dark:bg-yellow-950
 }
 
-.tag[data-color="orange"] {
+[data-color="orange"] {
   @apply
   border-orange-300
   text-orange-500
@@ -508,7 +518,7 @@ article.error {
   dark:bg-orange-950
 }
 
-.tag[data-color="red"] {
+[data-color="red"] {
   @apply
   border-red-300
   text-red-500
@@ -598,7 +608,7 @@ article.error {
 .ce-block.ce-block--selected .ce-block__content,
 *::selection {
   @apply
-  dark:bg-blue-500/10!
+  dark:bg-blue-500/30!
   rounded-lg
 }
 
