@@ -16,7 +16,8 @@ func InitDB() (*sql.DB, error) {
 	}
 
 	if dbDriver == "sqlite" || dbDriver == "sqlite3" {
-		db.Exec("PRAGMA foreign_keys = ON")
+		db.Exec("PRAGMA foreign_keys=ON;")
+		db.Exec("PRAGMA journal_mode=WAL;")
 	}
 
 	if err := db.Ping(); err != nil {

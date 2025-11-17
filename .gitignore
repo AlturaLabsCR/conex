@@ -1,6 +1,6 @@
 internal/
 *_templ.go
-db.db
+db.db*
 app
 node_modules
 assets/**/*.js
