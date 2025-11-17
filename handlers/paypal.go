@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,6 +24,8 @@ const (
 
 	intentCapture = "capture"
 )
+
+var ErrRespondCapture error = errors.New("error responding")
 
 type AccessToken struct {
 	Scope     string `json:"scope"`
@@ -313,12 +316,32 @@ func (h *Handler) CompleteOrder(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := CompleteOrder(req.OrderID)
 	if err != nil {
-		h.Log().Error("failed to complete order", "error", err)
-		http.Error(w, "failed to complete order", http.StatusInternalServerError)
-		return
+		if !errors.Is(err, ErrRespondCapture) {
+			h.Log().Error("failed to complete order", "error", err)
+			http.Error(w, "failed to complete order", http.StatusInternalServerError)
+			return
+		}
 	}
 
+	h.Log().Debug("order captured", "order", resp)
+
 	now := time.Now()
+
+	var success int64 = 0
+
+	if resp.Status == "COMPLETED" {
+		success = 1
+	}
+
+	if _, err = queries.InsertPayment(ctx, db.InsertPaymentParams{
+		PaymentUser:       session.SessionUser,
+		PaymentAmount:     19.99,
+		PaymentDateUnix:   now.Unix(),
+		PaymentSuccessful: success,
+		PaymentReference:  resp.ID + ":" + resp.Status,
+	}); err != nil {
+		h.Log().Error("failed to complete order", "error", err)
+	}
 
 	if err := queries.UpdatePlan(ctx, db.UpdatePlanParams{
 		UserPlanDueUnix:      now.Add(24 * time.Hour * 365).Unix(),
@@ -575,13 +598,13 @@ func CompleteOrder(orderID string) (CompleteOrderResponse, error) {
 	}
 	defer raw.Body.Close()
 
-	if raw.StatusCode < 200 || raw.StatusCode > 299 {
+	if raw.StatusCode != 200 && raw.StatusCode != 201 {
 		body, _ := io.ReadAll(raw.Body)
 		return resp, fmt.Errorf("paypal order error: [%s] %s", raw.Status, string(body))
 	}
 
 	if err := json.NewDecoder(raw.Body).Decode(&resp); err != nil {
-		return resp, err
+		return resp, ErrRespondCapture
 	}
 
 	return resp, nil

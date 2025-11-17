@@ -269,3 +269,12 @@ WHERE banner_id = ?;
 
 -- name: DeleteBanner :exec
 DELETE FROM site_banners WHERE banner_site = ?;
+
+-- name: InsertPayment :one
+INSERT INTO payments (
+  payment_user,
+  payment_amount,
+  payment_date_unix,
+  payment_successful,
+  payment_reference
+) VALUES (?, ?, ?, ?, ?) RETURNING payment_id;
