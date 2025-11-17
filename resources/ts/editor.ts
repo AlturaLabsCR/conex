@@ -238,6 +238,11 @@ export async function initEditor(site: string) {
       if (htmlEl) {
         htmlEl.value = Array.isArray(outputHTML) ? outputHTML.join('') : String(outputHTML)
       }
+
+      const loaderEl = document.getElementById("editorLoader")
+      if (loaderEl) {
+        loaderEl.style.display = "none";
+      }
     },
 
     onChange: async () => {

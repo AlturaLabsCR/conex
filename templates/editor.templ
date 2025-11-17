@@ -15,7 +15,7 @@ const (
 	EditorTagName           string = "tags"
 	EditorSlugName          string = "slug"
 	EditorSyncerID          string = "editorSyncer"
-	EditorImageID           string = "editorimage"
+	EditorBannerID          string = "editorbanner"
 	UploadBannerName        string = "bannerupload"
 	EditorMustBePublishedID string = "editormustbepublished"
 	EditorShowInHomeID      string = "editorshowinhomebutton"
@@ -23,6 +23,10 @@ const (
 )
 
 templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL string) {
+	<div id="editorLoader" class="bg-white dark:bg-black fixed top-0 left-0 w-screen h-screen flex flex-row gap-4 justify-center items-center z-50 animate-pulse">
+		<h1>{ tr("loading") }</h1>
+		<div class="w-10 h-10 border-4 border-t-blue-400 rounded-full animate-spin"></div>
+	</div>
 	<nav class="m-4">
 		<a href={ config.Endpoints[config.DashboardPath] }>
 			← { tr("my_sites") }
@@ -51,20 +55,20 @@ templ EditorHeader(tr func(string) string, site db.SitesWithMetric, bannerURL st
 	</nav>
 	<header class="conex-banner">
 		if bannerURL != "" {
-			@Image(EditorImageID, bannerURL)
+			@Image(EditorBannerID, bannerURL)
 		}
 		<div class="conex-banner-content flex items-center justify-center gap-y-2">
 			<textarea
 				id="editor_title"
 				data-bind:title
-				class="font-bold text-4xl resize-none text-center overflow-hidden w-full max-w-4xl mx-auto h-auto outline-none focus:underline"
+				class="text-shadow-lg font-bold text-4xl resize-none text-center overflow-hidden w-full max-w-4xl mx-auto h-auto outline-none focus:underline"
 				rows="1"
 				placeholder={ tr("editor_title") }
 			></textarea>
 			<textarea
 				id="editor_description"
 				data-bind:description
-				class="resize-none text-center overflow-hidden w-full max-w-4xl mx-auto outline-none focus:underline"
+				class="text-shadow-lg resize-none text-center overflow-hidden w-full max-w-4xl mx-auto outline-none focus:underline"
 				rows="1"
 				placeholder={ tr("editor_description") }
 			></textarea>
@@ -96,7 +100,7 @@ templ Editor(tr func(string) string, site db.SitesWithMetric) {
       });
     </script>
 	</section>
-	@Dialog(tr, "dashboard-modal-publish", tr("editor_publish"), publishSiteForm(tr, site.SiteSlug, site.SitePublished == 1))
+	@Dialog(tr, "dashboard-modal-publish", tr("publish"), publishSiteForm(tr, site.SiteSlug, site.SitePublished == 1))
 	@Dialog(tr, "dashboard-modal-banner", tr("editor_banner"), uploadBannerForm(tr, site))
 	@Dialog(tr, "dashboard-modal-settings", tr("editor_settings"), updateSettingsForm(tr, site))
 }
@@ -108,7 +112,9 @@ templ publishSiteForm(tr func(string) string, site string, published bool) {
 	<button
 		class="text-white! bg-black dark:text-black! dark:bg-white"
 		data-on:click={ "$content = getEditorHtml(); @put('" + config.Endpoints[config.EditorPath] + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
-	>{ tr("publish") }</button>
+		data-indicator:_publish.busy
+		data-attr:aria-busy="$_publish.busy && 'true'"
+	>{ tr("editor_publish") }</button>
 	<hr/>
 	@UnpublishSite(tr, site, published)
 }
@@ -116,12 +122,24 @@ templ publishSiteForm(tr func(string) string, site string, published bool) {
 templ UnpublishSite(tr func(string) string, site string, published bool) {
 	<div id={ UnpublishSiteID }>
 		if published {
-			<span class="text-green-700/90 dark:text-green-400/90">{ tr("editor_currently_published") } ✓</span>
+			<span
+				class="text-green-700/90 dark:text-green-400/90"
+			>• </span>
+			<span class="text-sm text-black/60 dark:text-white/40">
+				{ tr("editor_currently_published") }
+			</span>
 			<button
 				data-on:click={ "@delete('" + config.Endpoints[config.EditorPath] + site + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+				data-indicator:_unpublish.busy
+				data-attr:aria-busy="$_unpublish.busy && 'true'"
 			>{ tr("editor_unpublish_site") }</button>
 		} else {
-			<span class="text-black/50 dark:text-white/50">{ tr("editor_site_not_published") }</span>
+			<span
+				class="text-red-700/90 dark:text-red-400/90"
+			>• </span>
+			<span class="text-sm text-black/60 dark:text-white/40">
+				{ tr("editor_site_not_published") }
+			</span>
 		}
 	</div>
 }
@@ -138,6 +156,8 @@ templ uploadBannerForm(tr func(string) string, site db.SitesWithMetric) {
 			class="text-white! bg-black dark:text-black! dark:bg-white"
 			data-attr:disabled="!$banner.length"
 			data-on:click={ "@post('" + config.Endpoints[config.BannerPath] + site.SiteSlug + "', {contentType: 'form', headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			data-indicator:_banner.busy
+			data-attr:aria-busy="$_banner.busy && 'true'"
 		>{ tr("upload_image") }</button>
 	</form>
 }
@@ -145,9 +165,28 @@ templ uploadBannerForm(tr func(string) string, site db.SitesWithMetric) {
 templ ShowInHomeButton(tr func(string) string, isShownInHome, isPublished bool) {
 	<div id={ EditorShowInHomeID }>
 		if isShownInHome && isPublished {
-			<span class="text-green-700/90 dark:text-green-400/90">{ tr("editor_currently_in_home") } ✓</span>
+			<span class="text-green-700/90 dark:text-green-400/90">• </span>
+			<span
+				class="text-sm text-black/60 dark:text-white/40"
+			>
+				{ tr("editor_currently_in_home") }
+			</span>
+		} else {
+			if !isPublished {
+				@Notice("_publishtoshowinhome", NoticeInfo, tr("info"), tr("editor_publish_to_show_in_home"))
+			}
+			<span
+				class="text-red-700/90 dark:text-red-400/90"
+			>• </span>
+			<span
+				class="text-sm text-black/60 dark:text-white/40"
+			>
+				{ tr("editor_currently_not_in_home") }
+			</span>
 		}
 		<button
+			data-indicator:_showninhome.busy
+			data-attr:aria-busy="$_showninhome.busy && 'true'"
 			data-signals:home_page="''"
 			if isShownInHome {
 				data-signals:_home_page_temp="'no'"
@@ -173,9 +212,6 @@ templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
 	<div id={ UpdateSettingsNoticeID }></div>
 	<hr/>
 	<div>
-		if site.SitePublished == 0 {
-			@Notice(EditorMustBePublishedID, NoticeInfo, tr("info"), tr("editor_publish_to_show_in_home"))
-		}
 		@ShowInHomeButton(tr, site.SiteHomePage == 1, site.SitePublished == 1)
 	</div>
 	<hr/>
@@ -196,8 +232,11 @@ templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
 			class="hidden"
 		/>
 		<button
+			data-indicator:_addtags.busy
+			data-attr:aria-busy="$_addtags.busy && 'true'"
 			data-attr:disabled="$tags == ''"
 			data-on:click={ "$showtags = ''; $home_page = ''; @patch(' " + config.Endpoints[config.SettingsPath] + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+			class="text-white! bg-black dark:text-black! dark:bg-white"
 		>{ tr("add") }</button>
 	</div>
 }
@@ -215,8 +254,9 @@ templ EditorTags(tr func(string) string, site db.SitesWithMetric) {
 }
 
 templ Image(id, src string) {
-	<img
-		id={ id }
-		src={ src }
-	/>
+	<div id={ id }>
+		<img
+			src={ src }
+		/>
+	</div>
 }

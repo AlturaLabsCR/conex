@@ -27,8 +27,10 @@ templ loginForm(tr func(string) string) {
 		<button
 			class="text-white! bg-black dark:text-black! dark:bg-white"
 			data-on:click={ "@put(' " + config.Endpoints[config.LoginPath] + "', {contentType: 'form'})" }
-			data-attr:disabled="!($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
 			disabled
+			data-attr:disabled="$busy || !($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
+			data-indicator:_loginform.busy
+			data-attr:aria-busy="$_loginform.busy && 'true'"
 		>
 			{ tr("login_send_verification") }
 		</button>
@@ -74,8 +76,10 @@ templ loginConfirmEmailForm(tr func(string) string, token, email string) {
 		<button
 			class="text-white! bg-black dark:text-black! dark:bg-white"
 			data-on:click={ "@post(' " + config.Endpoints[config.LoginPath] + "', {contentType: 'form'})" }
-			data-attr:disabled="!(/^[0-9]{6}$/.test(String($otp)))"
 			disabled
+			data-attr:disabled="$busy || !(/^[0-9]{6}$/.test(String($otp)))"
+			data-indicator:_loginconfirm.busy
+			data-attr:aria-busy="$_loginconfirm.busy && 'true'"
 		>
 			{ tr("login_confirm_email") }
 		</button>

@@ -23,6 +23,7 @@
   --conex-icon-gear: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20fill='none'%20viewBox='0%200%2024%2024'%20stroke-width='1.5'%20stroke='rgb(136,145,164)'%3E%3Cpath%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M9.594%203.94c.09-.542.56-.94%201.11-.94h2.593c.55%200%201.02.398%201.11.94l.213%201.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257%201.075.124l1.217-.456a1.125%201.125%200%2001%201.37.49l1.296%202.247a1.125%201.125%200%2001-.26%201.431l-1.003.827c-.293.241-.438.613-.43.992a7.723%207.723%200%20010%20.255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26%201.43l-1.298%202.247a1.125%201.125%200%2001-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47%206.47%200%2001-.22.128c-.331.183-.581.495-.644.869l-.213%201.281c-.09.543-.56.94-1.11.94h-2.594c-.55%200-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52%206.52%200%2001-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125%201.125%200%2001-1.369-.49l-1.297-2.247a1.125%201.125%200%2001.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932%206.932%200%20010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125%201.125%200%2001-.26-1.43l1.297-2.247a1.125%201.125%200%20011.37-.491l1.216.456c.356.133.751.072%201.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z'%2F%3E%3Cpath%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M15%2012a3%203%200%2011-6%200%203%203%200%20016%200Z'%2F%3E%3C%2Fsvg%3E");
   --conex-icon-upload: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20fill='none'%20viewBox='0%200%2024%2024'%20stroke-width='1.5'%20stroke='rgb(136,145,164)'%3E%3Cpath%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M9%208.25H7.5a2.25%202.25%200%2000-2.25%202.25v9a2.25%202.25%200%20002.25%202.25h9a2.25%202.25%200%20002.25-2.25v-9a2.25%202.25%200%2000-2.25-2.25H15m0-3-3-3m0%200-3%203m3-3V15'%2F%3E%3C%2Fsvg%3E");
   --conex-icon-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20fill='none'%20viewBox='0%200%2024%2024'%20stroke-width='1.5'%20stroke='rgb(136,145,164)'%3E%3Cpath%20stroke-linecap='round'%20stroke-linejoin='round'%20d='m2.25%2015.75%205.159-5.159a2.25%202.25%200%2001%203.182%200l5.159%205.159m-1.5-1.5%201.409-1.409a2.25%202.25%200%2001%203.182%200l2.909%202.909m-18%203.75h16.5a1.5%201.5%200%20001.5-1.5V6a1.5%201.5%200%2000-1.5-1.5H3.75A1.5%201.5%200%20002.25%206v12a1.5%201.5%200%20001.5%201.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375%200a.375.375%200%2011-.75%200%20.375.375%200%2001.75%200Z'%2F%3E%3C%2Fsvg%3E");
+  --conex-icon-loading: url("data:image/svg+xml,%3Csvg fill='none' height='24' width='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' %3E%3Cstyle%3E g %7B animation: rotate 2s linear infinite; transform-origin: center center; %7D circle %7B stroke-dasharray: 75,100; stroke-dashoffset: -5; animation: dash 1.5s ease-in-out infinite; stroke-linecap: round; %7D @keyframes rotate %7B 0%25 %7B transform: rotate(0deg); %7D 100%25 %7B transform: rotate(360deg); %7D %7D @keyframes dash %7B 0%25 %7B stroke-dasharray: 1,100; stroke-dashoffset: 0; %7D 50%25 %7B stroke-dasharray: 44.5,100; stroke-dashoffset: -17.5; %7D 100%25 %7B stroke-dasharray: 44.5,100; stroke-dashoffset: -62; %7D %7D %3C/style%3E%3Cg%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='rgb(136, 145, 164)' stroke-width='4' /%3E%3C/g%3E%3C/svg%3E");
 }
 
 @media (prefers-color-scheme: dark) {
@@ -133,6 +134,7 @@ nav ul {
   relative
 }
 
+.conex-banner div:has(img),
 .conex-banner img {
   @apply
   w-full
@@ -159,6 +161,7 @@ nav ul {
 .conex-banner h1,
 .conex-banner p {
   @apply
+  text-shadow-lg
   w-full
   max-w-4xl
   mx-auto
@@ -512,6 +515,18 @@ article.error {
   dark:border-red-700
   dark:text-red-400
   dark:bg-red-950
+}
+
+[aria-busy="true"]:not(input, textarea, html, form)::after {
+  margin-left: 0.5em;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-image: var(--conex-icon-loading);
+  background-size: 1em auto;
+  background-repeat: no-repeat;
+  content: "";
+  vertical-align: -.125em;
 }
 
 /* text and icons */

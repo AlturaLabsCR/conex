@@ -18,6 +18,8 @@ var EN = map[string]string{
 	"try_later":         "Try again later",
 	"add":               "Add",
 	"tags":              "Tags",
+	"upload_image":      "Upload image",
+	"loading":           "Loading",
 
 	// home
 	"create_site":      "Create website",
@@ -29,16 +31,17 @@ var EN = map[string]string{
 	"back_to": "Back to",
 
 	// dashboard
-	"my_sites":                     "My sites",
-	"create_website":               "Create website",
-	"pricing":                      "Pricing",
-	"dashboard_create_site":        "Create new site",
-	"new_site_name":                "Site title",
-	"new_site_endpoint":            "Site URL",
-	"dashboard_new_site_editor":    "Create",
-	"dashboard_edit_site":          "Edit",
-	"dashboard_slug_not_available": "This site is not available, try another",
-	"dashboard_published_site":     "Published site content",
+	"my_sites":                               "My sites",
+	"create_website":                         "Create website",
+	"pricing":                                "Pricing",
+	"dashboard_create_site":                  "Create new site",
+	"new_site_name":                          "Site title",
+	"new_site_endpoint":                      "Site URL",
+	"dashboard_new_site_editor":              "Create",
+	"dashboard_edit_site":                    "Edit",
+	"dashboard_slug_not_available":           "This site is not available, try another",
+	"dashboard_published_site":               "Published site content",
+	"dashboard_upgrade_to_create_more_sites": "Upgrade plan to create more sites",
 
 	// register
 	"register":                      "Register",
@@ -74,6 +77,7 @@ var EN = map[string]string{
 	"editor_show_in_homepage":        "Show in homepage",
 	"editor_do_not_show_in_homepage": "Do not show in homepage",
 	"editor_currently_in_home":       "Currently shown in homepage",
+	"editor_currently_not_in_home":   "Now shown in homepage",
 	"editor_unpublish_site":          "Unpublish",
 	"editor_site_not_published":      "Site is not published",
 	"editor_currently_published":     "Currently published",
@@ -99,7 +103,7 @@ var EN = map[string]string{
 
 	"pricing_plan_extended_title":  "Extended",
 	"pricing_plan_extended_amount": "$19.99/year",
-	"pricing_plan_extended_u1":     "5 websites with banner",
+	"pricing_plan_extended_u1":     "5 websites",
 	"pricing_plan_extended_u2":     "Up to 10MB of images per site",
 	"pricing_plan_extended_u3":     "Sync across devices",
 

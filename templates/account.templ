@@ -72,6 +72,8 @@ templ SessionsTable(tr func(string) string, session db.Session, sessions []db.Se
 					}
 					<td align="right">
 						<button
+							data-indicator:_logout.busy
+							data-attr:aria-busy="$_logout.busy && 'true'"
 							type="button"
 							data-on:click={ "@delete('" + config.Endpoints[config.LogoutPath] + "/" + strconv.FormatInt(s.SessionID, 10) +
               "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }

@@ -35,19 +35,6 @@ func (h *Handler) Pricing(w http.ResponseWriter, r *http.Request) {
 			h.Log().Error("error retrieving plan", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
-		} else {
-			plan, err = queries.InsertPlan(ctx, db.InsertPlanParams{
-				UserPlanUser:         session.SessionUser,
-				UserPlanCreatedUnix:  now,
-				UserPlanModifiedUnix: now,
-				UserPlanDueUnix:      0,
-				UserPlanActive:       0,
-			})
-			if err != nil {
-				h.Log().Error("error inserting plan", "error", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
 		}
 	}
 

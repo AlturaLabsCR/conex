@@ -86,7 +86,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
-	queries := db.New(h.DB()).WithTx(tx)
+	queries := db.New(tx)
 
 	site, err := queries.GetSiteWithMetrics(ctx, req.Slug)
 	if err != nil {

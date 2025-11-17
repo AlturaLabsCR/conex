@@ -20,14 +20,14 @@
   - [X] check image endpoints are actually images
   - [X] check for plans in endpoints
   - [X] terms
-  - [ ] check for site quota
-  - [ ] check for image quota per site
-  - [ ] Loading screen for editor on slow connections
+  - [X] check for site quota
+  - [X] Loading screen for editor on slow connections
+  - [ ] allow email change
+  - [ ] allow account delete
+  - [ ] search
   - [ ] Harden against db limits
   - [ ] ImageTool also delete
-  - [ ] Auto-disable plans
-  - [ ] save hashed email
-  - [ ] allow email change
   - [ ] filter wordlists
+  - [ ] Auto-disable plans
   - [ ] animations
-  - [ ] search
+  - [ ] check for image quota per site

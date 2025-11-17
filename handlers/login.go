@@ -126,14 +126,30 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tx, err := h.DB().Begin()
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		templates.Notice(
+			templates.UpdateSettingsNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+	defer tx.Rollback()
+
+	queries := db.New(tx)
+
 	now := time.Now().Unix()
-	queries := db.New(h.DB())
-	if _, err := queries.InsertUser(ctx, db.InsertUserParams{
+
+	user, err := queries.InsertUser(ctx, db.InsertUserParams{
 		UserEmail:        email,
 		UserCreatedUnix:  now,
 		UserModifiedUnix: now,
 		UserDeleted:      0,
-	}); err != nil {
+	})
+	if err != nil {
 		templates.Notice(
 			templates.RegisterNoticeID,
 			templates.NoticeError,
@@ -144,10 +160,33 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err = queries.InsertPlan(ctx, db.InsertPlanParams{
+		UserPlanUser:         user,
+		UserPlanCreatedUnix:  now,
+		UserPlanModifiedUnix: now,
+		UserPlanDueUnix:      0,
+		UserPlanActive:       0,
+	}); err != nil {
+		h.Log().Error("error inserting plan", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	h.Log().Info("new user registration")
 
-	if err := h.loginClient(w, r, email); err != nil {
+	if err := h.loginClient(w, r, email, queries); err != nil {
 		h.Log().Debug("failed to login user", "error", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		h.Log().Debug("failed to register user", "error", err)
+		templates.Notice(
+			templates.RegisterNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
 	}
 
 	templates.Redirect(config.Endpoints[config.DashboardPath]).Render(ctx, w)
@@ -322,16 +361,16 @@ func (h *Handler) LoginConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.loginClient(w, r, email); err != nil {
+	queries := db.New(h.DB())
+
+	if err := h.loginClient(w, r, email, queries); err != nil {
 		h.Log().Debug("failed to login user", "error", err)
 	}
 
 	templates.Redirect(config.Endpoints[config.DashboardPath]).Render(ctx, w)
 }
 
-func (h *Handler) loginClient(w http.ResponseWriter, r *http.Request, email string) error {
-	queries := db.New(h.DB())
-
+func (h *Handler) loginClient(w http.ResponseWriter, r *http.Request, email string, queries *db.Queries) error {
 	user, err := queries.GetUserByEmail(r.Context(), email)
 	if err != nil {
 		h.Log().Debug("failed to get user by email", "error", err)

@@ -18,6 +18,8 @@ var ES = map[string]string{
 	"try_later":         "Inténtalo de nuevo más tarde",
 	"add":               "Añadir",
 	"tags":              "Palabras clave",
+	"upload_image":      "Subir imagen",
+	"loading":           "Cargando",
 
 	// home
 	"create_site":      "Crear un sitio",
@@ -29,16 +31,17 @@ var ES = map[string]string{
 	"back_to": "Volver a",
 
 	// dashboard
-	"my_sites":                     "Mis sitios",
-	"create_website":               "Crear sitio web",
-	"pricing":                      "Planes",
-	"dashboard_create_site":        "Crear nuevo sitio",
-	"new_site_name":                "Título",
-	"new_site_endpoint":            "Enlace",
-	"dashboard_new_site_editor":    "Crear",
-	"dashboard_edit_site":          "Editar",
-	"dashboard_slug_not_available": "Este sitio no está disponible, intenta otro",
-	"dashboard_published_site":     "Se ha publicado el contenido",
+	"my_sites":                               "Mis sitios",
+	"create_website":                         "Crear sitio web",
+	"pricing":                                "Planes",
+	"dashboard_create_site":                  "Crear nuevo sitio",
+	"new_site_name":                          "Título",
+	"new_site_endpoint":                      "Enlace",
+	"dashboard_new_site_editor":              "Crear",
+	"dashboard_edit_site":                    "Editar",
+	"dashboard_slug_not_available":           "Este sitio no está disponible, intenta otro",
+	"dashboard_published_site":               "Se ha publicado el contenido",
+	"dashboard_upgrade_to_create_more_sites": "Mejora tu plan para crear más sitios",
 
 	// register
 	"register":                      "Registrarse",
@@ -74,6 +77,7 @@ var ES = map[string]string{
 	"editor_show_in_homepage":        "Mostrar en la página principal",
 	"editor_do_not_show_in_homepage": "No mostrar en la página principal",
 	"editor_currently_in_home":       "Mostrándose en la página principal",
+	"editor_currently_not_in_home":   "No mostrado en la página principal",
 	"editor_unpublish_site":          "No publicar",
 	"editor_site_not_published":      "El sitio web no está publicado",
 	"editor_currently_published":     "El sitio web está publicado",
@@ -99,7 +103,7 @@ var ES = map[string]string{
 
 	"pricing_plan_extended_title":  "Extendido",
 	"pricing_plan_extended_amount": "$19.99/año",
-	"pricing_plan_extended_u1":     "5 sitios web con banner",
+	"pricing_plan_extended_u1":     "5 sitios web",
 	"pricing_plan_extended_u2":     "Hasta 10MB en imágenes por sitio",
 	"pricing_plan_extended_u3":     "Sincronización entre dispositivos",
 

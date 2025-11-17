@@ -200,12 +200,6 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	if err := templates.NoticeEmpty(templates.EditorMustBePublishedID).Render(ctx, w); err != nil {
-		h.Log().Error("error rendering template", "error", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 }
 
 func (h *Handler) EditorUnpublish(w http.ResponseWriter, r *http.Request) {
@@ -573,7 +567,8 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if hasExisting {
-		oldobj, err := queries.GetObjectByID(ctx, banner.BannerObject)
+		h.Log().Debug("has existing")
+		_, err := queries.GetObjectByID(ctx, banner.BannerObject)
 		if hasExisting && err != nil {
 			h.Log().Error("query banner obj", "error", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -582,13 +577,12 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 
 		if err := queries.UpdateBanner(ctx, db.UpdateBannerParams{
 			BannerID:     banner.BannerID,
-			BannerObject: oldobj.ObjectID,
+			BannerObject: obj.ObjectID,
 		}); err != nil {
 			h.Log().Error("update banner", "error", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
-
 	} else {
 		// First upload
 		if _, err := queries.InsertBanner(ctx, db.InsertBannerParams{
@@ -607,5 +601,13 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Log().Info("banner uploaded", "site", slug)
+	if err := templates.Image(
+		templates.EditorBannerID,
+		config.S3PublicURL+"/"+obj.ObjectKey,
+	).Render(ctx, w); err != nil {
+		h.Log().Error("error rendering template", "error", err)
+		return
+	}
+
+	h.Log().Debug("updated banner", "banner_id", banner.BannerID, "banner_object", banner.BannerObject)
 }
