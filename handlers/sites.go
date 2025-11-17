@@ -75,4 +75,9 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 	} else {
 		templates.Base(tr, header, content, false).Render(ctx, w)
 	}
+
+	if err := queries.NewVisit(ctx, site.SiteID); err != nil {
+		h.Log().Error("error incrementing visit", "error", err)
+		return
+	}
 }

@@ -83,6 +83,10 @@ var ES = map[string]string{
 	"editor_unpublish_site":          "No publicar",
 	"editor_site_not_published":      "El sitio web no está publicado",
 	"editor_currently_published":     "El sitio web está publicado",
+	"editor_delete_site":             "Eliminar sitio",
+	"editor_delete_site_button":      "Eliminar",
+	"editor_delete_site_prompt":      "Una vez eliminado, se perderán permanentemente todos los datos del sitio",
+	"editor_delete_site_permanent":   "Eliminar permanentemente",
 
 	// account
 	"my_account":      "Mi cuenta",

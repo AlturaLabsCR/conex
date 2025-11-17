@@ -346,7 +346,7 @@ th, td {
 
   @apply
   flex
-  max-h-32
+  max-h-36
   border
   items-stretch
   rounded-2xl
@@ -363,7 +363,7 @@ th, td {
 
 .conex-card-content {
   @apply
-  mask-b-from-65% mask-b-to-120%
+  mask-b-from-72% mask-b-to-120%
 }
 
 .conex-card img {
@@ -538,6 +538,11 @@ article.error {
   background-repeat: no-repeat;
   content: "";
   vertical-align: -.125em;
+}
+
+main * {
+  @apply
+  wrap-anywhere
 }
 
 /* text and icons */

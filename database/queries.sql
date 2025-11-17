@@ -294,3 +294,8 @@ WHERE user_id = ?;
 
 -- name: DeleteSite :exec
 DELETE FROM sites WHERE site_id = ?;
+
+-- name: NewVisit :exec
+UPDATE site_metrics SET
+metric_visits_total = metric_visits_total + 1
+WHERE metric_site = ?;

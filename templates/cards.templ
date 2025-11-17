@@ -4,6 +4,8 @@ import (
 	"app/config"
 	"app/database"
 	"app/internal/db"
+	"fmt"
+	"math"
 )
 
 templ CardsGrid(tr func(string) string, sites []db.SitesWithMetric, editor bool) {
@@ -42,7 +44,7 @@ templ card(tr func(string) string, s db.SitesWithMetric, bannerURL string, edito
 			<div class="conex-card-content">
 				<span class="title">{ s.SiteTitle }</span>
 				if s.MetricVisitsTotal > 0 {
-					<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">→ { s.MetricVisitsTotal } { tr("visits") }</span>
+					<span class="text-xs whitespace-nowrap text-black/50 dark:text-white/50">→ { prettyNumber(s.MetricVisitsTotal) + " " + tr("visits") }</span>
 				}
 				@Tags(database.JSONToTags(s.SiteTagsJson), "")
 				<p class="description">{ s.SiteDescription }</p>
@@ -71,4 +73,20 @@ templ Tags(tags []database.Tag, ID string) {
 			<span class="tag" data-color={ tag.Color }>{ tag.Name }</span>
 		}
 	</div>
+}
+
+func prettyNumber(num int64) string {
+	n := float64(num)
+
+	if num >= 1_000_000 {
+		v := math.Floor((n/1_000_000)*10) / 10
+		return fmt.Sprintf("%.1fM", v)
+	}
+
+	if num >= 1_000 {
+		v := math.Floor((n/1_000)*10) / 10
+		return fmt.Sprintf("%.1fk", v)
+	}
+
+	return fmt.Sprintf("%d", num)
 }

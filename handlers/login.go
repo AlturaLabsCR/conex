@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/mail"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/mileusna/useragent"
@@ -32,9 +33,10 @@ type key struct {
 	expires     time.Time
 }
 
-var keys = map[string]key{}
-
-var csrfProtection = map[int64]string{}
+var (
+	keys           sync.Map // map[string]key
+	csrfProtection sync.Map // map[int64]string
+)
 
 func (h *Handler) RegisterForm(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -97,12 +99,14 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	token := r.FormValue("token")
-	key, ok := keys[token]
+
+	val, ok := keys.Load(token)
 	if !ok {
 		h.Log().Debug("invalid token", "token", token)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	key := val.(key)
 
 	tr := h.Translator(r)
 
@@ -583,12 +587,13 @@ func (h *Handler) ChangeEmailConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key, ok := keys[req.Token]
+	val, ok := keys.Load(req.Token)
 	if !ok {
 		h.Log().Debug("invalid token", "token", req.Token)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	key := val.(key)
 
 	if err := h.verifyOTP(key, req.Email, req.Token, req.OTP); err != nil {
 		templates.Notice(
@@ -783,12 +788,14 @@ func (h *Handler) LoginConfirm(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	token := r.FormValue("token")
-	key, ok := keys[token]
+
+	val, ok := keys.Load(token)
 	if !ok {
 		h.Log().Debug("invalid token", "token", token)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	key := val.(key)
 
 	tr := h.Translator(r)
 
@@ -897,8 +904,14 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 
 	if enforceCSRF {
 		csrfClaim := r.Header.Get(config.CSRFHeaderName)
-		oldCSRF, ok := csrfProtection[session.SessionID]
-		if !ok || csrfClaim != oldCSRF {
+
+		val, ok := csrfProtection.Load(session.SessionID)
+		if !ok {
+			return db.Session{}, fmt.Errorf("invalid CSRF token")
+		}
+		oldCSRF := val.(string)
+
+		if csrfClaim != oldCSRF {
 			return db.Session{}, fmt.Errorf("invalid CSRF token")
 		}
 	}
@@ -922,7 +935,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 		}
 	}
 
-	csrfProtection[session.SessionID] = newCSRFToken
+	csrfProtection.Store(session.SessionID, newCSRFToken)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf",
@@ -964,7 +977,7 @@ func (h *Handler) issueOTP(tr func(string) string, email string) (string, error)
 		return "", err
 	}
 
-	keys[token] = key
+	keys.Store(token, key)
 
 	h.Log().Debug("otp issued", "otp", otp)
 
@@ -993,7 +1006,7 @@ func (h *Handler) issueOTP(tr func(string) string, email string) (string, error)
 
 func (h *Handler) verifyOTP(key key, email, token, otp string) error {
 	if time.Now().After(key.expires) {
-		delete(keys, token)
+		keys.Delete(token)
 		h.Log().Debug("token expired", "token", token)
 		return fmt.Errorf("key expired")
 	}
@@ -1007,7 +1020,7 @@ func (h *Handler) verifyOTP(key key, email, token, otp string) error {
 		return err
 	}
 
-	delete(keys, token)
+	keys.Delete(token)
 
 	return nil
 }
