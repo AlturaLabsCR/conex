@@ -31,6 +31,7 @@
   - [ ] filter wordlists
   - [ ] Auto-disable plans
   - [ ] check for image quota per site
+  - [ ] themes
 
 ## bugs
   - [ ] tags on first load with no tags when closing the modal still does $showtags until reload with tags

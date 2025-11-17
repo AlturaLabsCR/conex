@@ -13,7 +13,7 @@ require (
 	github.com/mileusna/useragent v1.3.5
 	golang.org/x/crypto v0.44.0
 	golang.org/x/text v0.31.0
-	modernc.org/sqlite v1.40.0
+	modernc.org/sqlite v1.40.1
 )
 
 require (
