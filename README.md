@@ -22,12 +22,11 @@
   - [X] terms
   - [X] check for site quota
   - [X] Loading screen for editor on slow connections
-  - [ ] allow email change
-  - [ ] allow account delete
-  - [ ] search
-  - [ ] Harden against db limits
+  - [ ] ! allow email change
+  - [ ] ! allow account delete
+  - [ ] ! search
+  - [ ] ! Harden against db limits
   - [ ] ImageTool also delete
   - [ ] filter wordlists
   - [ ] Auto-disable plans
-  - [ ] animations
   - [ ] check for image quota per site
