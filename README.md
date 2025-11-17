@@ -23,10 +23,11 @@
   - [X] check for site quota
   - [X] Loading screen for editor on slow connections
   - [X] ! allow email change
-  - [ ] ! allow account delete
+  - [X] ! allow account delete
+  - [X] ! allow site delete
   - [ ] ! search
   - [ ] ! Harden against db limits
-  - [ ] ImageTool also delete
+  - [ ] spinner on subscribe
   - [ ] filter wordlists
   - [ ] Auto-disable plans
   - [ ] check for image quota per site
