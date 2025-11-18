@@ -1,5 +1,3 @@
-# CONEX
-
 ## To Do
   - [X] update templates like `templates.LoginWarnInvalidEmail` to `templates.LoginWarn` and pass the required messages via translator
   - [X] use middleware to easily scope authentication, for example `handlers.verifyClient` could be middleware
@@ -27,10 +25,10 @@
   - [X] ! allow site delete
   - [X] ! search
   - [X] ! Harden against db limits
-  - [ ] spinner on subscribe
+  - [X] spinner on subscribe
+  - [ ] check for image quota per site
   - [ ] filter wordlists
   - [ ] Auto-disable plans
-  - [ ] check for image quota per site
   - [ ] themes
 
 ## bugs

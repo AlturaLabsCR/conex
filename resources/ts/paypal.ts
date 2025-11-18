@@ -51,8 +51,7 @@ export async function initPayPalButtonsPurchase(
     onApprove: async (data) => {
       try {
         const el = document.querySelector(selector);
-        if (el) el.innerHTML = "<b>...</b>";
-
+        if (el) el.innerHTML = '<h1 class="text-center" aria-busy="true"></h1>';
         const csrfToken =
           document.cookie
             .split("; ")
