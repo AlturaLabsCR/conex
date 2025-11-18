@@ -86,9 +86,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(ctx)
 
-	queries := db.New(tx)
-
-	site, err := queries.GetSiteWithMetrics(ctx, req.Slug)
+	site, err := h.Queries().GetSiteWithMetrics(ctx, req.Slug)
 	if err != nil {
 		h.Log().Error("error querying site by slug", "error", err)
 		templates.Notice(
@@ -125,7 +123,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 
 	h.Log().Debug("updating tags", "tags", tags, "json", json)
 
-	if err := queries.UpdateSiteSettings(ctx, db.UpdateSiteSettingsParams{
+	if err := h.Queries().UpdateSiteSettings(ctx, db.UpdateSiteSettingsParams{
 		SiteTagsJson:     json,
 		SiteModifiedUnix: time.Now().Unix(),
 		SiteHomePage:     showHomePage,

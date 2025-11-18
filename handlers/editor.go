@@ -38,9 +38,7 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 
 	s := r.PathValue("site")
 
-	queries := db.New(h.DB())
-
-	site, err := queries.GetSiteWithMetrics(ctx, s)
+	site, err := h.Queries().GetSiteWithMetrics(ctx, s)
 	if err != nil {
 		h.Log().Error("error loading site", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -61,7 +59,7 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 
 	bannerURL := ""
 
-	banner, err := queries.GetBanner(ctx, site.SiteID)
+	banner, err := h.Queries().GetBanner(ctx, site.SiteID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			h.Log().Error("error loading site", "error", err)
@@ -69,7 +67,7 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		object, err := queries.GetObjectByID(ctx, banner.BannerObject)
+		object, err := h.Queries().GetObjectByID(ctx, banner.BannerObject)
 		if err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
 				h.Log().Error("error loading site", "error", err)
@@ -147,9 +145,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	site, err := queries.GetSiteBySlug(ctx, data.Slug)
+	site, err := h.Queries().GetSiteBySlug(ctx, data.Slug)
 	if err != nil {
 		h.Log().Error("error querying site", "error", err)
 		templates.Notice(
@@ -187,7 +183,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := queries.UpdateSite(ctx, db.UpdateSiteParams{
+	if err := h.Queries().UpdateSite(ctx, db.UpdateSiteParams{
 		SiteID:           site.SiteID,
 		SiteTitle:        data.Title,
 		SiteDescription:  data.Description,
@@ -262,18 +258,7 @@ func (h *Handler) EditorUnpublish(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin(ctx)
-	if err != nil {
-		h.Log().Error("error starting tx", "error", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer tx.Rollback(ctx)
-	h.Log().Debug("started tx")
-
-	queries := db.New(tx)
-
-	site, err := queries.GetSiteWithMetrics(ctx, slug)
+	site, err := h.Queries().GetSiteWithMetrics(ctx, slug)
 	if err != nil {
 		h.Log().Error("error querying site with metrics", "error", err, "slug", slug)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -288,13 +273,7 @@ func (h *Handler) EditorUnpublish(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session user is site owner")
 
-	if err := queries.UnpublishSite(ctx, site.SiteID); err != nil {
-		h.Log().Error("error unpublishing site")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if err := tx.Commit(ctx); err != nil {
+	if err := h.Queries().UnpublishSite(ctx, site.SiteID); err != nil {
 		h.Log().Error("error unpublishing site")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -349,18 +328,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin(ctx)
-	if err != nil {
-		h.Log().Error("error starting tx", "error", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer tx.Rollback(ctx)
-	h.Log().Debug("started tx")
-
-	queries := db.New(tx)
-
-	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	plan, err := h.Queries().GetPlan(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error qyerying plan", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -396,7 +364,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("body is valid")
 
-	site, err := queries.GetSiteWithMetrics(ctx, slug)
+	site, err := h.Queries().GetSiteWithMetrics(ctx, slug)
 	if err != nil {
 		h.Log().Error("error querying site with metrics", "error", err, "slug", slug)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -411,7 +379,18 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session user is site owner")
 
-	serverData, err := queries.GetSyncData(ctx, site.SiteID)
+	tx, err := h.DB().Begin(ctx)
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback(ctx)
+	h.Log().Debug("started tx")
+
+	qtx := h.Queries().WithTx(tx)
+
+	serverData, err := qtx.GetSyncData(ctx, site.SiteID)
 	if err != nil {
 		h.Log().Debug("server data does not exist")
 		h.Log().Debug("running patch sync on site", "slug", slug)
@@ -430,7 +409,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if _, err := queries.InsertSyncData(ctx, db.InsertSyncDataParams{
+		if _, err := qtx.InsertSyncData(ctx, db.InsertSyncDataParams{
 			SiteSyncID:             site.SiteID,
 			SiteSyncDataGz:         bgz,
 			SiteSyncLastUpdateUnix: time.Now().Unix(),
@@ -478,7 +457,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := queries.UpdateSyncData(ctx, db.UpdateSyncDataParams{
+		if err := qtx.UpdateSyncData(ctx, db.UpdateSyncDataParams{
 			SiteSyncID:             site.SiteID,
 			SiteSyncDataGz:         bgz,
 			SiteSyncLastUpdateUnix: req.LocalData.LastUpdated,
@@ -531,9 +510,7 @@ func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	plan, err := h.Queries().GetPlan(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error querying plan", "error", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -546,9 +523,26 @@ func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	obj, err := h.UploadObject(w, r, "file", queries)
+	tx, err := h.DB().Begin(ctx)
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback(ctx)
+	h.Log().Debug("started tx")
+
+	qtx := h.Queries().WithTx(tx)
+
+	obj, err := h.UploadObject(w, r, "file", qtx)
 	if err != nil {
 		h.Log().Debug("error uploading image", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		h.Log().Error("error commit tx", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -584,17 +578,7 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := h.DB().Begin(ctx)
-	if err != nil {
-		h.Log().Error("begin tx", "error", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
-	defer tx.Rollback(ctx)
-
-	queries := db.New(tx)
-
-	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	plan, err := h.Queries().GetPlan(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error querying plan", "error", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -612,7 +596,7 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	site, err := queries.GetSiteBySlug(ctx, slug)
+	site, err := h.Queries().GetSiteBySlug(ctx, slug)
 	if err != nil {
 		h.Log().Error("query site", "error", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -624,7 +608,7 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	banner, err := queries.GetBanner(ctx, site.SiteID)
+	banner, err := h.Queries().GetBanner(ctx, site.SiteID)
 	var hasExisting bool
 
 	if err != nil {
@@ -639,23 +623,40 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		hasExisting = true
 	}
 
+	tx, err := h.DB().Begin(ctx)
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback(ctx)
+	h.Log().Debug("started tx")
+
+	qtx := h.Queries().WithTx(tx)
+
 	// Upload new file
-	obj, err := h.UploadObject(w, r, templates.UploadBannerName, queries)
+	obj, err := h.UploadObject(w, r, templates.UploadBannerName, qtx)
 	if err != nil {
 		h.Log().Error("upload file", "error", err)
 		return
 	}
 
+	if err := tx.Commit(ctx); err != nil {
+		h.Log().Error("error commit tx", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	if hasExisting {
 		h.Log().Debug("has existing")
-		_, err := queries.GetObjectByID(ctx, banner.BannerObject)
+		_, err := h.Queries().GetObjectByID(ctx, banner.BannerObject)
 		if hasExisting && err != nil {
 			h.Log().Error("query banner obj", "error", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
 
-		if err := queries.UpdateBanner(ctx, db.UpdateBannerParams{
+		if err := h.Queries().UpdateBanner(ctx, db.UpdateBannerParams{
 			BannerID:     banner.BannerID,
 			BannerObject: obj.ObjectID,
 		}); err != nil {
@@ -665,7 +666,7 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// First upload
-		if _, err := queries.InsertBanner(ctx, db.InsertBannerParams{
+		if _, err := h.Queries().InsertBanner(ctx, db.InsertBannerParams{
 			BannerSite:   site.SiteID,
 			BannerObject: obj.ObjectID,
 		}); err != nil {
@@ -673,12 +674,6 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		h.Log().Error("commit tx", "error", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
 	}
 
 	imageComp := templates.Image(config.S3PublicURL + "/" + obj.ObjectKey)

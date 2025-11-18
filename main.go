@@ -11,6 +11,7 @@ import (
 	"app/config"
 	"app/handlers"
 	"app/i18n"
+	"app/internal/db"
 	"app/middleware"
 	"app/router"
 
@@ -31,12 +32,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	database, err := config.InitDB(ctx)
+	pool, err := config.InitDB(ctx)
 	if err != nil {
 		print("failed database initialization: %v\n", err)
 		os.Exit(1)
 	}
-	defer database.Close(ctx)
+
+	queries := db.New(pool)
 
 	locales := map[string]map[string]string{
 		"es": i18n.ES,
@@ -57,7 +59,8 @@ func main() {
 		handlers.HandlerParams{
 			Production:   config.Production,
 			Logger:       logger,
-			Database:     database,
+			Queries:      queries,
+			Pool:         pool,
 			Storage:      s3client,
 			Locales:      locales,
 			SMTPAuth:     smtpAuth,
@@ -91,5 +94,6 @@ func main() {
 
 	<-stop
 
+	defer pool.Close()
 	logger.Info("shutting down...")
 }

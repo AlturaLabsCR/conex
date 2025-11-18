@@ -28,7 +28,7 @@ templ loginForm(tr func(string) string) {
 			class="text-white! bg-black dark:text-black! dark:bg-white"
 			data-on:click={ "@put(' " + config.Endpoints[config.LoginPath] + "', {contentType: 'form'})" }
 			disabled
-			data-attr:disabled="$busy || !($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
+			data-attr:disabled="$_loginform.busy || !($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
 			data-indicator:_loginform.busy
 			data-attr:aria-busy="$_loginform.busy && 'true'"
 		>

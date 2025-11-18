@@ -81,9 +81,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	if _, err := queries.GetUserByEmail(ctx, email); err == nil {
+	if _, err := h.Queries().GetUserByEmail(ctx, email); err == nil {
 		templates.Notice(
 			templates.RegisterNoticeID,
 			templates.NoticeWarn,
@@ -165,11 +163,11 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(ctx)
 
-	queries := db.New(tx)
+	qtx := h.Queries().WithTx(tx)
 
 	now := time.Now().Unix()
 
-	user, err := queries.InsertUser(ctx, db.InsertUserParams{
+	user, err := qtx.InsertUser(ctx, db.InsertUserParams{
 		UserEmail:        email,
 		UserCreatedUnix:  now,
 		UserModifiedUnix: now,
@@ -186,7 +184,7 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = queries.InsertPlan(ctx, db.InsertPlanParams{
+	if _, err = qtx.InsertPlan(ctx, db.InsertPlanParams{
 		UserPlanUser:         user,
 		UserPlanCreatedUnix:  now,
 		UserPlanModifiedUnix: now,
@@ -200,7 +198,7 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 
 	h.Log().Info("new user registration")
 
-	if err := h.loginClient(w, r, email, queries); err != nil {
+	if err := h.loginClient(w, r, email, qtx); err != nil {
 		h.Log().Debug("failed to login user", "error", err)
 	}
 
@@ -239,9 +237,7 @@ func (h *Handler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	queries := db.New(h.DB())
-
-	user, err := queries.GetUserByID(ctx, session.SessionUser)
+	user, err := h.Queries().GetUserByID(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error querying user by id", "error", err)
 		templates.Notice(
@@ -303,7 +299,7 @@ func (h *Handler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := queries.GetUserByEmail(ctx, req.Email); err == nil {
+	if _, err := h.Queries().GetUserByEmail(ctx, req.Email); err == nil {
 		templates.Notice(
 			templates.ChangeEmailNoticeID,
 			templates.NoticeWarn,
@@ -355,22 +351,7 @@ func (h *Handler) DeleteSite(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin(ctx)
-	if err != nil {
-		h.Log().Error("error starting tx", "error", err)
-		templates.Notice(
-			templates.EditorDeleteSiteNoticeID,
-			templates.NoticeError,
-			tr("error"),
-			tr("try_later"),
-		).Render(ctx, w)
-		return
-	}
-	defer tx.Rollback(ctx)
-
-	queries := db.New(tx)
-
-	site, err := queries.GetSiteBySlug(ctx, slug)
+	site, err := h.Queries().GetSiteBySlug(ctx, slug)
 	if err != nil {
 		h.Log().Error("error querying site by slug", "error", err)
 		templates.Notice(
@@ -388,19 +369,8 @@ func (h *Handler) DeleteSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := queries.DeleteSite(ctx, site.SiteID); err != nil {
+	if err := h.Queries().DeleteSite(ctx, site.SiteID); err != nil {
 		h.Log().Error("error deleting site", "error", err)
-		templates.Notice(
-			templates.AccountDeleteNoticeID,
-			templates.NoticeError,
-			tr("error"),
-			tr("try_later"),
-		).Render(ctx, w)
-		return
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		h.Log().Error("error tx commit", "error", err)
 		templates.Notice(
 			templates.AccountDeleteNoticeID,
 			templates.NoticeError,
@@ -437,22 +407,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin(ctx)
-	if err != nil {
-		h.Log().Error("error starting tx", "error", err)
-		templates.Notice(
-			templates.NewSiteNoticeID,
-			templates.NoticeError,
-			tr("error"),
-			tr("try_later"),
-		).Render(ctx, w)
-		return
-	}
-	defer tx.Rollback(ctx)
-
-	queries := db.New(tx)
-
-	user, err := queries.GetUserByID(ctx, session.SessionUser)
+	user, err := h.Queries().GetUserByID(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error querying user by id", "error", err)
 		templates.Notice(
@@ -475,7 +430,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sites, err := queries.GetSitesWithMetricsByUserID(ctx, session.SessionUser)
+	sites, err := h.Queries().GetSitesWithMetricsByUserID(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error querying sites by account", "error", err)
 		templates.Notice(
@@ -487,8 +442,23 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tx, err := h.DB().Begin(ctx)
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		templates.Notice(
+			templates.NewSiteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := h.Queries().WithTx(tx)
+
 	for _, site := range sites {
-		if err := queries.DeleteSite(ctx, site.SiteID); err != nil {
+		if err := qtx.DeleteSite(ctx, site.SiteID); err != nil {
 			h.Log().Error("error deleting site", "error", err)
 			templates.Notice(
 				templates.AccountDeleteNoticeID,
@@ -502,7 +472,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now().Unix()
 
-	if err := queries.DeleteUser(ctx, db.DeleteUserParams{
+	if err := qtx.DeleteUser(ctx, db.DeleteUserParams{
 		UserModifiedUnix: now,
 		UserID:           session.SessionUser,
 	}); err != nil {
@@ -569,9 +539,7 @@ func (h *Handler) ChangeEmailConfirm(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(ctx)
 
-	queries := db.New(tx)
-
-	user, err := queries.GetUserByID(ctx, session.SessionUser)
+	user, err := h.Queries().GetUserByID(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error querying user by id", "error", err)
 		templates.Notice(
@@ -633,7 +601,7 @@ func (h *Handler) ChangeEmailConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := queries.UpdateUser(ctx, db.UpdateUserParams{
+	if err := h.Queries().UpdateUser(ctx, db.UpdateUserParams{
 		UserEmail:        req.Email,
 		UserModifiedUnix: time.Now().Unix(),
 		UserID:           session.SessionUser,
@@ -719,9 +687,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	if _, err := queries.GetUserByEmail(ctx, email); err != nil {
+	if _, err := h.Queries().GetUserByEmail(ctx, email); err != nil {
 		templates.Notice(
 			templates.LoginNoticeID,
 			templates.NoticeWarn,
@@ -758,9 +724,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	h.Sessions.JWTTerminate(w, r)
 
-	queries := db.New(h.DB())
-
-	queries.DeleteSession(ctx, session.SessionID)
+	h.Queries().DeleteSession(ctx, session.SessionID)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf",
@@ -783,9 +747,7 @@ func (h *Handler) LogoutAskedSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	sessions, err := queries.GetSessionsByUser(ctx, session.SessionUser)
+	sessions, err := h.Queries().GetSessionsByUser(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error retrieving sessions by user")
 		return
@@ -801,7 +763,7 @@ func (h *Handler) LogoutAskedSession(w http.ResponseWriter, r *http.Request) {
 	var index int
 	for id, s := range sessions {
 		if s.SessionID == askedSession {
-			queries.DeleteSession(ctx, askedSession)
+			h.Queries().DeleteSession(ctx, askedSession)
 			index = id
 			h.Log().Debug("session deleted", "sessionID", askedSession)
 			break
@@ -858,9 +820,7 @@ func (h *Handler) LoginConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	if err := h.loginClient(w, r, email, queries); err != nil {
+	if err := h.loginClient(w, r, email, h.Queries()); err != nil {
 		h.Log().Debug("failed to login user", "error", err)
 	}
 
@@ -912,9 +872,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 		return db.Session{}, err
 	}
 
-	queries := db.New(h.DB())
-
-	exists, err := queries.SessionExists(ctx, session.SessionID)
+	exists, err := h.Queries().SessionExists(ctx, session.SessionID)
 	if err != nil {
 		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, err
@@ -925,7 +883,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 		return db.Session{}, fmt.Errorf("session does not exist")
 	}
 
-	exists, err = queries.UserExists(ctx, session.SessionUser)
+	exists, err = h.Queries().UserExists(ctx, session.SessionUser)
 	if err != nil {
 		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, err
@@ -980,7 +938,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 		Secure:   r.TLS != nil,
 	})
 
-	queries.UpdateSession(ctx, db.UpdateSessionParams{
+	h.Queries().UpdateSession(ctx, db.UpdateSessionParams{
 		SessionID:            session.SessionID,
 		SessionLastLoginUnix: now,
 	})

@@ -20,16 +20,14 @@ func (h *Handler) Account(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	user, err := queries.GetUserByID(ctx, session.SessionUser)
+	user, err := h.Queries().GetUserByID(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error retrieving user info")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	sessions, err := queries.GetSessionsByUser(ctx, session.SessionUser)
+	sessions, err := h.Queries().GetSessionsByUser(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error retrieving user info")
 		w.WriteHeader(http.StatusInternalServerError)

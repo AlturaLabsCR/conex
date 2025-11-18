@@ -70,8 +70,8 @@ templ ChangeEmailConfirm(tr func(string) string, token, oldEmail string) {
 			class="text-white! bg-black dark:text-black! dark:bg-white"
 			data-on:click={ "@patch(' " + config.Endpoints[config.AccountPath] + "/" + oldEmail + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 			disabled
-			data-attr:disabled="$_change_email_confirm.busy || !(/^[0-9]{6}$/.test(String($otp)))"
 			data-indicator:_change_email_confirm.busy
+			data-attr:disabled="$_change_email_confirm.busy || !(/^[0-9]{6}$/.test(String($otp)))"
 			data-attr:aria-busy="$_change_email_confirm.busy && 'true'"
 		>
 			{ tr("account_confirm_email") }
@@ -128,6 +128,7 @@ templ DeleteAccountForm(tr func(string) string, email string) {
 			data-on:click={ "@delete(' " + config.Endpoints[config.AccountPath] + "/" + email + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 			data-indicator:_delete_account.busy
 			data-attr:aria-busy="$_delete_account.busy && 'true'"
+			data-attr:disabled="$_delete_account.busy && 'true'"
 		>
 			{ tr("account_delete_account_permanent") }
 		</button>
@@ -155,6 +156,7 @@ templ SessionsTable(tr func(string) string, session db.Session, sessions []db.Se
 						<button
 							data-indicator:_logout.busy
 							data-attr:aria-busy="$_logout.busy && 'true'"
+							data-attr:disabled="$_logout.busy && 'true'"
 							type="button"
 							data-on:click={ "@delete('" + config.Endpoints[config.LogoutPath] + "/" + strconv.FormatInt(s.SessionID, 10) +
               "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }

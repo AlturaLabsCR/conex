@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"app/config"
-	"app/internal/db"
 	"app/templates"
 )
 
@@ -17,9 +16,7 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 
 	siteSlug := r.PathValue("site")
 
-	queries := db.New(h.DB())
-
-	site, err := queries.GetPublishedSiteWithMetricsBySlug(ctx, siteSlug)
+	site, err := h.Queries().GetPublishedSiteWithMetricsBySlug(ctx, siteSlug)
 	if err != nil || site.SitePublished != 1 {
 		h.Log().Debug("cannot find published site with metrics", "siteSlug", siteSlug, "sitePublished", site.SitePublished)
 		if err := templates.NotFound(h.Translator(r)).Render(ctx, w); err != nil {
@@ -42,7 +39,7 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 
 	bannerURL := ""
 
-	banner, err := queries.GetBanner(ctx, site.SiteID)
+	banner, err := h.Queries().GetBanner(ctx, site.SiteID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			h.Log().Error("error loading site", "error", err)
@@ -50,7 +47,7 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		object, err := queries.GetObjectByID(ctx, banner.BannerObject)
+		object, err := h.Queries().GetObjectByID(ctx, banner.BannerObject)
 		if err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
 				h.Log().Error("error loading site", "error", err)
@@ -81,7 +78,7 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 		templates.Base(tr, header, content, &head, false).Render(ctx, w)
 	}
 
-	if err := queries.NewVisit(ctx, site.SiteID); err != nil {
+	if err := h.Queries().NewVisit(ctx, site.SiteID); err != nil {
 		h.Log().Error("error incrementing visit", "error", err)
 		return
 	}

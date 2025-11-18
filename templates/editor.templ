@@ -125,6 +125,7 @@ templ publishSiteForm(tr func(string) string, siteURL, site string, published bo
 		data-on:click={ "$content = getEditorHtml(); @put('" + config.Endpoints[config.EditorPath] + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 		data-indicator:_publish.busy
 		data-attr:aria-busy="$_publish.busy && 'true'"
+		data-attr:disabled="$_publish.busy && 'true'"
 	>{ tr("editor_publish") }</button>
 	<hr/>
 	@UnpublishSite(tr, site, siteURL, published)
@@ -144,6 +145,7 @@ templ UnpublishSite(tr func(string) string, site, siteURL string, published bool
 				data-on:click={ "@delete('" + config.Endpoints[config.EditorPath] + site + "', { headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 				data-indicator:_unpublish.busy
 				data-attr:aria-busy="$_unpublish.busy && 'true'"
+				data-attr:disabled="$_unpublish.busy && 'true'"
 			>{ tr("editor_unpublish_site") }</button>
 		} else {
 			<span
@@ -170,6 +172,7 @@ templ uploadBannerForm(tr func(string) string, site db.SitesWithMetric) {
 			data-on:click={ "@post('" + config.Endpoints[config.BannerPath] + site.SiteSlug + "', {contentType: 'form', headers: { 'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 			data-indicator:_banner.busy
 			data-attr:aria-busy="$_banner.busy && 'true'"
+			data-attr:disabled="$_banner.busy && 'true'"
 		>{ tr("upload_image") }</button>
 	</form>
 }
@@ -199,6 +202,7 @@ templ ShowInHomeButton(tr func(string) string, isShownInHome, isPublished bool) 
 		<button
 			data-indicator:_showninhome.busy
 			data-attr:aria-busy="$_showninhome.busy && 'true'"
+			data-attr:disabled="$_showninhome.busy && 'true'"
 			data-signals:home_page="''"
 			if isShownInHome {
 				data-signals:_home_page_temp="'no'"
@@ -256,7 +260,7 @@ templ updateSettingsForm(tr func(string) string, site db.SitesWithMetric) {
 }
 
 templ deleteSite(tr func(string) string, site string) {
-	<h2>{ tr("editor_delete_site") }</h2>
+	<h3>{ tr("editor_delete_site") }</h3>
 	@Dialog(tr, "editor-modal-delete-site", tr("editor_delete_site"), deleteSiteForm(tr, site))
 	<div>
 		<button
@@ -274,6 +278,7 @@ templ deleteSiteForm(tr func(string) string, site string) {
 			data-on:click={ "@delete(' " + config.Endpoints[config.SettingsPath] + site + "', {headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
 			data-indicator:_delete_site.busy
 			data-attr:aria-busy="$_delete_site.busy && 'true'"
+			data-attr:disabled="$_delete_site.busy && 'true'"
 		>
 			{ tr("editor_delete_site_permanent") }
 		</button>

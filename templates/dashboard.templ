@@ -67,6 +67,9 @@ templ newSiteForm(tr func(string) string) {
 			<button
 				class="text-white! bg-black dark:text-black! dark:bg-white"
 				data-on:click={ "@post(' " + config.Endpoints[config.EditorPath] + "', {contentType: 'form', headers: {'X-CSRF-Token': document.cookie.split('; ').find(r => r.startsWith('csrf='))?.split('=')[1]}})" }
+				data-indicator:_newsite.busy
+				data-attr:disabled="$_newsite.busy"
+				data-attr:aria-busy="$_newsite.busy && 'true'"
 			>{ tr("dashboard_new_site_editor") }</button>
 		</div>
 	</form>

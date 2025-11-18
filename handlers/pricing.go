@@ -22,14 +22,12 @@ func (h *Handler) Pricing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
 	now := time.Now().Unix()
 
 	var plan db.UserPlan
 	var err error = nil
 
-	plan, err = queries.GetPlan(ctx, session.SessionUser)
+	plan, err = h.Queries().GetPlan(ctx, session.SessionUser)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			h.Log().Error("error retrieving plan", "error", err)

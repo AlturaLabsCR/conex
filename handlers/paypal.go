@@ -299,9 +299,7 @@ func (h *Handler) CompleteOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	plan, err := h.Queries().GetPlan(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("failed to query plan", "error", err)
 		http.Error(w, "failed to query plan", http.StatusInternalServerError)
@@ -333,7 +331,7 @@ func (h *Handler) CompleteOrder(w http.ResponseWriter, r *http.Request) {
 		success = 1
 	}
 
-	if _, err = queries.InsertPayment(ctx, db.InsertPaymentParams{
+	if _, err = h.Queries().InsertPayment(ctx, db.InsertPaymentParams{
 		PaymentUser:       session.SessionUser,
 		PaymentAmount:     config.PayPalPurchaseValue,
 		PaymentDateUnix:   now.Unix(),
@@ -343,7 +341,7 @@ func (h *Handler) CompleteOrder(w http.ResponseWriter, r *http.Request) {
 		h.Log().Error("failed to complete order", "error", err)
 	}
 
-	if err := queries.UpdatePlan(ctx, db.UpdatePlanParams{
+	if err := h.Queries().UpdatePlan(ctx, db.UpdatePlanParams{
 		UserPlanDueUnix:      now.Add(24 * time.Hour * 365).Unix(),
 		UserPlanModifiedUnix: now.Unix(),
 		UserPlanActive:       1,

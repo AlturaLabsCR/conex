@@ -15,9 +15,7 @@ import (
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	queries := db.New(h.DB())
-
-	sites, err := queries.GetHomePageSitesWithMetricsFromMostTotalVisits(ctx)
+	sites, err := h.Queries().GetHomePageSitesWithMetricsFromMostTotalVisits(ctx)
 	if err != nil {
 		h.Log().Error("error querying sites with metrics", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -71,9 +69,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	sites, err := queries.GetPublishedSitesWithMetrics(ctx)
+	sites, err := h.Queries().GetPublishedSitesWithMetrics(ctx)
 	if err != nil {
 		h.Log().Error("error querying sites with metrics", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)

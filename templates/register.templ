@@ -30,8 +30,10 @@ templ registerSendEmailForm(tr func(string) string) {
 		<button
 			class="text-white! bg-black dark:text-black! dark:bg-white"
 			data-on:click={ "@put(' " + config.Endpoints[config.RegisterPath] + "', {contentType: 'form'})" }
-			data-attr:disabled="!($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
 			disabled
+			data-attr:disabled="$_registerform.busy || !($email && $email.includes('@') && $email.split('@')[1]?.includes('.'))"
+			data-indicator:_registerform.busy
+			data-attr:aria-busy="$_registerform.busy && 'true'"
 		>
 			{ tr("register_send_email") }
 		</button>
@@ -77,8 +79,10 @@ templ registerConfirmEmailForm(tr func(string) string, token, email string) {
 		<button
 			class="text-white! bg-black dark:text-black! dark:bg-white"
 			data-on:click={ "@post(' " + config.Endpoints[config.RegisterPath] + "', {contentType: 'form'})" }
-			data-attr:disabled="!(/^[0-9]{6}$/.test(String($otp)))"
+			data-indicator:_registerconfirmform.busy
 			disabled
+			data-attr:disabled="$_registerconfirmform.busy || !(/^[0-9]{6}$/.test(String($otp)))"
+			data-attr:aria-busy="$_registerconfirmform.busy && 'true'"
 		>
 			{ tr("register_confirm_email") }
 		</button>

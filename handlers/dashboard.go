@@ -27,9 +27,7 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queries := db.New(h.DB())
-
-	sites, err := queries.GetSitesWithMetricsByUserID(ctx, session.SessionUser)
+	sites, err := h.Queries().GetSitesWithMetricsByUserID(ctx, session.SessionUser)
 	if err != nil {
 		h.Log().Error("error loading sites", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -98,29 +96,14 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tx, err := h.DB().Begin(ctx)
-	if err != nil {
-		h.Log().Error("error starting tx", "error", err)
-		templates.Notice(
-			templates.NewSiteNoticeID,
-			templates.NoticeError,
-			tr("error"),
-			tr("try_later"),
-		).Render(ctx, w)
-		return
-	}
-	defer tx.Rollback(ctx)
-
-	queries := db.New(tx)
-
-	plan, err := queries.GetPlan(ctx, session.SessionUser)
+	plan, err := h.Queries().GetPlan(ctx, session.SessionUser)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		h.Log().Error("failed to query plan by user_id", "user", session.SessionUser)
 		return
 	}
 
-	sites, err := queries.GetSitesWithMetricsByUserID(ctx, session.SessionUser)
+	sites, err := h.Queries().GetSitesWithMetricsByUserID(ctx, session.SessionUser)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		h.Log().Error("failed to query sites by user_id", "user", session.SessionUser)
@@ -151,7 +134,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	slugs, err := queries.GetSlugs(ctx)
+	slugs, err := h.Queries().GetSlugs(ctx)
 	if err != nil {
 		h.Log().Error("error querying all slugs", "error", err)
 		templates.Notice(
@@ -176,7 +159,22 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now().Unix()
 
-	siteID, err := queries.InsertSite(ctx, db.InsertSiteParams{
+	tx, err := h.DB().Begin(ctx)
+	if err != nil {
+		h.Log().Error("error starting tx", "error", err)
+		templates.Notice(
+			templates.NewSiteNoticeID,
+			templates.NoticeError,
+			tr("error"),
+			tr("try_later"),
+		).Render(ctx, w)
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := h.Queries().WithTx(tx)
+
+	siteID, err := qtx.InsertSite(ctx, db.InsertSiteParams{
 		SiteUser:         session.SessionUser,
 		SiteSlug:         endpoint,
 		SiteTitle:        name,
@@ -195,7 +193,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := queries.InsertMetric(ctx, db.InsertMetricParams{
+	if _, err := qtx.InsertMetric(ctx, db.InsertMetricParams{
 		MetricSite:        siteID,
 		MetricVisitsTotal: 0,
 	}); err != nil {
