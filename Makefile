@@ -14,11 +14,11 @@ NPM = npm
 NPX = npx
 
 LOGFILE = build.log
-LOG = >> $(LOGFILE) 2>&1
+# LOG ?= >> $(LOGFILE) 2>&1
 LIVELOGFILE = live.log
-# LIVELOG = >> $(LIVELOGFILE) 2>&1
+# LIVELOG ?= >> $(LIVELOGFILE) 2>&1
 DISTLOGFILE = dist.log
-DISTLOG = >> $(DISTLOGFILE) 2>&1
+# DISTLOG ?= >> $(DISTLOGFILE) 2>&1
 GEN =
 
 .PHONY: all
