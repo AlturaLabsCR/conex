@@ -98,7 +98,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("error starting tx", "error", err)
 		templates.Notice(
@@ -109,7 +109,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		).Render(ctx, w)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	queries := db.New(tx)
 
@@ -204,7 +204,7 @@ func (h *Handler) NewSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Error("error tx commit", "site", endpoint, "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -262,13 +262,13 @@ func (h *Handler) EditorUnpublish(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("error starting tx", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 	h.Log().Debug("started tx")
 
 	queries := db.New(tx)
@@ -294,7 +294,7 @@ func (h *Handler) EditorUnpublish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Error("error unpublishing site")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -349,13 +349,13 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("error starting tx", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 	h.Log().Debug("started tx")
 
 	queries := db.New(tx)
@@ -440,7 +440,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := tx.Commit(); err != nil {
+		if err := tx.Commit(ctx); err != nil {
 			h.Log().Error("commit failed", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -504,7 +504,7 @@ func (h *Handler) EditorSync(w http.ResponseWriter, r *http.Request) {
 		resp.SiteData = json.RawMessage(data)
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Error("commit failed", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -584,13 +584,13 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("begin tx", "error", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	queries := db.New(tx)
 
@@ -675,7 +675,7 @@ func (h *Handler) UploadBanner(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Error("commit tx", "error", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return

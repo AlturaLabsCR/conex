@@ -3,7 +3,6 @@ package handlers
 
 import (
 	"compress/gzip"
-	"database/sql"
 	"io"
 	"log/slog"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/jackc/pgx/v5"
 
 	"app/i18n"
 	"app/internal/db"
@@ -27,7 +27,7 @@ type Handler struct {
 type HandlerParams struct {
 	Production   bool
 	Logger       *slog.Logger
-	Database     *sql.DB
+	Database     *pgx.Conn
 	Storage      *s3.Client
 	Locales      map[string]map[string]string
 	SMTPAuth     smtp.AuthParams
@@ -88,7 +88,7 @@ func (h *Handler) Prod() bool {
 	return h.params.Production
 }
 
-func (h *Handler) DB() *sql.DB {
+func (h *Handler) DB() *pgx.Conn {
 	return h.params.Database
 }
 

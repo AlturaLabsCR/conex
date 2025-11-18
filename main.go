@@ -23,6 +23,7 @@ var assetsFS embed.FS
 
 func main() {
 	config.Init()
+	ctx := context.Background()
 
 	logger, err := config.InitLogger()
 	if err != nil {
@@ -30,11 +31,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	database, err := config.InitDB()
+	database, err := config.InitDB(ctx)
 	if err != nil {
 		print("failed database initialization: %v\n", err)
 		os.Exit(1)
 	}
+	defer database.Close(ctx)
 
 	locales := map[string]map[string]string{
 		"es": i18n.ES,

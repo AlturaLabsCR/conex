@@ -63,8 +63,7 @@ var (
 	Production bool   = false
 	Port       string = "8080"
 	LogLevel   int    = 0 // -4:Debug 0:Info 4:Warn 8:Error
-	dbDriver   string = "sqlite"
-	dbConn     string = "./db.db"
+	dbConn     string = "postgres://postgres:1234@localhost:5432/postgres?sslmode=disable"
 
 	// Credentials
 
@@ -81,7 +80,7 @@ var (
 	PayPalClientSecret     string
 	PayPalEndpoint         string  = "https://api-m.paypal.com"
 	PayPalPurchaseValueStr string  = "20.00"
-	PayPalPurchaseValue    float64 = 20.00
+	PayPalPurchaseValue    float32 = 20.00
 )
 
 const (
@@ -94,7 +93,6 @@ const (
 	envPort = envPrefix + "PORT"
 	envProd = envPrefix + "PROD"
 	envLog  = envPrefix + "LOG_LEVEL"
-	envDvr  = envPrefix + "DB_DRIVER"
 	envCnn  = envPrefix + "DB_CONN"
 	envRoot = envPrefix + "ROOT_PREFIX"
 
@@ -162,9 +160,9 @@ func Init() {
 
 	ppvs := os.Getenv(envPayPalPurchaseValueStr)
 	if ppvs != "" {
-		if val, err := strconv.ParseFloat(ppvs, 64); err == nil {
+		if val, err := strconv.ParseFloat(ppvs, 32); err == nil {
 			PayPalPurchaseValueStr = ppvs
-			PayPalPurchaseValue = val
+			PayPalPurchaseValue = float32(val)
 		}
 	}
 
@@ -205,11 +203,6 @@ func Init() {
 		if err == nil {
 			LogLevel = l
 		}
-	}
-
-	dvr := os.Getenv(envDvr)
-	if dvr != "" {
-		dbDriver = dvr
 	}
 
 	conn := os.Getenv(envCnn)

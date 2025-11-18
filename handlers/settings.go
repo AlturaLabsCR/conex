@@ -73,7 +73,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("error starting tx", "error", err)
 		templates.Notice(
@@ -84,7 +84,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		).Render(ctx, w)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	queries := db.New(tx)
 
@@ -149,7 +149,7 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 		h.Log().Error("error rendering new shown status")
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Debug("error commit tx", "error", err)
 		templates.Notice(
 			templates.UpdateSettingsNoticeID,

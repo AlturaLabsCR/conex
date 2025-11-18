@@ -152,7 +152,7 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("error starting tx", "error", err)
 		templates.Notice(
@@ -163,7 +163,7 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 		).Render(ctx, w)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	queries := db.New(tx)
 
@@ -204,7 +204,7 @@ func (h *Handler) RegisterConfirm(w http.ResponseWriter, r *http.Request) {
 		h.Log().Debug("failed to login user", "error", err)
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Debug("failed to register user", "error", err)
 		templates.Notice(
 			templates.RegisterNoticeID,
@@ -355,7 +355,7 @@ func (h *Handler) DeleteSite(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("error starting tx", "error", err)
 		templates.Notice(
@@ -366,7 +366,7 @@ func (h *Handler) DeleteSite(w http.ResponseWriter, r *http.Request) {
 		).Render(ctx, w)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	queries := db.New(tx)
 
@@ -399,7 +399,7 @@ func (h *Handler) DeleteSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Error("error tx commit", "error", err)
 		templates.Notice(
 			templates.AccountDeleteNoticeID,
@@ -437,7 +437,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("error starting tx", "error", err)
 		templates.Notice(
@@ -448,7 +448,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		).Render(ctx, w)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	queries := db.New(tx)
 
@@ -516,7 +516,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Error("error deleting account", "error", err)
 		templates.Notice(
 			templates.AccountDeleteNoticeID,
@@ -556,7 +556,7 @@ func (h *Handler) ChangeEmailConfirm(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Log().Debug("session id valid")
 
-	tx, err := h.DB().Begin()
+	tx, err := h.DB().Begin(ctx)
 	if err != nil {
 		h.Log().Error("error starting tx", "error", err)
 		templates.Notice(
@@ -567,7 +567,7 @@ func (h *Handler) ChangeEmailConfirm(w http.ResponseWriter, r *http.Request) {
 		).Render(ctx, w)
 		return
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	queries := db.New(tx)
 
@@ -648,7 +648,7 @@ func (h *Handler) ChangeEmailConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		h.Log().Error("error updating user", "error", err)
 		templates.Notice(
 			templates.ChangeEmailNoticeID,
@@ -920,7 +920,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 		return db.Session{}, err
 	}
 
-	if exists != 1 {
+	if !exists {
 		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, fmt.Errorf("session does not exist")
 	}
@@ -931,7 +931,7 @@ func (h *Handler) verifyClient(w http.ResponseWriter, r *http.Request, enforceCS
 		return db.Session{}, err
 	}
 
-	if exists != 1 {
+	if !exists {
 		templates.Redirect(config.Endpoints[config.LoginPath])
 		return db.Session{}, fmt.Errorf("user does not exist")
 	}

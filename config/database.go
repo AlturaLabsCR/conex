@@ -1,28 +1,15 @@
 package config
 
 import (
-	"database/sql"
+	"context"
 
-	_ "modernc.org/sqlite"
-	// _ "github.com/lib/pq"
-	// _ "github.com/go-sql-driver/mysql"
-	// _ "github.com/sijms/go-ora/v2"
+	"github.com/jackc/pgx/v5"
 )
 
-func InitDB() (*sql.DB, error) {
-	db, err := sql.Open(dbDriver, dbConn)
+func InitDB(ctx context.Context) (*pgx.Conn, error) {
+	conn, err := pgx.Connect(ctx, dbConn)
 	if err != nil {
 		return nil, err
 	}
-
-	if dbDriver == "sqlite" || dbDriver == "sqlite3" {
-		db.Exec("PRAGMA foreign_keys=ON;")
-		db.Exec("PRAGMA journal_mode=WAL;")
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	return conn, nil
 }
