@@ -26,6 +26,8 @@
   - [X] ! search
   - [X] ! Harden against db limits
   - [X] spinner on subscribe
+  - [ ] ! image upload with spaces doesnt work
+  - [ ] ! docker-compose with pgsql
   - [ ] check for image quota per site
   - [ ] filter wordlists
   - [ ] Auto-disable plans
