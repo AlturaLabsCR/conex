@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"net/http"
+	"path/filepath"
 
 	"app/internal/db"
 )
@@ -27,7 +30,12 @@ func (h *Handler) UploadObject(w http.ResponseWriter, r *http.Request, inputName
 	}
 	defer file.Close()
 
-	obj, err := h.PutObject(r.Context(), siteSlug, header.Filename, file, queries)
+	ext := filepath.Ext(header.Filename)
+	sum := sha256.Sum256([]byte(header.Filename))
+	hashHex := hex.EncodeToString(sum[:])
+	newName := hashHex + ext
+
+	obj, err := h.PutObject(r.Context(), siteSlug, newName, file, queries)
 	if err != nil {
 		return db.SiteObject{}, err
 	}
