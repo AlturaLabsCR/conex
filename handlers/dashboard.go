@@ -39,7 +39,7 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	header := templates.DashboardHeader(h.Translator(r))
 	content := templates.Dashboard(h.Translator(r), sites)
 
-	if err := templates.Base(h.Translator(r), header, content, true).Render(ctx, w); err != nil {
+	if err := templates.Base(h.Translator(r), header, content, nil, true).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -44,7 +44,14 @@ func (h *Handler) RegisterForm(w http.ResponseWriter, r *http.Request) {
 	header := templates.RegisterHeader(h.Translator(r))
 	content := templates.Register(h.Translator(r))
 
-	templates.Base(h.Translator(r), header, content, true).Render(ctx, w)
+	tr := h.Translator(r)
+
+	head := templates.SiteHead{
+		Title:       config.AppTitle + " | " + tr("register"),
+		Description: "",
+	}
+
+	templates.Base(h.Translator(r), header, content, &head, true).Render(ctx, w)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -685,7 +692,14 @@ func (h *Handler) LoginForm(w http.ResponseWriter, r *http.Request) {
 	header := templates.LoginHeader(h.Translator(r))
 	content := templates.Login(h.Translator(r))
 
-	templates.Base(h.Translator(r), header, content, true).Render(ctx, w)
+	tr := h.Translator(r)
+
+	head := templates.SiteHead{
+		Title:       config.AppTitle + " | " + tr("log_in"),
+		Description: "",
+	}
+
+	templates.Base(h.Translator(r), header, content, &head, true).Render(ctx, w)
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {

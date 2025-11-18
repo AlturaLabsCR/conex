@@ -2,14 +2,32 @@ package templates
 
 import "app/config"
 
-templ Base(tr func(key string) string, header, content templ.Component, loadFrameworks bool) {
+type SiteHead struct {
+	Title       string
+	Description string
+}
+
+templ Base(tr func(key string) string, header, content templ.Component, siteHead *SiteHead, loadFrameworks bool) {
 	<!DOCTYPE html>
 	<html lang={ tr("lang") }>
 		<head>
-			<meta charset="UTF-8"/>
+			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"/>
-			<title>{ config.AppTitle }</title>
-			<meta name="description" content={ tr("home_description") }/>
+			<title>
+				if siteHead != nil {
+					{ siteHead.Title }
+				} else {
+					{ config.AppTitle }
+				}
+			</title>
+			<meta
+				name="description"
+				if siteHead != nil {
+					content={ siteHead.Description }
+				} else {
+					content={ tr("home_description") }
+				}
+			/>
 			<link rel="stylesheet" href={ config.Endpoints[config.AssetsPath] + "css/styles.css?dev" }/>
 			<link rel="icon" href={ config.Endpoints[config.AssetsPath] + "favicon/favicon.svg" } type="image/svg+xml"/>
 			<link rel="preconnect" href="https://rsms.me/"/>

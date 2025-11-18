@@ -45,7 +45,7 @@ func (h *Handler) Pricing(w http.ResponseWriter, r *http.Request) {
 	header := templates.PricingHeader(tr)
 	content := templates.Pricing(tr, config.PayPalClientID, subscribed, utils.UnixToYMD(plan.UserPlanDueUnix))
 
-	if err := templates.Base(tr, header, content, true).Render(ctx, w); err != nil {
+	if err := templates.Base(tr, header, content, nil, true).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -66,14 +66,19 @@ func (h *Handler) Site(w http.ResponseWriter, r *http.Request) {
 	header := templates.SiteHeader(tr, site, bannerURL, isOwner)
 	content := templates.Site(site)
 
+	head := templates.SiteHead{
+		Title:       site.SiteTitle,
+		Description: site.SiteDescription,
+	}
+
 	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Content-Encoding", "gzip")
-		templates.Base(tr, header, content, false).Render(ctx, gz)
+		templates.Base(tr, header, content, &head, false).Render(ctx, gz)
 	} else {
-		templates.Base(tr, header, content, false).Render(ctx, w)
+		templates.Base(tr, header, content, &head, false).Render(ctx, w)
 	}
 
 	if err := queries.NewVisit(ctx, site.SiteID); err != nil {

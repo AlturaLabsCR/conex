@@ -24,7 +24,7 @@ var ES = map[string]string{
 	"visits":            "visitas",
 	"publish_too_large": "El título, la descripción o el contenido son demasiado extensos para publicarse",
 	"by_continuing":     "Al continuar, confirmas que aceptas los",
-	"terms":             "términos y condiciones",
+	"terms":             "Términos y condiciones",
 
 	// home
 	"create_site":      "Crear un sitio",

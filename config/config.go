@@ -53,7 +53,7 @@ var (
 	// Default values are initialized here, these will be used unless overwritten
 	// by the Init() method
 
-	AppTitle    string = "CONEX.cr"
+	AppTitle    string = "CONEX.co.cr"
 	CookieName  string = "session"
 	S3Bucket    string = "conex-dev"
 	S3PublicURL string

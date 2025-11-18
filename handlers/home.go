@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"app/config"
 	"app/internal/db"
 	"app/templates"
 
@@ -28,7 +29,7 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	header := templates.HomeHeader(tr)
 	content := templates.CardsGrid(tr, sites, false)
 
-	if err := templates.Base(tr, header, content, true).Render(ctx, w); err != nil {
+	if err := templates.Base(tr, header, content, nil, true).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -43,7 +44,12 @@ func (h *Handler) Terms(w http.ResponseWriter, r *http.Request) {
 	header := templates.Empty()
 	content := templates.Terms()
 
-	if err := templates.Base(tr, header, content, false).Render(ctx, w); err != nil {
+	head := templates.SiteHead{
+		Title:       config.AppTitle + " | " + ("terms"),
+		Description: "",
+	}
+
+	if err := templates.Base(tr, header, content, &head, false).Render(ctx, w); err != nil {
 		h.Log().Error("error rendering template", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

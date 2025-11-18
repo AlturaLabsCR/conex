@@ -96,7 +96,7 @@ func (h *Handler) Editor(w http.ResponseWriter, r *http.Request) {
 		siteURL,
 	)
 
-	templates.Base(tr, header, content, true).Render(ctx, w)
+	templates.Base(tr, header, content, nil, true).Render(ctx, w)
 }
 
 func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
