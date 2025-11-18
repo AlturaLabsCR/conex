@@ -1,20 +1,27 @@
-FROM alpine:latest
+ARG NODE_VERSION=22.20.0
+FROM node:${NODE_VERSION}-alpine AS node
 
-ENV GOLANG_VERSION=1.25.3 \
-    GOROOT=/usr/local/go \
-    GOPATH=/go \
-    PATH=/usr/local/go/bin:$PATH
+ARG GO_VERSION=1.25.3
+FROM golang:${GO_VERSION}-alpine AS builder
 
-RUN apk add --no-cache curl make npm
+RUN apk add --no-cache git make
 
-RUN curl -sL https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz -o /tmp/go.tar.gz \
-    && tar -C /usr/local -xzf /tmp/go.tar.gz \
-    && rm /tmp/go.tar.gz
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/bin/npm /usr/local/bin/npm
+COPY --from=node /usr/local/bin/npx /usr/local/bin/npx
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 WORKDIR /app
-
 COPY . .
 
-RUN make gen && go build -ldflags='-w -s' -o out
+RUN make gen
+RUN go build -ldflags="-w -s" -o app
 
-ENTRYPOINT ["./out"]
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /app
+COPY --from=builder /app/app .
+
+ENTRYPOINT ["./app"]
