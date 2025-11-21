@@ -15,7 +15,11 @@ import (
 	"app/utils"
 )
 
-const MaxHTMLSize = 10 * 1024000 // 10MB
+const (
+	MaxHTMLSize             = 10 * 1024000 // 10MB
+	forwardedProtoHeaderKey = "X-Forwarded-Proto"
+	forwardedHostHeaderKey  = "X-Forwarded-Host"
+)
 
 type SyncResponse struct {
 	ShouldPatch bool            `json:"shouldPatch"`
@@ -279,14 +283,20 @@ func (h *Handler) EditorUnpublish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tr := h.Translator(r)
-
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
+	scheme := r.Header.Get(forwardedProtoHeaderKey)
+	if scheme == "" {
+		scheme = "http"
 	}
-	hostURL := scheme + "://" + r.Host
+
+	host := r.Header.Get(forwardedHostHeaderKey)
+	if host == "" {
+		host = r.Host
+	}
+
+	hostURL := scheme + "://" + host
 	siteURL := hostURL + config.Endpoints[config.RootPath] + site.SiteSlug
+
+	tr := h.Translator(r)
 
 	if err := templates.UnpublishSite(
 		tr,
