@@ -28,8 +28,8 @@ func (h *Handler) LoginOrCreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := normalizeEmail(req.Email)
-	if email == "" {
+	email, err := validEmail(req.Email)
+	if err != nil {
 		h.writeStatus(w, r, http.StatusBadRequest, "invalid login email", "email", req.Email)
 		return
 	}
@@ -69,8 +69,8 @@ func (h *Handler) VerifyAuthenticationCode(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	email := normalizeEmail(req.Email)
-	if email == "" {
+	email, err := validEmail(req.Email)
+	if err != nil {
 		h.writeStatus(w, r, http.StatusBadRequest, "invalid verify email", "email", req.Email)
 		return
 	}

@@ -91,8 +91,8 @@ func (h *Handler) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newEmail := normalizeEmail(req.NewEmail)
-	if newEmail == "" {
+	newEmail, err := validEmail(req.NewEmail)
+	if err != nil {
 		h.writeStatus(w, r, http.StatusBadRequest, "invalid account email change target", "email", req.NewEmail, "sub", sub)
 		return
 	}

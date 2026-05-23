@@ -9,6 +9,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/tavocg/go-auth v0.0.0-20260511075900-18c077548ac6
+	github.com/tavocg/go-email v0.0.0-20260523203456-e164c30a587d
 	github.com/tavocg/go-i18n v1.0.1
 	github.com/tavocg/go-secrets v0.0.0-20260523061925-d0121307ced6
 	modernc.org/sqlite v1.50.1
