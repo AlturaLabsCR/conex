@@ -127,3 +127,8 @@ func mustBindPersistentFlag(key string, cmd *cobra.Command, name string) {
 
 	cobra.CheckErr(viper.BindPFlag(key, flag))
 }
+
+func mustBindEnv(key string, envNames ...string) {
+	args := append([]string{key}, envNames...)
+	cobra.CheckErr(viper.BindEnv(args...))
+}

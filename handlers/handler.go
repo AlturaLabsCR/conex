@@ -13,6 +13,7 @@ import (
 	"app/middleware"
 	"github.com/tavocg/go-auth"
 	"github.com/tavocg/go-i18n"
+	"github.com/tavocg/go-storage"
 )
 
 type Logger interface {
@@ -29,6 +30,7 @@ type Handler struct {
 	logger        Logger
 	db            database.Database
 	mailer        *mailer.Mailer
+	storage       *storage.Storage
 	authenticator auth.Authenticator[*appauth.Claims]
 	localizer     *i18n.Localizer
 	rootPrefix    string
@@ -42,6 +44,7 @@ type Options struct {
 	Dev           bool
 	DB            database.Database
 	Mailer        *mailer.Mailer
+	Storage       *storage.Storage
 	Authenticator auth.Authenticator[*appauth.Claims]
 	Localizer     *i18n.Localizer
 	RootPrefix    string
@@ -66,6 +69,9 @@ func NewHandler(opts Options) *Handler {
 	if opts.Mailer == nil {
 		panic("handler mailer is required")
 	}
+	if opts.Storage == nil {
+		panic("handler storage is required")
+	}
 
 	rootPrefix := normalizeRootPrefix(opts.RootPrefix)
 
@@ -75,6 +81,7 @@ func NewHandler(opts Options) *Handler {
 		logger:        logger,
 		db:            opts.DB,
 		mailer:        opts.Mailer,
+		storage:       opts.Storage,
 		authenticator: authenticator,
 		localizer:     localizer,
 		rootPrefix:    rootPrefix,

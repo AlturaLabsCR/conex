@@ -55,6 +55,7 @@ func init() {
 	viper.SetDefault("mail.starttls", false)
 	viper.SetDefault("root", "")
 	viper.SetDefault("db", "data/app.sqlite")
+	initStorageConfig()
 
 	flags := rootCmd.PersistentFlags()
 	flags.String("db", "data/app.sqlite", "database DSN")
@@ -159,11 +160,17 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 		return err
 	}
 
+	storage, err := newStorageFromConfig(context.Background())
+	if err != nil {
+		return err
+	}
+
 	h := handlers.NewHandler(handlers.Options{
 		Logger:        logger,
 		Dev:           dev,
 		DB:            db,
 		Mailer:        mailer,
+		Storage:       storage,
 		Authenticator: authenticator,
 		Localizer:     localizer,
 		RootPrefix:    rootPrefix,
