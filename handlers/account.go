@@ -134,6 +134,7 @@ func (h *Handler) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, r, http.StatusInternalServerError, err, "failed to send account email change otp", "sub", sub, "email", newEmail, "expires_at", expiresAt)
 			return
 		}
+		h.logger.Debug("otp sent", "email", newEmail)
 	}
 
 	w.WriteHeader(http.StatusNoContent)

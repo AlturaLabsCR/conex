@@ -56,6 +56,7 @@ func (h *Handler) LoginOrCreateAccount(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, r, http.StatusInternalServerError, err, "failed to send login otp", "email", email, "expires_at", expiresAt)
 			return
 		}
+		h.logger.Debug("otp sent", "email", email)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
