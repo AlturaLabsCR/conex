@@ -1,0 +1,11 @@
+node_modules/
+
+db/
+
+myserver
+data/
+*.html
+*_templ.go
+
+.env
+.codex
