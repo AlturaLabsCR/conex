@@ -71,7 +71,6 @@ func initConfig() {
 			viper.AddConfigPath(d)
 		}
 
-		viper.SetConfigType("yaml")
 		viper.SetConfigName("conex")
 	}
 
