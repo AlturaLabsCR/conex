@@ -1,4 +1,4 @@
-// Copyright © 2026 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2026 Gustavo Calvo <tavo@tavo.cr>
 
 package cmd
 
@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tavocg/go-auth/authenticators"
 	"github.com/tavocg/go-i18n"
+	"github.com/tavocg/go-secrets"
 )
 
 var serveCmd = &cobra.Command{
@@ -74,12 +75,23 @@ func init() {
 }
 
 func runServerFromConfig() error {
+	var authSecret string
+	if confSecret := viper.GetString("auth.secret"); confSecret != "" {
+		authSecret = confSecret
+	} else {
+		defaultAuthSecret, err := secrets.RandStr()
+		if err != nil {
+			return err
+		}
+		authSecret = defaultAuthSecret
+	}
+
 	return runServer(
 		viper.GetString("db"),
 		viper.GetBool("dev"),
 		viper.GetString("loglvl"),
 		viper.GetString("logfmt"),
-		viper.GetString("auth.secret"),
+		authSecret,
 		viper.GetDuration("auth.access-token-ttl"),
 		viper.GetDuration("auth.refresh-token-ttl"),
 		viper.GetString("root"),

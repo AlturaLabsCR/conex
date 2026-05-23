@@ -4,12 +4,10 @@ package meta
 import "time"
 
 const (
-	AppTitle = "App"
+	AppTitle = "Conex"
 )
 
-var (
-	Year int
-)
+var Year int
 
 func init() {
 	Year = time.Now().Year()
