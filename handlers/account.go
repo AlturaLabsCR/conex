@@ -81,6 +81,8 @@ func (h *Handler) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
+
 	type changeEmailRequest struct {
 		NewEmail string `json:"new_email"`
 	}
@@ -125,7 +127,11 @@ func (h *Handler) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Debug("generated account email change otp", "sub", sub, "email", newEmail, "otp", otp, "expires_at", expiresAt)
+	if err := h.mailer.SendOTP(r.Context(), L, newEmail, otp, expiresAt); err != nil {
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to send account email change otp", "sub", sub, "email", newEmail, "expires_at", expiresAt)
+		return
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 

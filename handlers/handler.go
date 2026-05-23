@@ -9,6 +9,7 @@ import (
 
 	appauth "app/auth"
 	"app/database"
+	"app/mailer"
 	"app/middleware"
 	"github.com/tavocg/go-auth"
 	"github.com/tavocg/go-i18n"
@@ -27,6 +28,7 @@ type Handler struct {
 
 	logger        Logger
 	db            database.Database
+	mailer        *mailer.Mailer
 	authenticator auth.Authenticator[*appauth.Claims]
 	localizer     *i18n.Localizer
 	rootPrefix    string
@@ -39,6 +41,7 @@ type Options struct {
 	Logger        Logger
 	Dev           bool
 	DB            database.Database
+	Mailer        *mailer.Mailer
 	Authenticator auth.Authenticator[*appauth.Claims]
 	Localizer     *i18n.Localizer
 	RootPrefix    string
@@ -60,6 +63,10 @@ func NewHandler(opts Options) *Handler {
 		panic("handler authenticator is required")
 	}
 
+	if opts.Mailer == nil {
+		panic("handler mailer is required")
+	}
+
 	rootPrefix := normalizeRootPrefix(opts.RootPrefix)
 
 	next := &Handler{
@@ -67,6 +74,7 @@ func NewHandler(opts Options) *Handler {
 		dev:           opts.Dev,
 		logger:        logger,
 		db:            opts.DB,
+		mailer:        opts.Mailer,
 		authenticator: authenticator,
 		localizer:     localizer,
 		rootPrefix:    rootPrefix,

@@ -34,6 +34,25 @@ auth:
   access-token-ttl: 15m
   refresh-token-ttl: 720h
 
+# Mail settings used to send OTP emails.
+# Override with:
+#   CONEX_MAIL_FROM=no-reply@example.com app serve
+#   app serve --mail-from no-reply@example.com
+#   CONEX_MAIL_ADDRESS=smtp.example.com:465 app serve
+#   app serve --mail-address smtp.example.com:465
+#   CONEX_MAIL_USER=username app serve
+#   app serve --mail-user username
+#   CONEX_MAIL_PASSWORD=change-me app serve
+#   app serve --mail-password change-me
+#   CONEX_MAIL_STARTTLS=true app serve
+#   app serve --mail-starttls
+mail:
+  from: ""
+  address: ""
+  user: ""
+  password: ""
+  starttls: false
+
 # Route prefix to mount the app under.
 # Override with:
 #   CONEX_ROOT=/app app serve

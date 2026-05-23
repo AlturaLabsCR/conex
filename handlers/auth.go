@@ -22,6 +22,9 @@ func (h *Handler) LoginOrCreateAccount(w http.ResponseWriter, r *http.Request) {
 	type loginRequest struct {
 		Email string `json:"email"`
 	}
+
+	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
+
 	var req loginRequest
 	if err := decodeJSON(r.Body, &req); err != nil {
 		h.writeError(w, r, http.StatusBadRequest, err, "invalid login request body")
@@ -46,7 +49,11 @@ func (h *Handler) LoginOrCreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Debug("generated login otp", "email", email, "otp", fmt.Sprintf("%06d", otp), "expires_at", expiresAt)
+	if err := h.mailer.SendOTP(r.Context(), L, email, otp, expiresAt); err != nil {
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to send login otp", "email", email, "expires_at", expiresAt)
+		return
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 

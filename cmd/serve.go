@@ -21,6 +21,7 @@ import (
 	"app/database/provider"
 	"app/handlers"
 	locales "app/i18n"
+	appmailer "app/mailer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tavocg/go-auth/authenticators"
@@ -47,6 +48,11 @@ func init() {
 	viper.SetDefault("auth.secret", "")
 	viper.SetDefault("auth.access-token-ttl", 15*time.Minute)
 	viper.SetDefault("auth.refresh-token-ttl", 30*24*time.Hour)
+	viper.SetDefault("mail.from", "")
+	viper.SetDefault("mail.address", "")
+	viper.SetDefault("mail.user", "")
+	viper.SetDefault("mail.password", "")
+	viper.SetDefault("mail.starttls", false)
 	viper.SetDefault("root", "")
 	viper.SetDefault("db", "data/app.sqlite")
 
@@ -60,6 +66,11 @@ func init() {
 	flags.String("auth-secret", "", "JWT signing secret")
 	flags.Duration("auth-access-ttl", 15*time.Minute, "access token TTL")
 	flags.Duration("auth-refresh-ttl", 30*24*time.Hour, "refresh token TTL")
+	flags.String("mail-from", "", "sender email address for OTP messages")
+	flags.String("mail-address", "", "SMTP server address in host:port form")
+	flags.String("mail-user", "", "SMTP username")
+	flags.String("mail-password", "", "SMTP password")
+	flags.Bool("mail-starttls", false, "use STARTTLS instead of implicit TLS for SMTP")
 	flags.String("root", "", "route prefix to mount the app under")
 
 	mustBindPersistentFlag("db", rootCmd, "db")
@@ -71,6 +82,11 @@ func init() {
 	mustBindPersistentFlag("auth.secret", rootCmd, "auth-secret")
 	mustBindPersistentFlag("auth.access-token-ttl", rootCmd, "auth-access-ttl")
 	mustBindPersistentFlag("auth.refresh-token-ttl", rootCmd, "auth-refresh-ttl")
+	mustBindPersistentFlag("mail.from", rootCmd, "mail-from")
+	mustBindPersistentFlag("mail.address", rootCmd, "mail-address")
+	mustBindPersistentFlag("mail.user", rootCmd, "mail-user")
+	mustBindPersistentFlag("mail.password", rootCmd, "mail-password")
+	mustBindPersistentFlag("mail.starttls", rootCmd, "mail-starttls")
 	mustBindPersistentFlag("root", rootCmd, "root")
 }
 
@@ -94,13 +110,20 @@ func runServerFromConfig() error {
 		authSecret,
 		viper.GetDuration("auth.access-token-ttl"),
 		viper.GetDuration("auth.refresh-token-ttl"),
+		appmailer.Options{
+			From:         viper.GetString("mail.from"),
+			SMTPAddress:  viper.GetString("mail.address"),
+			SMTPUser:     viper.GetString("mail.user"),
+			SMTPPassword: viper.GetString("mail.password"),
+			SMTPStartTLS: viper.GetBool("mail.starttls"),
+		},
 		viper.GetString("root"),
 		viper.GetString("host"),
 		viper.GetInt("port"),
 	)
 }
 
-func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, rootPrefix string, host string, port int) error {
+func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts appmailer.Options, rootPrefix string, host string, port int) error {
 	logger, err := newLogger(dev, logLvl, logFmt)
 	if err != nil {
 		return err
@@ -131,10 +154,16 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 		return err
 	}
 
+	mailer, err := appmailer.NewMailer(mailOpts)
+	if err != nil {
+		return err
+	}
+
 	h := handlers.NewHandler(handlers.Options{
 		Logger:        logger,
 		Dev:           dev,
 		DB:            db,
+		Mailer:        mailer,
 		Authenticator: authenticator,
 		Localizer:     localizer,
 		RootPrefix:    rootPrefix,
