@@ -23,16 +23,29 @@ type Options struct {
 }
 
 func NewMailer(opts Options) (*Mailer, error) {
+	from := strings.TrimSpace(opts.From)
 	address := strings.TrimSpace(opts.SMTPAddress)
+	user := strings.TrimSpace(opts.SMTPUser)
+	password := strings.TrimSpace(opts.SMTPPassword)
+
+	if from == "" {
+		return nil, errors.New("mailer from address is required")
+	}
 	if address == "" {
 		return nil, errors.New("mailer smtp address is required")
+	}
+	if user == "" {
+		return nil, errors.New("mailer smtp user is required")
+	}
+	if password == "" {
+		return nil, errors.New("mailer smtp password is required")
 	}
 
 	return &Mailer{
 		opts: Options{
-			From:         strings.TrimSpace(opts.From),
+			From:         from,
 			SMTPAddress:  address,
-			SMTPUser:     strings.TrimSpace(opts.SMTPUser),
+			SMTPUser:     user,
 			SMTPPassword: opts.SMTPPassword,
 			SMTPStartTLS: opts.SMTPStartTLS,
 		},

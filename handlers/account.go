@@ -127,9 +127,13 @@ func (h *Handler) RequestEmailChange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.mailer.SendOTP(r.Context(), L, newEmail, otp, expiresAt); err != nil {
-		h.writeError(w, r, http.StatusInternalServerError, err, "failed to send account email change otp", "sub", sub, "email", newEmail, "expires_at", expiresAt)
-		return
+	if h.dev {
+		h.logger.Debug("otp sent", "new_email", newEmail, "otp", otp)
+	} else {
+		if err := h.mailer.SendOTP(r.Context(), L, newEmail, otp, expiresAt); err != nil {
+			h.writeError(w, r, http.StatusInternalServerError, err, "failed to send account email change otp", "sub", sub, "email", newEmail, "expires_at", expiresAt)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusNoContent)

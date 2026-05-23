@@ -38,7 +38,7 @@ auth:
 # Override with:
 #   CONEX_MAIL_FROM=no-reply@example.com app serve
 #   app serve --mail-from no-reply@example.com
-#   CONEX_MAIL_ADDRESS=smtp.example.com:465 app serve
+#   CONEX_MAIL_HOST=smtp.example.com:465 app serve
 #   app serve --mail-address smtp.example.com:465
 #   CONEX_MAIL_USER=username app serve
 #   app serve --mail-user username

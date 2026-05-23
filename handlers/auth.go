@@ -49,9 +49,13 @@ func (h *Handler) LoginOrCreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.mailer.SendOTP(r.Context(), L, email, otp, expiresAt); err != nil {
-		h.writeError(w, r, http.StatusInternalServerError, err, "failed to send login otp", "email", email, "expires_at", expiresAt)
-		return
+	if h.dev {
+		h.logger.Debug("otp sent", "email", email, "otp", otp)
+	} else {
+		if err := h.mailer.SendOTP(r.Context(), L, email, otp, expiresAt); err != nil {
+			h.writeError(w, r, http.StatusInternalServerError, err, "failed to send login otp", "email", email, "expires_at", expiresAt)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusNoContent)
