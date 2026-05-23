@@ -112,7 +112,7 @@ func runServerFromConfig() error {
 		viper.GetDuration("auth.refresh-token-ttl"),
 		appmailer.Options{
 			From:         viper.GetString("mail.from"),
-			SMTPAddress:  viper.GetString("mail.address"),
+			SMTPAddress:  viper.GetString("mail.host"),
 			SMTPUser:     viper.GetString("mail.user"),
 			SMTPPassword: viper.GetString("mail.password"),
 			SMTPStartTLS: viper.GetBool("mail.starttls"),
