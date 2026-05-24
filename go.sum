@@ -186,10 +186,16 @@ github.com/tavocg/go-secrets v0.0.0-20260523061925-d0121307ced6 h1:diR+ZigiTRlob
 github.com/tavocg/go-secrets v0.0.0-20260523061925-d0121307ced6/go.mod h1:Rff/pui68pd/yb2Awkivbi1pjMdMEjqUoQ3XCI/rafQ=
 github.com/tavocg/go-storage v1.1.0 h1:DZymlCBj/r63CEaJLT/1OSs/Pg54FMpWetxTEe4oolU=
 github.com/tavocg/go-storage v1.1.0/go.mod h1:qBOZ4HEO6CiLtWajMM0oS66oRFAnvVJTR6gg5S936RM=
+github.com/tavocg/go-storage v1.2.0 h1:837Y4G+RV0nJKXnGKSxWt0z5ZpqU94zy0BYp0w/ZnDE=
+github.com/tavocg/go-storage v1.2.0/go.mod h1:qBOZ4HEO6CiLtWajMM0oS66oRFAnvVJTR6gg5S936RM=
 github.com/tavocg/go-storage/backends/fs v0.2.0 h1:uM5P1W3BlymetQHrM6KA/oGUGXp/fUZwuG0UUcfMZBY=
 github.com/tavocg/go-storage/backends/fs v0.2.0/go.mod h1:i07iNDnRJeGtWNmR5IfvY/zK+wEWN/vYnxXnWmms1jg=
+github.com/tavocg/go-storage/backends/fs v0.2.1 h1:PucZhEV3FqXyiuAkDUufOsufrhZTBTXFFiCsY21I53k=
+github.com/tavocg/go-storage/backends/fs v0.2.1/go.mod h1:pOKwTI3OEAc7KXTqJMiZjhAGzXsmnF6Fza47XxilUGE=
 github.com/tavocg/go-storage/backends/s3 v0.2.0 h1:Nv9+efC2RcnYkxVSn3LVLjAGHGMGlbBzDC5WHWjpojw=
 github.com/tavocg/go-storage/backends/s3 v0.2.0/go.mod h1:s1RjN907HA758ZyarY8lVcOSI/snnpuUS7yGzE2WFzQ=
+github.com/tavocg/go-storage/backends/s3 v0.2.2 h1:LzifGyAtagt79lpl+NoKLbih+/bbUsZbpKLWB7VTmbs=
+github.com/tavocg/go-storage/backends/s3 v0.2.2/go.mod h1:7G6DMW/dFn7BwGwuLnFUca6RBpYJnLHfwbqxUqK/Rqc=
 github.com/tetratelabs/wazero v1.11.0 h1:+gKemEuKCTevU4d7ZTzlsvgd1uaToIDtlQlmNbwqYhA=
 github.com/tetratelabs/wazero v1.11.0/go.mod h1:eV28rsN8Q+xwjogd7f4/Pp4xFxO7uOGbLcD/LzB1wiU=
 github.com/wasilibs/go-pgquery v0.0.0-20250409022910-10ac41983c07 h1:mJdDDPblDfPe7z7go8Dvv1AJQDI3eQ/5xith3q2mFlo=
