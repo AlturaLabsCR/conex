@@ -13,10 +13,10 @@ func (h *Handler) registerAccountRoutes() {
 		return middleware.AuthenticateBearer(h.logger, h.authenticator, http.HandlerFunc(fn))
 	}
 
-	h.AddHandler(http.MethodGet, h.routePath("/account"), authenticated(h.GetAccount))
-	h.AddHandler(http.MethodDelete, h.routePath("/account"), authenticated(h.DeleteAccount))
-	h.AddHandler(http.MethodPatch, h.routePath("/account/email/change"), authenticated(h.RequestEmailChange))
-	h.AddHandler(http.MethodPatch, h.routePath("/account/email/change/confirm"), authenticated(h.ConfirmEmailChange))
+	h.AddHandler(http.MethodGet, h.routePath("/api/account"), authenticated(h.GetAccount))
+	h.AddHandler(http.MethodDelete, h.routePath("/api/account"), authenticated(h.DeleteAccount))
+	h.AddHandler(http.MethodPatch, h.routePath("/api/account/email/change"), authenticated(h.RequestEmailChange))
+	h.AddHandler(http.MethodPatch, h.routePath("/api/account/email/change/confirm"), authenticated(h.ConfirmEmailChange))
 }
 
 func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {

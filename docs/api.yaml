@@ -27,7 +27,7 @@ paths:
                 type: string
         default:
           $ref: '#/components/responses/Error'
-  /auth/login:
+  /api/auth/login:
     post:
       tags:
         - Authentication
@@ -47,7 +47,7 @@ paths:
           description: Verification email sent.
         default:
           $ref: '#/components/responses/Error'
-  /auth/verify:
+  /api/auth/verify:
     post:
       tags:
         - Authentication
@@ -77,7 +77,7 @@ paths:
                 refresh_token_expires_in: 5184000
         default:
           $ref: '#/components/responses/Error'
-  /auth/refresh:
+  /api/auth/refresh:
     post:
       tags:
         - Authentication
@@ -105,7 +105,7 @@ paths:
                 refresh_token_expires_in: 5184000
         default:
           $ref: '#/components/responses/Error'
-  /account:
+  /api/account:
     get:
       tags:
         - Account
@@ -138,7 +138,7 @@ paths:
           description: Account deleted.
         default:
           $ref: '#/components/responses/Error'
-  /account/email/change:
+  /api/account/email/change:
     patch:
       tags:
         - Account
@@ -159,7 +159,7 @@ paths:
           description: Email change request accepted.
         default:
           $ref: '#/components/responses/Error'
-  /account/email/change/confirm:
+  /api/account/email/change/confirm:
     patch:
       tags:
         - Account
@@ -180,7 +180,7 @@ paths:
           description: Email change confirmed.
         default:
           $ref: '#/components/responses/Error'
-  /sites/available/{path}:
+  /api/sites/{path}:
     get:
       tags:
         - Sites
@@ -195,7 +195,7 @@ paths:
           description: Site path is already in use or reserved by another route.
         default:
           $ref: '#/components/responses/Error'
-  /sites:
+  /api/sites:
     get:
       tags:
         - Sites
@@ -221,6 +221,7 @@ paths:
                   sub: 1
         default:
           $ref: '#/components/responses/Error'
+  /api/site:
     post:
       tags:
         - Sites
@@ -250,7 +251,7 @@ paths:
                 sub: 1
         default:
           $ref: '#/components/responses/Error'
-  /sites/{path}:
+  /api/site/{path}:
     patch:
       tags:
         - Sites
