@@ -36,10 +36,10 @@ auth:
 
 # Mail settings used to send OTP emails.
 # Override with:
-#   CONEX_MAIL_FROM=no-reply@example.com app serve
-#   app serve --mail-from no-reply@example.com
-#   CONEX_MAIL_HOST=smtp.example.com:465 app serve
-#   app serve --mail-address smtp.example.com:465
+#   CONEX_MAIL_FROM=no-reply@conex.co.cr app serve
+#   app serve --mail-from no-reply@conex.co.cr
+#   CONEX_MAIL_HOST=smtp.conex.co.cr:465 app serve
+#   app serve --mail-address smtp.conex.co.cr:465
 #   CONEX_MAIL_USER=username app serve
 #   app serve --mail-user username
 #   CONEX_MAIL_PASSWORD=change-me app serve
@@ -58,6 +58,12 @@ mail:
 #   CONEX_ROOT=/app app serve
 #   app serve --root /prefix
 root: ""
+
+# Public base URL used to build site response URLs.
+# Override with:
+#   CONEX_BASE_URL=https://conex.co.cr app serve
+#   app serve --base-url https://conex.co.cr
+base-url: https://conex.co.cr
 
 # Object storage settings.
 # Override with:

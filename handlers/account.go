@@ -37,14 +37,71 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	subscription, err := h.db.Querier().SelectAccountSubscriptionBySub(r.Context(), sub)
+	if err != nil {
+		if h.db.IsErrNotFound(err) {
+			h.writeError(w, r, http.StatusNotFound, err, "account subscription not found", "sub", sub)
+			return
+		}
+
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to select account subscription", "sub", sub)
+		return
+	}
+
+	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
+
+	type priceResponse struct {
+		Amount   int64  `json:"amount"`
+		Currency string `json:"currency"`
+	}
+
+	type billingPeriodResponse struct {
+		Unit  string `json:"unit"`
+		Count int64  `json:"count"`
+	}
+
+	type planResponse struct {
+		ID              string                `json:"id"`
+		Name            string                `json:"name"`
+		Price           priceResponse         `json:"price"`
+		BillingPeriod   billingPeriodResponse `json:"billing_period"`
+		SupportsRenewal bool                  `json:"supports_renewal"`
+	}
+
+	type subscriptionResponse struct {
+		Status  string       `json:"status"`
+		DueDate string       `json:"due_date"`
+		Plan    planResponse `json:"plan"`
+	}
+
 	type accountResponse struct {
-		Email     string `json:"email"`
-		CreatedAt int64  `json:"created_at"`
+		Sub          int64                `json:"sub"`
+		Email        string               `json:"email"`
+		CreatedAt    int64                `json:"created_at"`
+		Subscription subscriptionResponse `json:"subscription"`
 	}
 
 	writeJSON(w, http.StatusOK, accountResponse{
+		Sub:       account.Sub,
 		Email:     account.Email,
 		CreatedAt: account.CreatedAt,
+		Subscription: subscriptionResponse{
+			Status:  subscription.Status,
+			DueDate: subscription.DueDate,
+			Plan: planResponse{
+				ID:   subscription.PlanID,
+				Name: L(subscription.PlanNameKey),
+				Price: priceResponse{
+					Amount:   subscription.PriceAmount,
+					Currency: subscription.PriceCurrency,
+				},
+				BillingPeriod: billingPeriodResponse{
+					Unit:  subscription.BillingUnit,
+					Count: subscription.BillingCount,
+				},
+				SupportsRenewal: subscription.SupportsRenewal,
+			},
+		},
 	})
 }
 

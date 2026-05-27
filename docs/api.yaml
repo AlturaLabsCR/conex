@@ -121,8 +121,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/Account'
               example:
+                sub: 1
                 email: john@doe.com
                 created_at: 1777872664
+                subscription:
+                  status: active
+                  due_date: ''
+                  plan:
+                    id: free
+                    name: Free
+                    price:
+                      amount: 0
+                      currency: USD
+                    billing_period:
+                      unit: ''
+                      count: 0
+                    supports_renewal: false
         default:
           $ref: '#/components/responses/Error'
     delete:
@@ -196,6 +210,10 @@ paths:
               $ref: '#/components/schemas/CreateSiteRequest'
             example:
               path: go-fitness
+              name: Go Fitness
+              tags:
+                - fitness
+                - wellness
               html: <h1>Hello</h1>
       responses:
         '201':
@@ -207,6 +225,11 @@ paths:
               example:
                 path: go-fitness
                 public: false
+                name: Go Fitness
+                tags:
+                  - fitness
+                  - wellness
+                url: https://conex.co.cr/go-fitness
                 sub: 1
         default:
           $ref: '#/components/responses/Error'
@@ -229,9 +252,18 @@ paths:
               example:
                 - path: go-fitness
                   public: false
+                  name: Go Fitness
+                  tags:
+                    - fitness
+                    - wellness
+                  url: https://conex.co.cr/go-fitness
                   sub: 1
                 - path: personal-blog
                   public: true
+                  name: Personal Blog
+                  tags:
+                    - writing
+                  url: https://conex.co.cr/personal-blog
                   sub: 1
         default:
           $ref: '#/components/responses/Error'
@@ -269,6 +301,11 @@ paths:
               example:
                 path: go-fitness
                 public: true
+                name: Go Fitness
+                tags:
+                  - fitness
+                  - wellness
+                url: https://conex.co.cr/go-fitness
                 sub: 1
                 html: <h1>Hello</h1>
         default:
@@ -276,8 +313,8 @@ paths:
     patch:
       tags:
         - Sites
-      operationId: setSitePublic
-      summary: Publish or unpublish a site
+      operationId: updateSite
+      summary: Update a site
       security:
         - bearerAuth: []
       parameters:
@@ -287,9 +324,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetSitePublicRequest'
+              $ref: '#/components/schemas/UpdateSiteRequest'
             example:
               public: true
+              name: Go Fitness Club
+              tags:
+                - fitness
+                - health
       responses:
         '200':
           description: Site updated.
@@ -300,6 +341,11 @@ paths:
               example:
                 path: go-fitness
                 public: true
+                name: Go Fitness Club
+                tags:
+                  - fitness
+                  - health
+                url: https://conex.co.cr/go-fitness
                 sub: 1
         default:
           $ref: '#/components/responses/Error'
@@ -400,15 +446,79 @@ components:
       type: object
       additionalProperties: false
       required:
+        - sub
         - email
         - created_at
+        - subscription
       properties:
+        sub:
+          type: integer
         email:
           type: string
           format: email
         created_at:
           type: integer
           description: Account creation timestamp.
+        subscription:
+          $ref: '#/components/schemas/Subscription'
+    Subscription:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - due_date
+        - plan
+      properties:
+        status:
+          type: string
+        due_date:
+          type: string
+          description: Subscription due date as YYYY-MM-DD, or empty for non-renewing plans.
+        plan:
+          $ref: '#/components/schemas/Plan'
+    Plan:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - price
+        - billing_period
+        - supports_renewal
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          description: Localized plan display name.
+        price:
+          $ref: '#/components/schemas/PlanPrice'
+        billing_period:
+          $ref: '#/components/schemas/BillingPeriod'
+        supports_renewal:
+          type: boolean
+    PlanPrice:
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: integer
+        currency:
+          type: string
+    BillingPeriod:
+      type: object
+      additionalProperties: false
+      required:
+        - unit
+        - count
+      properties:
+        unit:
+          type: string
+        count:
+          type: integer
     ChangeEmailRequest:
       type: object
       additionalProperties: false
@@ -434,6 +544,8 @@ components:
       additionalProperties: false
       required:
         - path
+        - name
+        - tags
         - html
       properties:
         path:
@@ -441,16 +553,38 @@ components:
           minLength: 3
           maxLength: 255
           pattern: '^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        tags:
+          type: array
+          maxItems: 32
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+          uniqueItems: true
         html:
           type: string
-    SetSitePublicRequest:
+    UpdateSiteRequest:
       type: object
       additionalProperties: false
-      required:
-        - public
       properties:
         public:
           type: boolean
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        tags:
+          type: array
+          maxItems: 32
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+          uniqueItems: true
     Site:
       type: object
       additionalProperties: false
@@ -458,6 +592,9 @@ components:
         - sub
         - path
         - public
+        - name
+        - tags
+        - url
       properties:
         sub:
           type: integer
@@ -465,6 +602,15 @@ components:
           type: string
         public:
           type: boolean
+        name:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        url:
+          type: string
+          description: Public site URL built from the configured base URL and site path.
     OwnedSite:
       allOf:
         - $ref: '#/components/schemas/Site'

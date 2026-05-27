@@ -2,6 +2,8 @@ package queries
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"app/database"
 	"app/database/postgres/db"
@@ -25,6 +27,8 @@ func (q *PostgresQuerier) SelectSiteByPath(ctx context.Context, path string) (*d
 		Sub:    site.Sub,
 		Path:   site.Path,
 		Public: site.Public,
+		Name:   site.Name,
+		Tags:   databaseTags(site.Tags),
 	}, nil
 }
 
@@ -40,27 +44,38 @@ func (q *PostgresQuerier) SelectSitesBySub(ctx context.Context, sub int64) ([]da
 			Sub:    site.Sub,
 			Path:   site.Path,
 			Public: site.Public,
+			Name:   site.Name,
+			Tags:   databaseTags(site.Tags),
 		})
 	}
 
 	return out, nil
 }
 
-func (q *PostgresQuerier) UpdateSitePublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error) {
-	site, err := q.queries.UpdateSitePublic(ctx, db.UpdateSitePublicParams{
+func (q *PostgresQuerier) UpsertSiteName(ctx context.Context, path string, name string) error {
+	return q.queries.UpsertSiteName(ctx, db.UpsertSiteNameParams{
+		Path: path,
+		Name: name,
+	})
+}
+
+func (q *PostgresQuerier) DeleteSiteTags(ctx context.Context, path string) error {
+	return q.queries.DeleteSiteTags(ctx, path)
+}
+
+func (q *PostgresQuerier) CreateSiteTag(ctx context.Context, path string, tag string) error {
+	return q.queries.CreateSiteTag(ctx, db.CreateSiteTagParams{
+		Path: path,
+		Tag:  tag,
+	})
+}
+
+func (q *PostgresQuerier) UpdateSitePublic(ctx context.Context, sub int64, path string, public bool) error {
+	return q.queries.UpdateSitePublic(ctx, db.UpdateSitePublicParams{
 		Sub:    sub,
 		Path:   path,
 		Public: public,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &database.Site{
-		Sub:    site.Sub,
-		Path:   site.Path,
-		Public: site.Public,
-	}, nil
 }
 
 func (q *PostgresQuerier) DeleteSite(ctx context.Context, sub int64, path string) (*database.Site, error) {
@@ -76,5 +91,36 @@ func (q *PostgresQuerier) DeleteSite(ctx context.Context, sub int64, path string
 		Sub:    site.Sub,
 		Path:   site.Path,
 		Public: site.Public,
+		Name:   site.Name,
+		Tags:   databaseTags(site.Tags),
 	}, nil
+}
+
+func databaseTags(tags any) []string {
+	switch tags := tags.(type) {
+	case nil:
+		return nil
+	case []string:
+		return tags
+	case []any:
+		out := make([]string, 0, len(tags))
+		for _, tag := range tags {
+			out = append(out, fmt.Sprint(tag))
+		}
+		return out
+	case string:
+		var out []string
+		if err := json.Unmarshal([]byte(tags), &out); err == nil {
+			return out
+		}
+		return []string{tags}
+	case []byte:
+		var out []string
+		if err := json.Unmarshal(tags, &out); err == nil {
+			return out
+		}
+		return []string{string(tags)}
+	default:
+		return []string{fmt.Sprint(tags)}
+	}
 }

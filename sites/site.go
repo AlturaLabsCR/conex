@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"regexp"
+	"slices"
 	"strings"
 
 	"app/database"
@@ -16,6 +17,8 @@ import (
 
 var (
 	ErrInvalidPath     = errors.New("invalid site path")
+	ErrInvalidName     = errors.New("invalid site name")
+	ErrInvalidTags     = errors.New("invalid site tags")
 	ErrPathUnavailable = errors.New("site path unavailable")
 	ErrSiteNotFound    = errors.New("site not found")
 	sitePathPattern    = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$`)
@@ -25,17 +28,26 @@ var (
 const (
 	sitePathMinLength = 3
 	sitePathMaxLength = 255
+	siteNameMaxLength = 255
+	siteTagMaxLength  = 64
+	siteTagsMaxCount  = 32
 )
 
 type Sites interface {
-	Create(ctx context.Context, sub int64, path string, html io.Reader) (*database.Site, error)
+	Create(ctx context.Context, sub int64, path string, name string, tags []string, html io.Reader) (*database.Site, error)
 	Get(ctx context.Context, path string) (*database.Site, string, error)
 	GetOwned(ctx context.Context, sub int64, path string) (*database.Site, string, error)
 	List(ctx context.Context, sub int64) ([]database.Site, error)
-	SetPublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error)
+	Update(ctx context.Context, sub int64, path string, update SiteUpdate) (*database.Site, error)
 	Delete(ctx context.Context, sub int64, path string) error
 	DeleteAll(ctx context.Context, sub int64) error
 	IsPathAvailable(ctx context.Context, path string) (bool, error)
+}
+
+type SiteUpdate struct {
+	Public *bool
+	Name   *string
+	Tags   *[]string
 }
 
 type Service struct {
@@ -64,8 +76,16 @@ func New(db database.Database, privateStorage, publicStorage *storage.Storage) *
 	}
 }
 
-func (s *Service) Create(ctx context.Context, sub int64, path string, html io.Reader) (*database.Site, error) {
+func (s *Service) Create(ctx context.Context, sub int64, path string, name string, tags []string, html io.Reader) (*database.Site, error) {
 	path, err := normalizePath(path)
+	if err != nil {
+		return nil, err
+	}
+	name, err = normalizeName(name)
+	if err != nil {
+		return nil, err
+	}
+	tags, err = normalizeTags(tags)
 	if err != nil {
 		return nil, err
 	}
@@ -88,11 +108,21 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, html io.Re
 		Sub:    sub,
 		Path:   path,
 		Public: false,
+		Name:   name,
+		Tags:   tags,
 	}
 
 	err = s.db.WithTx(ctx, func(q database.Querier) error {
 		if err := q.CreateSite(ctx, sub, path, false); err != nil {
 			return err
+		}
+		if err := q.UpsertSiteName(ctx, path, name); err != nil {
+			return err
+		}
+		for _, tag := range tags {
+			if err := q.CreateSiteTag(ctx, path, tag); err != nil {
+				return err
+			}
 		}
 
 		_, err := s.privateStorage.Put(
@@ -199,10 +229,24 @@ func (s *Service) GetOwned(ctx context.Context, sub int64, path string) (*databa
 	return site, string(html), nil
 }
 
-func (s *Service) SetPublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error) {
+func (s *Service) Update(ctx context.Context, sub int64, path string, update SiteUpdate) (*database.Site, error) {
 	path, err := normalizePath(path)
 	if err != nil {
 		return nil, err
+	}
+	var name string
+	if update.Name != nil {
+		name, err = normalizeName(*update.Name)
+		if err != nil {
+			return nil, err
+		}
+	}
+	var tags []string
+	if update.Tags != nil {
+		tags, err = normalizeTags(*update.Tags)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	current, err := s.db.Querier().SelectSiteByPath(ctx, path)
@@ -216,42 +260,73 @@ func (s *Service) SetPublic(ctx context.Context, sub int64, path string, public 
 	if current.Sub != sub {
 		return nil, ErrSiteNotFound
 	}
-	if current.Public == public {
-		return current, nil
-	}
 
-	source, destination := s.privateStorage, s.publicStorage
-	if !public {
-		source, destination = s.publicStorage, s.privateStorage
-	}
-
-	body, err := source.Get(ctx, &storage.ObjectHead{Key: path})
-	if err != nil {
-		if errors.Is(err, storage.ErrObjectNotFound) {
-			return nil, ErrSiteNotFound
+	if update.Public != nil && current.Public != *update.Public {
+		source, destination := s.privateStorage, s.publicStorage
+		if !*update.Public {
+			source, destination = s.publicStorage, s.privateStorage
 		}
 
+		body, err := source.Get(ctx, &storage.ObjectHead{Key: path})
+		if err != nil {
+			if errors.Is(err, storage.ErrObjectNotFound) {
+				return nil, ErrSiteNotFound
+			}
+
+			return nil, err
+		}
+		defer func() {
+			_ = body.Close()
+		}()
+
+		if _, err := destination.Put(
+			ctx,
+			body,
+			storage.WithKey(path),
+			storage.WithContentType("text/html"),
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := s.db.WithTx(ctx, func(q database.Querier) error {
+		if update.Public != nil && current.Public != *update.Public {
+			if err := q.UpdateSitePublic(ctx, sub, path, *update.Public); err != nil {
+				return err
+			}
+		}
+		if update.Name != nil {
+			if err := q.UpsertSiteName(ctx, path, name); err != nil {
+				return err
+			}
+		}
+		if update.Tags != nil {
+			if err := q.DeleteSiteTags(ctx, path); err != nil {
+				return err
+			}
+			for _, tag := range tags {
+				if err := q.CreateSiteTag(ctx, path, tag); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
-	defer func() {
-		_ = body.Close()
-	}()
 
-	if _, err := destination.Put(
-		ctx,
-		body,
-		storage.WithKey(path),
-		storage.WithContentType("text/html"),
-	); err != nil {
-		return nil, err
+	if update.Public != nil && current.Public != *update.Public {
+		source := s.privateStorage
+		if !*update.Public {
+			source = s.publicStorage
+		}
+		if err := source.Delete(ctx, &storage.ObjectHead{Key: path}); err != nil && !errors.Is(err, storage.ErrObjectNotFound) {
+			return nil, err
+		}
 	}
 
-	site, err := s.db.Querier().UpdateSitePublic(ctx, sub, path, public)
+	site, err := s.db.Querier().SelectSiteByPath(ctx, path)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := source.Delete(ctx, &storage.ObjectHead{Key: path}); err != nil && !errors.Is(err, storage.ErrObjectNotFound) {
 		return nil, err
 	}
 
@@ -342,6 +417,38 @@ func normalizePath(path string) (string, error) {
 	}
 
 	return path, nil
+}
+
+func normalizeName(name string) (string, error) {
+	name = strings.TrimSpace(name)
+	if len(name) == 0 || len(name) > siteNameMaxLength {
+		return "", ErrInvalidName
+	}
+
+	return name, nil
+}
+
+func normalizeTags(tags []string) ([]string, error) {
+	if len(tags) > siteTagsMaxCount {
+		return nil, ErrInvalidTags
+	}
+
+	out := make([]string, 0, len(tags))
+	seen := make(map[string]struct{}, len(tags))
+	for _, tag := range tags {
+		tag = strings.TrimSpace(tag)
+		if len(tag) == 0 || len(tag) > siteTagMaxLength {
+			return nil, ErrInvalidTags
+		}
+		if _, ok := seen[tag]; ok {
+			continue
+		}
+		seen[tag] = struct{}{}
+		out = append(out, tag)
+	}
+	slices.Sort(out)
+
+	return out, nil
 }
 
 func newSiteHTMLPolicy() *bluemonday.Policy {

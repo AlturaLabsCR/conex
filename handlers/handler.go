@@ -4,6 +4,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -34,6 +35,7 @@ type Handler struct {
 	authenticator auth.Authenticator[*appauth.Claims]
 	localizer     *i18n.Localizer
 	rootPrefix    string
+	baseURL       string
 
 	mux   *http.ServeMux
 	paths []string
@@ -48,6 +50,7 @@ type Options struct {
 	Authenticator auth.Authenticator[*appauth.Claims]
 	Localizer     *i18n.Localizer
 	RootPrefix    string
+	BaseURL       string
 }
 
 func NewHandler(opts Options) *Handler {
@@ -77,6 +80,7 @@ func NewHandler(opts Options) *Handler {
 	}
 
 	rootPrefix := normalizeRootPrefix(opts.RootPrefix)
+	baseURL := normalizeBaseURL(opts.BaseURL)
 
 	next := &Handler{
 		initialized:   true,
@@ -88,6 +92,7 @@ func NewHandler(opts Options) *Handler {
 		authenticator: authenticator,
 		localizer:     localizer,
 		rootPrefix:    rootPrefix,
+		baseURL:       baseURL,
 		mux:           http.NewServeMux(),
 	}
 
@@ -143,6 +148,15 @@ func (h *Handler) routePath(route string) string {
 	return h.rootPrefix + route
 }
 
+func (h *Handler) siteURL(path string) string {
+	route := h.routePath("/" + path)
+	if h.baseURL == "" {
+		return route
+	}
+
+	return strings.TrimRight(h.baseURL, "/") + route
+}
+
 func normalizeRootPrefix(prefix string) string {
 	prefix = strings.TrimSpace(prefix)
 	if prefix == "" || prefix == "/" {
@@ -154,4 +168,18 @@ func normalizeRootPrefix(prefix string) string {
 	}
 
 	return strings.TrimRight(prefix, "/")
+}
+
+func normalizeBaseURL(baseURL string) string {
+	baseURL = strings.TrimSpace(baseURL)
+	if baseURL == "" {
+		return ""
+	}
+
+	parsed, err := url.Parse(baseURL)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return strings.TrimRight(baseURL, "/")
+	}
+
+	return strings.TrimRight(parsed.String(), "/")
 }

@@ -55,6 +55,7 @@ func init() {
 	viper.SetDefault("mail.password", "")
 	viper.SetDefault("mail.starttls", false)
 	viper.SetDefault("root", "")
+	viper.SetDefault("base-url", "https://conex.co.cr")
 	viper.SetDefault("db", "conex-data/conex.sqlite")
 	initStorageConfig()
 
@@ -74,6 +75,7 @@ func init() {
 	flags.String("mail-password", "", "SMTP password")
 	flags.Bool("mail-starttls", false, "use STARTTLS instead of implicit TLS for SMTP")
 	flags.String("root", "", "route prefix to mount the app under")
+	flags.String("base-url", "", "public base URL for generated site URLs")
 
 	mustBindPersistentFlag("db", rootCmd, "db")
 	mustBindPersistentFlag("dev", rootCmd, "dev")
@@ -90,6 +92,8 @@ func init() {
 	mustBindPersistentFlag("mail.password", rootCmd, "mail-password")
 	mustBindPersistentFlag("mail.starttls", rootCmd, "mail-starttls")
 	mustBindPersistentFlag("root", rootCmd, "root")
+	mustBindPersistentFlag("base-url", rootCmd, "base-url")
+	mustBindEnv("base-url", "CONEX_BASE_URL")
 }
 
 func runServerFromConfig() error {
@@ -120,12 +124,13 @@ func runServerFromConfig() error {
 			SMTPStartTLS: viper.GetBool("mail.starttls"),
 		},
 		viper.GetString("root"),
+		viper.GetString("base-url"),
 		viper.GetString("host"),
 		viper.GetInt("port"),
 	)
 }
 
-func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts mailer.Options, rootPrefix string, host string, port int) error {
+func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts mailer.Options, rootPrefix string, baseURL string, host string, port int) error {
 	logger, err := newLogger(dev, logLvl, logFmt)
 	if err != nil {
 		return err
@@ -175,6 +180,7 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 		Authenticator: authenticator,
 		Localizer:     localizer,
 		RootPrefix:    rootPrefix,
+		BaseURL:       baseURL,
 	})
 
 	srv := &http.Server{

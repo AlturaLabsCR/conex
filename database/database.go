@@ -31,8 +31,20 @@ type Querier interface {
 	// SelectAccountBySub returns the account for the account subject.
 	SelectAccountBySub(ctx context.Context, sub int64) (*Account, error)
 
+	// SelectAccountSubscriptionBySub returns the account's subscription and plan.
+	SelectAccountSubscriptionBySub(ctx context.Context, sub int64) (*AccountSubscription, error)
+
 	// CreateSite creates a site for an account subject.
 	CreateSite(ctx context.Context, sub int64, path string, public bool) error
+
+	// UpsertSiteName creates or updates the display name for a site.
+	UpsertSiteName(ctx context.Context, path string, name string) error
+
+	// DeleteSiteTags deletes all tags for a site.
+	DeleteSiteTags(ctx context.Context, path string) error
+
+	// CreateSiteTag creates a tag for a site.
+	CreateSiteTag(ctx context.Context, path string, tag string) error
 
 	// SelectSiteByPath returns the site for the site path.
 	SelectSiteByPath(ctx context.Context, path string) (*Site, error)
@@ -41,7 +53,7 @@ type Querier interface {
 	SelectSitesBySub(ctx context.Context, sub int64) ([]Site, error)
 
 	// UpdateSitePublic updates the public status for a site owned by the account subject.
-	UpdateSitePublic(ctx context.Context, sub int64, path string, public bool) (*Site, error)
+	UpdateSitePublic(ctx context.Context, sub int64, path string, public bool) error
 
 	// DeleteSite deletes a site owned by the account subject.
 	DeleteSite(ctx context.Context, sub int64, path string) (*Site, error)
