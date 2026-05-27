@@ -9,6 +9,7 @@ servers:
 tags:
   - name: Authentication
   - name: Account
+  - name: Sites
 paths:
   /auth/login:
     post:
@@ -163,6 +164,96 @@ paths:
           description: Email change confirmed.
         default:
           $ref: '#/components/responses/Error'
+  /sites/available/{path}:
+    get:
+      tags:
+        - Sites
+      operationId: sitePathAvailable
+      summary: Check whether a site path is available
+      parameters:
+        - $ref: '#/components/parameters/SitePath'
+      responses:
+        '204':
+          description: Site path is available.
+        '409':
+          description: Site path is already in use or reserved by another route.
+        default:
+          $ref: '#/components/responses/Error'
+  /sites:
+    post:
+      tags:
+        - Sites
+      operationId: createSite
+      summary: Create a site
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSiteRequest'
+            example:
+              path: go-fitness
+              html: <h1>Hello</h1>
+      responses:
+        '201':
+          description: Site created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+              example:
+                path: go-fitness
+                public: false
+                sub: 1
+        default:
+          $ref: '#/components/responses/Error'
+  /sites/{path}:
+    patch:
+      tags:
+        - Sites
+      operationId: setSitePublic
+      summary: Publish or unpublish a site
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SitePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetSitePublicRequest'
+            example:
+              public: true
+      responses:
+        '200':
+          description: Site updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+              example:
+                path: go-fitness
+                public: true
+                sub: 1
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      tags:
+        - Sites
+      operationId: deleteSite
+      summary: Delete a site
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SitePath'
+      responses:
+        '204':
+          description: Site deleted.
+        default:
+          $ref: '#/components/responses/Error'
 components:
   securitySchemes:
     bearerAuth:
@@ -176,6 +267,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+  parameters:
+    SitePath:
+      name: path
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-z0-9](?:[a-z0-9-]{0,253}[a-z0-9])?$'
   schemas:
     LoginRequest:
       type: object
@@ -265,6 +364,40 @@ components:
           description: Six-digit one-time password.
           minimum: 0
           maximum: 999999
+    CreateSiteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - path
+        - html
+      properties:
+        path:
+          type: string
+          pattern: '^[a-z0-9](?:[a-z0-9-]{0,253}[a-z0-9])?$'
+        html:
+          type: string
+    SetSitePublicRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - public
+      properties:
+        public:
+          type: boolean
+    Site:
+      type: object
+      additionalProperties: false
+      required:
+        - sub
+        - path
+        - public
+      properties:
+        sub:
+          type: integer
+        path:
+          type: string
+        public:
+          type: boolean
     Error:
       type: object
       description: Generic error payload shape when the server returns JSON errors.
