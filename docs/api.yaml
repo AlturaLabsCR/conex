@@ -614,4 +614,15 @@ components:
     Error:
       type: object
       description: Generic error payload shape when the server returns JSON errors.
-      additionalProperties: true
+      additionalProperties: false
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+            - msg
+          properties:
+            msg:
+              type: string

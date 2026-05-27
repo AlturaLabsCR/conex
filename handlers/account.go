@@ -10,7 +10,7 @@ import (
 
 func (h *Handler) registerAccountRoutes() {
 	authenticated := func(fn http.HandlerFunc) http.Handler {
-		return middleware.AuthenticateBearer(h.logger, h.authenticator, http.HandlerFunc(fn))
+		return middleware.AuthenticateBearer(h.logger, h.authenticator, h.localizeError, http.HandlerFunc(fn))
 	}
 
 	h.AddHandler(http.MethodGet, h.routePath("/api/account"), authenticated(h.GetAccount))

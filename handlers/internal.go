@@ -41,6 +41,27 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	}
 }
 
+type errorResponse struct {
+	Error errorResponseBody `json:"error"`
+}
+
+type errorResponseBody struct {
+	Msg string `json:"msg"`
+}
+
+func newErrorResponse(msg string) errorResponse {
+	return errorResponse{
+		Error: errorResponseBody{
+			Msg: msg,
+		},
+	}
+}
+
+func (h *Handler) localizeError(r *http.Request, msg string) string {
+	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
+	return L(msg)
+}
+
 func (h *Handler) writeStatus(w http.ResponseWriter, r *http.Request, status int, msg string, args ...any) {
 	logArgs := []any{
 		"status", status,
@@ -53,6 +74,11 @@ func (h *Handler) writeStatus(w http.ResponseWriter, r *http.Request, status int
 		h.logger.Error(msg, logArgs...)
 	} else if status >= http.StatusBadRequest {
 		h.logger.Debug(msg, logArgs...)
+	}
+
+	if status >= http.StatusBadRequest {
+		writeJSON(w, status, newErrorResponse(h.localizeError(r, msg)))
+		return
 	}
 
 	w.WriteHeader(status)
@@ -75,7 +101,7 @@ func (h *Handler) writeError(w http.ResponseWriter, r *http.Request, status int,
 		h.logger.Debug(msg, logArgs...)
 	}
 
-	w.WriteHeader(status)
+	writeJSON(w, status, newErrorResponse(h.localizeError(r, msg)))
 }
 
 func authenticatedAccountClaimsAndSubject(r *http.Request) (*appauth.Claims, int64, int, bool) {
