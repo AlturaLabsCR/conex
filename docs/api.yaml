@@ -4,8 +4,7 @@ info:
   version: 0.1.0
   description: OpenAPI specification of App.
 servers:
-  - url: http://localhost:3080
-    description: Local development server
+  - url: https://conex.co.cr
 tags:
   - name: Authentication
   - name: Account
