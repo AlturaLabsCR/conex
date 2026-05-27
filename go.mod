@@ -12,9 +12,9 @@ require (
 	github.com/tavocg/go-email v0.0.0-20260523203456-e164c30a587d
 	github.com/tavocg/go-i18n v1.0.1
 	github.com/tavocg/go-secrets v0.0.0-20260523061925-d0121307ced6
-	github.com/tavocg/go-storage v1.2.0
+	github.com/tavocg/go-storage v1.2.1
 	github.com/tavocg/go-storage/backends/fs v0.2.1
-	github.com/tavocg/go-storage/backends/s3 v0.2.2
+	github.com/tavocg/go-storage/backends/s3 v0.2.3
 	modernc.org/sqlite v1.50.1
 )
 
