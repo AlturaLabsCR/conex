@@ -11,9 +11,9 @@ import (
 	"app/database"
 	"app/mailer"
 	"app/middleware"
+	"app/sites"
 	"github.com/tavocg/go-auth"
 	"github.com/tavocg/go-i18n"
-	"github.com/tavocg/go-storage"
 )
 
 type Logger interface {
@@ -30,7 +30,7 @@ type Handler struct {
 	logger        Logger
 	db            database.Database
 	mailer        *mailer.Mailer
-	storage       *storage.Storage
+	sites         sites.Sites
 	authenticator auth.Authenticator[*appauth.Claims]
 	localizer     *i18n.Localizer
 	rootPrefix    string
@@ -44,7 +44,7 @@ type Options struct {
 	Dev           bool
 	DB            database.Database
 	Mailer        *mailer.Mailer
-	Storage       *storage.Storage
+	Sites         sites.Sites
 	Authenticator auth.Authenticator[*appauth.Claims]
 	Localizer     *i18n.Localizer
 	RootPrefix    string
@@ -69,8 +69,11 @@ func NewHandler(opts Options) *Handler {
 	if opts.Mailer == nil {
 		panic("handler mailer is required")
 	}
-	if opts.Storage == nil {
-		panic("handler storage is required")
+	if opts.Sites == nil {
+		panic("handler sites service is required")
+	}
+	if opts.DB == nil {
+		panic("handler database is required")
 	}
 
 	rootPrefix := normalizeRootPrefix(opts.RootPrefix)
@@ -81,7 +84,7 @@ func NewHandler(opts Options) *Handler {
 		logger:        logger,
 		db:            opts.DB,
 		mailer:        opts.Mailer,
-		storage:       opts.Storage,
+		sites:         opts.Sites,
 		authenticator: authenticator,
 		localizer:     localizer,
 		rootPrefix:    rootPrefix,
@@ -118,6 +121,7 @@ func (h *Handler) Mux() *http.ServeMux {
 func (h *Handler) registerRoutes() {
 	h.registerAuthRoutes()
 	h.registerAccountRoutes()
+	h.registerSiteRoutes()
 	h.registerRootRoutes()
 	h.registerStaticRoutes()
 }

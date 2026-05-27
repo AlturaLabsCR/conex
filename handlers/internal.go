@@ -13,7 +13,7 @@ import (
 	appauth "app/auth"
 	"app/middleware"
 
-	goemail "github.com/tavocg/go-email"
+	"github.com/tavocg/go-email"
 )
 
 func decodeJSON(body io.Reader, dst any) error {
@@ -106,8 +106,8 @@ func randomOTP() (int64, error) {
 	return value.Int64(), nil
 }
 
-func validEmail(email string) (string, error) {
-	valid, err := goemail.StrictParser(email)
+func validEmail(address string) (string, error) {
+	valid, err := email.StrictParser(address)
 	if err != nil || valid.IsBlacklisted() {
 		return "", fmt.Errorf("invalid email address")
 	}

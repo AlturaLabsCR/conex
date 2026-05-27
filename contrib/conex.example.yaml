@@ -67,8 +67,10 @@ root: ""
 #   app serve --storage-fs-root ./data/root
 #   CONEX_FS_MAX_SIZE=10737418240 app serve
 #   app serve --storage-fs-max-size 10737418240
-#   CONEX_S3_BUCKET=my-bucket app serve
-#   app serve --storage-s3-bucket my-bucket
+#   CONEX_S3_PRIVATE_BUCKET=my-private-bucket app serve
+#   app serve --storage-s3-private-bucket my-private-bucket
+#   CONEX_S3_PUBLIC_BUCKET=my-public-bucket app serve
+#   app serve --storage-s3-public-bucket my-public-bucket
 #   CONEX_S3_ACCESS_KEY_ID=change-me app serve
 #   app serve --storage-s3-access-key-id change-me
 #   CONEX_S3_SECRET_ACCESS_KEY=change-me app serve
@@ -77,6 +79,8 @@ root: ""
 #   app serve --storage-s3-region auto
 #   CONEX_S3_ENDPOINT=https://example.invalid app serve
 #   app serve --storage-s3-endpoint https://example.invalid
+#   CONEX_S3_PUBLIC_ENDPOINT_URL=https://public.example.invalid app serve
+#   app serve --storage-s3-public-endpoint-url https://public.example.invalid
 #   CONEX_S3_MAX_SIZE=10737418240 app serve
 #   app serve --storage-s3-max-size 10737418240
 storage:
@@ -85,11 +89,13 @@ storage:
     root: ./data/root
     max-size: 10737418240
   s3:
-    bucket: ""
+    private-bucket: ""
+    public-bucket: ""
     access-key-id: ""
     secret-access-key: ""
     region: auto
     endpoint: ""
+    public-endpoint-url: ""
     max-size: 10737418240
 
 # Log output format. Valid values: json, text.

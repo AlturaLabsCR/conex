@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	gosmtp "github.com/tavocg/go-email/smtp"
+	"github.com/tavocg/go-email/smtp"
 )
 
 type Mailer struct {
@@ -60,7 +60,7 @@ func (m *Mailer) SendOTP(ctx context.Context, L func(string, ...any) string, rec
 
 	code := fmt.Sprintf("%06d", otp)
 	expiresAtTime := time.Unix(expiresAt, 0).UTC()
-	message := gosmtp.NewPlainMessage(
+	message := smtp.NewPlainMessage(
 		m.opts.From,
 		[]string{recipient},
 		L("mail.otp.subject"),
@@ -77,13 +77,13 @@ func (m *Mailer) SendOTP(ctx context.Context, L func(string, ...any) string, rec
 	return nil
 }
 
-func (m *Mailer) newClient(ctx context.Context) (*gosmtp.Client, error) {
-	smtpOpts := []gosmtp.Option{}
+func (m *Mailer) newClient(ctx context.Context) (*smtp.Client, error) {
+	smtpOpts := []smtp.Option{}
 	if m.opts.SMTPStartTLS {
-		smtpOpts = append(smtpOpts, gosmtp.WithStartTLS())
+		smtpOpts = append(smtpOpts, smtp.WithStartTLS())
 	}
 
-	client, err := gosmtp.NewClient(
+	client, err := smtp.NewClient(
 		ctx,
 		m.opts.SMTPAddress,
 		m.opts.SMTPUser,

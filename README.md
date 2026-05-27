@@ -4,9 +4,9 @@ Website aggregator
 
 ## Roadmap
 
-### Sites manger [0/3]
+### Sites manger [4/4]
 
-- [ ] Define API interface for creating, (un)publishing and deleting sites.
+- [x] Define API interface for creating, (un)publishing and deleting sites.
       I'm guessing, uploading HTML (for now don't sanitize, assume ok) and a path
       for the site to be published. A companion request in this folder for a GET
       request that checks if site path is available would be nice, maybe
@@ -23,12 +23,12 @@ Website aggregator
       path is available.
       When uploading a site, upload with content-type text/html to the path
       AFTER successfully registering in the db that path as owned by the user.
-- [ ] Update `database/sqlite` and `database/postgres` submodules to allow users
+- [x] Update `database/sqlite` and `database/postgres` submodules to allow users
       to create sites, a site would consist of a path VARCHAR(255) and public
       boolean status. The path would also locate the site in a s3 bucket.
       For example, the path could be `go-fitness`, and so, if present in a
       bucket, it's key would be `go-fitness`.
-- [ ] Create `sites/site.go` submodule, with a `Sites` interface that abstracts
+- [x] Create `sites/site.go` submodule, with a `Sites` interface that abstracts
       the logic required to create, (un)publish and delete sites, this submodule
       would wrap the database and object storage logic.
-- [ ] Implement handlers that meet the API interface for sites.
+- [x] Implement handlers that meet the API interface for sites.

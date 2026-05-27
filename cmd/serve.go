@@ -21,7 +21,8 @@ import (
 	"app/database/provider"
 	"app/handlers"
 	locales "app/i18n"
-	appmailer "app/mailer"
+	"app/mailer"
+	"app/sites"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tavocg/go-auth/authenticators"
@@ -111,7 +112,7 @@ func runServerFromConfig() error {
 		authSecret,
 		viper.GetDuration("auth.access-token-ttl"),
 		viper.GetDuration("auth.refresh-token-ttl"),
-		appmailer.Options{
+		mailer.Options{
 			From:         viper.GetString("mail.from"),
 			SMTPAddress:  viper.GetString("mail.host"),
 			SMTPUser:     viper.GetString("mail.user"),
@@ -124,7 +125,7 @@ func runServerFromConfig() error {
 	)
 }
 
-func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts appmailer.Options, rootPrefix string, host string, port int) error {
+func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts mailer.Options, rootPrefix string, host string, port int) error {
 	logger, err := newLogger(dev, logLvl, logFmt)
 	if err != nil {
 		return err
@@ -155,12 +156,12 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 		return err
 	}
 
-	mailer, err := appmailer.NewMailer(mailOpts)
+	mailer, err := mailer.NewMailer(mailOpts)
 	if err != nil {
 		return err
 	}
 
-	storage, err := newStorageFromConfig(context.Background())
+	privateStorage, publicStorage, err := newStorageFromConfig(context.Background())
 	if err != nil {
 		return err
 	}
@@ -170,7 +171,7 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 		Dev:           dev,
 		DB:            db,
 		Mailer:        mailer,
-		Storage:       storage,
+		Sites:         sites.New(db, privateStorage, publicStorage),
 		Authenticator: authenticator,
 		Localizer:     localizer,
 		RootPrefix:    rootPrefix,

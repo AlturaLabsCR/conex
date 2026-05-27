@@ -60,6 +60,11 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.sites.DeleteAll(r.Context(), sub); err != nil {
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to delete account sites", "sub", sub)
+		return
+	}
+
 	if err := h.db.WithTx(r.Context(), func(q database.Querier) error {
 		if err := q.DeleteAccountEmailChangeRequest(r.Context(), sub); err != nil {
 			return err

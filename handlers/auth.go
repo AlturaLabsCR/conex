@@ -9,7 +9,7 @@ import (
 
 	appauth "app/auth"
 	"app/database"
-	auth "github.com/tavocg/go-auth"
+	"github.com/tavocg/go-auth"
 )
 
 func (h *Handler) registerAuthRoutes() {
