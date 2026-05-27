@@ -261,15 +261,16 @@ paths:
         - $ref: '#/components/parameters/SitePath'
       responses:
         '200':
-          description: Owned site metadata.
+          description: Owned site metadata and stored HTML.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Site'
+                $ref: '#/components/schemas/OwnedSite'
               example:
                 path: go-fitness
                 public: true
                 sub: 1
+                html: <h1>Hello</h1>
         default:
           $ref: '#/components/responses/Error'
     patch:
@@ -464,6 +465,16 @@ components:
           type: string
         public:
           type: boolean
+    OwnedSite:
+      allOf:
+        - $ref: '#/components/schemas/Site'
+        - type: object
+          additionalProperties: false
+          required:
+            - html
+          properties:
+            html:
+              type: string
     Error:
       type: object
       description: Generic error payload shape when the server returns JSON errors.

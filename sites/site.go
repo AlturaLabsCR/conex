@@ -30,7 +30,7 @@ const (
 type Sites interface {
 	Create(ctx context.Context, sub int64, path string, html io.Reader) (*database.Site, error)
 	Get(ctx context.Context, path string) (*database.Site, string, error)
-	GetOwned(ctx context.Context, sub int64, path string) (*database.Site, error)
+	GetOwned(ctx context.Context, sub int64, path string) (*database.Site, string, error)
 	List(ctx context.Context, sub int64) ([]database.Site, error)
 	SetPublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error)
 	Delete(ctx context.Context, sub int64, path string) error
@@ -156,25 +156,47 @@ func (s *Service) List(ctx context.Context, sub int64) ([]database.Site, error) 
 	return s.db.Querier().SelectSitesBySub(ctx, sub)
 }
 
-func (s *Service) GetOwned(ctx context.Context, sub int64, path string) (*database.Site, error) {
+func (s *Service) GetOwned(ctx context.Context, sub int64, path string) (*database.Site, string, error) {
 	path, err := normalizePath(path)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	site, err := s.db.Querier().SelectSiteByPath(ctx, path)
 	if err != nil {
 		if s.db.IsErrNotFound(err) {
-			return nil, ErrSiteNotFound
+			return nil, "", ErrSiteNotFound
 		}
 
-		return nil, err
+		return nil, "", err
 	}
 	if site.Sub != sub {
-		return nil, ErrSiteNotFound
+		return nil, "", ErrSiteNotFound
 	}
 
-	return site, nil
+	source := s.privateStorage
+	if site.Public {
+		source = s.publicStorage
+	}
+
+	body, err := source.Get(ctx, &storage.ObjectHead{Key: path})
+	if err != nil {
+		if errors.Is(err, storage.ErrObjectNotFound) {
+			return nil, "", ErrSiteNotFound
+		}
+
+		return nil, "", err
+	}
+	defer func() {
+		_ = body.Close()
+	}()
+
+	html, err := io.ReadAll(body)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return site, string(html), nil
 }
 
 func (s *Service) SetPublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error) {

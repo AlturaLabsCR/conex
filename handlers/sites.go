@@ -110,7 +110,7 @@ func (h *Handler) GetOwnedSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	site, err := h.sites.GetOwned(r.Context(), sub, r.PathValue("path"))
+	site, html, err := h.sites.GetOwned(r.Context(), sub, r.PathValue("path"))
 	if err != nil {
 		switch {
 		case errors.Is(err, sites.ErrInvalidPath):
@@ -125,7 +125,19 @@ func (h *Handler) GetOwnedSite(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, http.StatusOK, site)
+	type ownedSiteResponse struct {
+		Sub    int64  `json:"sub"`
+		Path   string `json:"path"`
+		Public bool   `json:"public"`
+		HTML   string `json:"html"`
+	}
+
+	writeJSON(w, http.StatusOK, ownedSiteResponse{
+		Sub:    site.Sub,
+		Path:   site.Path,
+		Public: site.Public,
+		HTML:   html,
+	})
 }
 
 func (h *Handler) CreateSite(w http.ResponseWriter, r *http.Request) {
