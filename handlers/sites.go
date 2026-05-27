@@ -17,11 +17,12 @@ func (h *Handler) registerSiteRoutes() {
 		return middleware.AuthenticateBearer(h.logger, h.authenticator, http.HandlerFunc(fn))
 	}
 
-	h.AddHandler(http.MethodGet, h.routePath("/api/sites/{path}"), http.HandlerFunc(h.SitePathAvailable))
+	h.AddHandler(http.MethodHead, h.routePath("/api/sites/{path}"), http.HandlerFunc(h.SitePathAvailable))
 	h.AddHandler(http.MethodGet, h.routePath("/api/sites"), authenticated(h.ListSites))
-	h.AddHandler(http.MethodPost, h.routePath("/api/site"), authenticated(h.CreateSite))
-	h.AddHandler(http.MethodPatch, h.routePath("/api/site/{path}"), authenticated(h.SetSitePublic))
-	h.AddHandler(http.MethodDelete, h.routePath("/api/site/{path}"), authenticated(h.DeleteSite))
+	h.AddHandler(http.MethodPost, h.routePath("/api/sites"), authenticated(h.CreateSite))
+	h.AddHandler(http.MethodGet, h.routePath("/api/sites/{path}"), authenticated(h.GetOwnedSite))
+	h.AddHandler(http.MethodPatch, h.routePath("/api/sites/{path}"), authenticated(h.SetSitePublic))
+	h.AddHandler(http.MethodDelete, h.routePath("/api/sites/{path}"), authenticated(h.DeleteSite))
 	h.AddHandler(http.MethodGet, h.routePath("/{path}"), http.HandlerFunc(h.GetSite))
 }
 
@@ -100,6 +101,31 @@ func (h *Handler) ListSites(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, ownedSites)
+}
+
+func (h *Handler) GetOwnedSite(w http.ResponseWriter, r *http.Request) {
+	_, sub, status, ok := authenticatedAccountClaimsAndSubject(r)
+	if !ok {
+		h.writeStatus(w, r, status, "missing authenticated account subject")
+		return
+	}
+
+	site, err := h.sites.GetOwned(r.Context(), sub, r.PathValue("path"))
+	if err != nil {
+		switch {
+		case errors.Is(err, sites.ErrInvalidPath):
+			h.writeError(w, r, http.StatusBadRequest, err, "invalid site path", "sub", sub, "site_path", r.PathValue("path"))
+			return
+		case errors.Is(err, sites.ErrSiteNotFound):
+			h.writeError(w, r, http.StatusNotFound, err, "site not found", "sub", sub, "site_path", r.PathValue("path"))
+			return
+		default:
+			h.writeError(w, r, http.StatusInternalServerError, err, "failed to get owned site", "sub", sub, "site_path", r.PathValue("path"))
+			return
+		}
+	}
+
+	writeJSON(w, http.StatusOK, site)
 }
 
 func (h *Handler) CreateSite(w http.ResponseWriter, r *http.Request) {

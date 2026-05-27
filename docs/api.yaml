@@ -181,7 +181,7 @@ paths:
         default:
           $ref: '#/components/responses/Error'
   /api/sites/{path}:
-    get:
+    head:
       tags:
         - Sites
       operationId: sitePathAvailable
@@ -195,63 +195,28 @@ paths:
           description: Site path is already in use or reserved by another route.
         default:
           $ref: '#/components/responses/Error'
-  /api/sites:
     get:
       tags:
         - Sites
-      operationId: listSites
-      summary: List owned sites
+      operationId: getOwnedSite
+      summary: Get owned site metadata
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SitePath'
       responses:
         '200':
-          description: Sites owned by the authenticated account.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Site'
-              example:
-                - path: go-fitness
-                  public: false
-                  sub: 1
-                - path: personal-blog
-                  public: true
-                  sub: 1
-        default:
-          $ref: '#/components/responses/Error'
-  /api/site:
-    post:
-      tags:
-        - Sites
-      operationId: createSite
-      summary: Create a site
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateSiteRequest'
-            example:
-              path: go-fitness
-              html: <h1>Hello</h1>
-      responses:
-        '201':
-          description: Site created.
+          description: Owned site metadata.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Site'
               example:
                 path: go-fitness
-                public: false
+                public: true
                 sub: 1
         default:
           $ref: '#/components/responses/Error'
-  /api/site/{path}:
     patch:
       tags:
         - Sites
@@ -294,6 +259,61 @@ paths:
       responses:
         '204':
           description: Site deleted.
+        default:
+          $ref: '#/components/responses/Error'
+  /api/sites:
+    get:
+      tags:
+        - Sites
+      operationId: listSites
+      summary: List owned sites
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sites owned by the authenticated account.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Site'
+              example:
+                - path: go-fitness
+                  public: false
+                  sub: 1
+                - path: personal-blog
+                  public: true
+                  sub: 1
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags:
+        - Sites
+      operationId: createSite
+      summary: Create a site
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSiteRequest'
+            example:
+              path: go-fitness
+              html: <h1>Hello</h1>
+      responses:
+        '201':
+          description: Site created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+              example:
+                path: go-fitness
+                public: false
+                sub: 1
         default:
           $ref: '#/components/responses/Error'
 components:
