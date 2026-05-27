@@ -30,6 +30,7 @@ const (
 type Sites interface {
 	Create(ctx context.Context, sub int64, path string, html io.Reader) (*database.Site, error)
 	Get(ctx context.Context, path string) (*database.Site, string, error)
+	List(ctx context.Context, sub int64) ([]database.Site, error)
 	SetPublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error)
 	Delete(ctx context.Context, sub int64, path string) error
 	DeleteAll(ctx context.Context, sub int64) error
@@ -148,6 +149,10 @@ func (s *Service) Get(ctx context.Context, path string) (*database.Site, string,
 	}
 
 	return site, string(html), nil
+}
+
+func (s *Service) List(ctx context.Context, sub int64) ([]database.Site, error) {
+	return s.db.Querier().SelectSitesBySub(ctx, sub)
 }
 
 func (s *Service) SetPublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error) {

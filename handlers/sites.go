@@ -18,6 +18,7 @@ func (h *Handler) registerSiteRoutes() {
 	}
 
 	h.AddHandler(http.MethodGet, h.routePath("/sites/available/{path}"), http.HandlerFunc(h.SitePathAvailable))
+	h.AddHandler(http.MethodGet, h.routePath("/sites"), authenticated(h.ListSites))
 	h.AddHandler(http.MethodPost, h.routePath("/sites"), authenticated(h.CreateSite))
 	h.AddHandler(http.MethodPatch, h.routePath("/sites/{path}"), authenticated(h.SetSitePublic))
 	h.AddHandler(http.MethodDelete, h.routePath("/sites/{path}"), authenticated(h.DeleteSite))
@@ -83,6 +84,22 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 	if err := page.Render(r.Context(), w); err != nil {
 		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site", "site_path", site.Path)
 	}
+}
+
+func (h *Handler) ListSites(w http.ResponseWriter, r *http.Request) {
+	_, sub, status, ok := authenticatedAccountClaimsAndSubject(r)
+	if !ok {
+		h.writeStatus(w, r, status, "missing authenticated account subject")
+		return
+	}
+
+	ownedSites, err := h.sites.List(r.Context(), sub)
+	if err != nil {
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to list sites", "sub", sub)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, ownedSites)
 }
 
 func (h *Handler) CreateSite(w http.ResponseWriter, r *http.Request) {
