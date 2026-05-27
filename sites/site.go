@@ -48,6 +48,7 @@ type SiteUpdate struct {
 	Public *bool
 	Name   *string
 	Tags   *[]string
+	HTML   *string
 }
 
 type Service struct {
@@ -248,6 +249,10 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 			return nil, err
 		}
 	}
+	var html []byte
+	if update.HTML != nil {
+		html = siteHTMLPolicy.SanitizeBytes([]byte(*update.HTML))
+	}
 
 	current, err := s.db.Querier().SelectSiteByPath(ctx, path)
 	if err != nil {
@@ -261,7 +266,27 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 		return nil, ErrSiteNotFound
 	}
 
-	if update.Public != nil && current.Public != *update.Public {
+	if update.HTML != nil {
+		destination := s.privateStorage
+		if current.Public {
+			destination = s.publicStorage
+		}
+		if update.Public != nil && *update.Public {
+			destination = s.publicStorage
+		}
+		if update.Public != nil && !*update.Public {
+			destination = s.privateStorage
+		}
+
+		if _, err := destination.Put(
+			ctx,
+			bytes.NewReader(html),
+			storage.WithKey(path),
+			storage.WithContentType("text/html"),
+		); err != nil {
+			return nil, err
+		}
+	} else if update.Public != nil && current.Public != *update.Public {
 		source, destination := s.privateStorage, s.publicStorage
 		if !*update.Public {
 			source, destination = s.publicStorage, s.privateStorage

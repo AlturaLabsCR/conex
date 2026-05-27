@@ -331,22 +331,10 @@ paths:
               tags:
                 - fitness
                 - health
+              html: <h1>Hello again</h1>
       responses:
-        '200':
+        '204':
           description: Site updated.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Site'
-              example:
-                path: go-fitness
-                public: true
-                name: Go Fitness Club
-                tags:
-                  - fitness
-                  - health
-                url: https://conex.co.cr/go-fitness
-                sub: 1
         default:
           $ref: '#/components/responses/Error'
     delete:
@@ -585,6 +573,8 @@ components:
             minLength: 1
             maxLength: 64
           uniqueItems: true
+        html:
+          type: string
     Site:
       type: object
       additionalProperties: false

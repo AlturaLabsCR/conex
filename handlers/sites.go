@@ -208,6 +208,7 @@ func (h *Handler) UpdateSite(w http.ResponseWriter, r *http.Request) {
 		Public *bool     `json:"public"`
 		Name   *string   `json:"name"`
 		Tags   *[]string `json:"tags"`
+		HTML   *string   `json:"html"`
 	}
 
 	var req updateSiteRequest
@@ -216,10 +217,11 @@ func (h *Handler) UpdateSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	site, err := h.sites.Update(r.Context(), sub, r.PathValue("path"), sites.SiteUpdate{
+	_, err := h.sites.Update(r.Context(), sub, r.PathValue("path"), sites.SiteUpdate{
 		Public: req.Public,
 		Name:   req.Name,
 		Tags:   req.Tags,
+		HTML:   req.HTML,
 	})
 	if err != nil {
 		switch {
@@ -241,7 +243,7 @@ func (h *Handler) UpdateSite(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, http.StatusOK, h.siteResponse(*site))
+	w.WriteHeader(http.StatusNoContent)
 }
 
 type siteResponse struct {
