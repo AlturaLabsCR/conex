@@ -266,6 +266,7 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 		return nil, ErrSiteNotFound
 	}
 
+	// TODO: Shouldn't this else if be a separate if, in case the request has both html AND public status?
 	if update.HTML != nil {
 		destination := s.privateStorage
 		if current.Public {
@@ -350,6 +351,7 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 		}
 	}
 
+	// TODO: Is this necessary?
 	site, err := s.db.Querier().SelectSiteByPath(ctx, path)
 	if err != nil {
 		return nil, err
