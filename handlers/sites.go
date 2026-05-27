@@ -17,13 +17,13 @@ func (h *Handler) registerSiteRoutes() {
 		return middleware.AuthenticateBearer(h.logger, h.authenticator, http.HandlerFunc(fn))
 	}
 
+	h.AddHandler(http.MethodGet, h.routePath("/{path}"), http.HandlerFunc(h.GetSite))
 	h.AddHandler(http.MethodHead, h.routePath("/api/sites/{path}"), http.HandlerFunc(h.SitePathAvailable))
-	h.AddHandler(http.MethodGet, h.routePath("/api/sites"), authenticated(h.ListSites))
 	h.AddHandler(http.MethodPost, h.routePath("/api/sites"), authenticated(h.CreateSite))
+	h.AddHandler(http.MethodGet, h.routePath("/api/sites"), authenticated(h.ListSites))
 	h.AddHandler(http.MethodGet, h.routePath("/api/sites/{path}"), authenticated(h.GetOwnedSite))
 	h.AddHandler(http.MethodPatch, h.routePath("/api/sites/{path}"), authenticated(h.SetSitePublic))
 	h.AddHandler(http.MethodDelete, h.routePath("/api/sites/{path}"), authenticated(h.DeleteSite))
-	h.AddHandler(http.MethodGet, h.routePath("/{path}"), http.HandlerFunc(h.GetSite))
 }
 
 func (h *Handler) SitePathAvailable(w http.ResponseWriter, r *http.Request) {
