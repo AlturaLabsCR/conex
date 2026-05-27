@@ -7,6 +7,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"app/database"
 	"app/database/sqlite/db"
@@ -32,7 +33,7 @@ func NewSqlite(ctx context.Context, connStr string, opts ...SqliteOption) (*Sqli
 		}
 	}
 
-	conn, err := sql.Open("sqlite", connStr)
+	conn, err := sql.Open("sqlite", withForeignKeys(connStr))
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +57,14 @@ func NewSqlite(ctx context.Context, connStr string, opts ...SqliteOption) (*Sqli
 	}
 
 	return s, nil
+}
+
+func withForeignKeys(connStr string) string {
+	if strings.Contains(connStr, "?") {
+		return connStr + "&_pragma=foreign_keys(1)"
+	}
+
+	return connStr + "?_pragma=foreign_keys(1)"
 }
 
 func (s *Sqlite) Querier() database.Querier {
