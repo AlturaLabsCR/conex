@@ -63,8 +63,8 @@ root: ""
 # Override with:
 #   CONEX_STORAGE_BACKEND=fs app serve
 #   app serve --storage-backend fs
-#   CONEX_FS_ROOT=./data/root app serve
-#   app serve --storage-fs-root ./data/root
+#   CONEX_FS_ROOT=./conex-data/root app serve
+#   app serve --storage-fs-root ./conex-data/root
 #   CONEX_FS_MAX_SIZE=10737418240 app serve
 #   app serve --storage-fs-max-size 10737418240
 #   CONEX_S3_PRIVATE_BUCKET=my-private-bucket app serve
@@ -86,7 +86,7 @@ root: ""
 storage:
   backend: fs
   fs:
-    root: ./data/root
+    root: ./conex-data/root
     max-size: 10737418240
   s3:
     private-bucket: ""
@@ -112,6 +112,6 @@ loglvl: info
 
 # Database connection string or path.
 # Override with:
-#   CONEX_DB=data/custom.sqlite app serve
-#   app serve --db data/custom.sqlite
-db: data/app.sqlite
+#   CONEX_DB=conex-data/custom.sqlite app serve
+#   app serve --db conex-data/custom.sqlite
+db: conex-data/conex.sqlite

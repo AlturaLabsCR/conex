@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS sites (
   path VARCHAR(255) NOT NULL PRIMARY KEY,
   public BOOLEAN NOT NULL DEFAULT FALSE,
 
-  CONSTRAINT sites_path_len CHECK (length(path) <= 255)
+  CONSTRAINT sites_path_len CHECK (length(path) BETWEEN 3 AND 255)
 );
 
 CREATE INDEX IF NOT EXISTS sites_sub_idx ON sites(sub);

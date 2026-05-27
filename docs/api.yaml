@@ -291,7 +291,9 @@ components:
       required: true
       schema:
         type: string
-        pattern: '^[a-z0-9](?:[a-z0-9-]{0,253}[a-z0-9])?$'
+        minLength: 3
+        maxLength: 255
+        pattern: '^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
   schemas:
     LoginRequest:
       type: object
@@ -390,7 +392,9 @@ components:
       properties:
         path:
           type: string
-          pattern: '^[a-z0-9](?:[a-z0-9-]{0,253}[a-z0-9])?$'
+          minLength: 3
+          maxLength: 255
+          pattern: '^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
         html:
           type: string
     SetSitePublicRequest:

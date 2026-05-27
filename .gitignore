@@ -2,8 +2,7 @@ node_modules/
 
 db/
 
-myserver
-data/
+conex-data
 *.html
 *_templ.go
 

@@ -18,8 +18,13 @@ var (
 	ErrInvalidPath     = errors.New("invalid site path")
 	ErrPathUnavailable = errors.New("site path unavailable")
 	ErrSiteNotFound    = errors.New("site not found")
-	sitePathPattern    = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,253}[a-z0-9])?$`)
+	sitePathPattern    = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$`)
 	siteHTMLPolicy     = newSiteHTMLPolicy()
+)
+
+const (
+	sitePathMinLength = 3
+	sitePathMaxLength = 255
 )
 
 type Sites interface {
@@ -280,6 +285,9 @@ func (s *Service) IsPathAvailable(ctx context.Context, path string) (bool, error
 
 func normalizePath(path string) (string, error) {
 	path = strings.TrimSpace(strings.ToLower(path))
+	if len(path) < sitePathMinLength || len(path) > sitePathMaxLength {
+		return "", ErrInvalidPath
+	}
 	if !sitePathPattern.MatchString(path) {
 		return "", ErrInvalidPath
 	}

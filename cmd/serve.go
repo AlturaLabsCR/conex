@@ -55,11 +55,11 @@ func init() {
 	viper.SetDefault("mail.password", "")
 	viper.SetDefault("mail.starttls", false)
 	viper.SetDefault("root", "")
-	viper.SetDefault("db", "data/app.sqlite")
+	viper.SetDefault("db", "conex-data/conex.sqlite")
 	initStorageConfig()
 
 	flags := rootCmd.PersistentFlags()
-	flags.String("db", "data/app.sqlite", "database DSN")
+	flags.String("db", "conex-data/conex.sqlite", "database DSN")
 	flags.Bool("dev", false, "enable dev mode")
 	flags.String("host", "", "bind host")
 	flags.Int("port", 3080, "bind port")
