@@ -14,7 +14,7 @@ type AccountEmailChangeRequest struct {
 }
 
 type Site struct {
-	Sub    int64
-	Path   string
-	Public bool
+	Sub    int64  `json:"sub"`
+	Path   string `json:"path"`
+	Public bool   `json:"public"`
 }
