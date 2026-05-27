@@ -14,7 +14,7 @@ import (
 
 const (
 	defaultStorageBackend = "fs"
-	defaultStorageRoot    = "./data/root"
+	defaultStorageRoot    = "./conex-data/root"
 	defaultStorageMaxSize = int64(10 * 1024 * 1024 * 1024)
 	defaultS3Region       = "auto"
 )
