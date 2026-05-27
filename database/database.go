@@ -31,6 +31,21 @@ type Querier interface {
 	// SelectAccountBySub returns the account for the account subject.
 	SelectAccountBySub(ctx context.Context, sub int64) (*Account, error)
 
+	// CreateSite creates a site for an account subject.
+	CreateSite(ctx context.Context, sub int64, path string, public bool) error
+
+	// SelectSiteByPath returns the site for the site path.
+	SelectSiteByPath(ctx context.Context, path string) (*Site, error)
+
+	// SelectSitesBySub returns the sites owned by the account subject.
+	SelectSitesBySub(ctx context.Context, sub int64) ([]Site, error)
+
+	// UpdateSitePublic updates the public status for a site owned by the account subject.
+	UpdateSitePublic(ctx context.Context, sub int64, path string, public bool) (*Site, error)
+
+	// DeleteSite deletes a site owned by the account subject.
+	DeleteSite(ctx context.Context, sub int64, path string) (*Site, error)
+
 	// UpsertAccountEmailChangeRequest creates or updates the pending email change request for an account.
 	UpsertAccountEmailChangeRequest(ctx context.Context, sub int64, email string, otp int64, expiresAt int64) error
 

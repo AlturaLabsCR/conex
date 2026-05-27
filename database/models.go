@@ -12,3 +12,9 @@ type AccountEmailChangeRequest struct {
 	Otp       int64
 	ExpiresAt int64
 }
+
+type Site struct {
+	Sub    int64
+	Path   string
+	Public bool
+}

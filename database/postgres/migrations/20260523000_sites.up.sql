@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS sites (
+  sub BIGINT NOT NULL REFERENCES accounts(sub) ON DELETE CASCADE,
+  path VARCHAR(255) NOT NULL PRIMARY KEY,
+  public BOOLEAN NOT NULL DEFAULT FALSE,
+
+  CONSTRAINT sites_path_len CHECK (length(path) <= 255)
+);
+
+CREATE INDEX IF NOT EXISTS sites_sub_idx ON sites(sub);
