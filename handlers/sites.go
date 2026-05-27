@@ -7,6 +7,9 @@ import (
 
 	"app/middleware"
 	"app/sites"
+	"app/templates/base"
+	"app/templates/meta"
+	sitetemplates "app/templates/sites"
 )
 
 func (h *Handler) registerSiteRoutes() {
@@ -18,6 +21,7 @@ func (h *Handler) registerSiteRoutes() {
 	h.AddHandler(http.MethodPost, h.routePath("/sites"), authenticated(h.CreateSite))
 	h.AddHandler(http.MethodPatch, h.routePath("/sites/{path}"), authenticated(h.SetSitePublic))
 	h.AddHandler(http.MethodDelete, h.routePath("/sites/{path}"), authenticated(h.DeleteSite))
+	h.AddHandler(http.MethodGet, h.routePath("/{path}"), http.HandlerFunc(h.GetSite))
 }
 
 func (h *Handler) SitePathAvailable(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +47,42 @@ func (h *Handler) SitePathAvailable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
+	site, html, err := h.sites.Get(r.Context(), r.PathValue("path"))
+	if err != nil {
+		switch {
+		case errors.Is(err, sites.ErrInvalidPath):
+			h.writeError(w, r, http.StatusBadRequest, err, "invalid site path", "site_path", r.PathValue("path"))
+			return
+		case errors.Is(err, sites.ErrSiteNotFound):
+			h.writeError(w, r, http.StatusNotFound, err, "site not found", "site_path", r.PathValue("path"))
+			return
+		default:
+			h.writeError(w, r, http.StatusInternalServerError, err, "failed to get site", "site_path", r.PathValue("path"))
+			return
+		}
+	}
+
+	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	page := base.Page(L, base.PageParams{
+		Head: base.HeadParams{
+			Title:                 meta.AppTitle,
+			Subtitle:              site.Path,
+			RobotsIndex:           true,
+			RobotsGoogleTranslate: true,
+		},
+		Body: base.BodyParams{
+			Content: sitetemplates.SiteMain(html),
+			Active:  h.routePath("/" + site.Path),
+		},
+	})
+
+	if err := page.Render(r.Context(), w); err != nil {
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site", "site_path", site.Path)
+	}
 }
 
 func (h *Handler) CreateSite(w http.ResponseWriter, r *http.Request) {

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"app/database"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/tavocg/go-storage"
 )
 
@@ -18,10 +19,12 @@ var (
 	ErrPathUnavailable = errors.New("site path unavailable")
 	ErrSiteNotFound    = errors.New("site not found")
 	sitePathPattern    = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,253}[a-z0-9])?$`)
+	siteHTMLPolicy     = newSiteHTMLPolicy()
 )
 
 type Sites interface {
 	Create(ctx context.Context, sub int64, path string, html io.Reader) (*database.Site, error)
+	Get(ctx context.Context, path string) (*database.Site, string, error)
 	SetPublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error)
 	Delete(ctx context.Context, sub int64, path string) error
 	DeleteAll(ctx context.Context, sub int64) error
@@ -72,6 +75,7 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, html io.Re
 	if err != nil {
 		return nil, err
 	}
+	body = siteHTMLPolicy.SanitizeBytes(body)
 
 	site := &database.Site{
 		Sub:    sub,
@@ -101,6 +105,44 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, html io.Re
 	}
 
 	return site, nil
+}
+
+func (s *Service) Get(ctx context.Context, path string) (*database.Site, string, error) {
+	path, err := normalizePath(path)
+	if err != nil {
+		return nil, "", err
+	}
+
+	site, err := s.db.Querier().SelectSiteByPath(ctx, path)
+	if err != nil {
+		if s.db.IsErrNotFound(err) {
+			return nil, "", ErrSiteNotFound
+		}
+
+		return nil, "", err
+	}
+	if !site.Public {
+		return nil, "", ErrSiteNotFound
+	}
+
+	body, err := s.publicStorage.Get(ctx, &storage.ObjectHead{Key: path})
+	if err != nil {
+		if errors.Is(err, storage.ErrObjectNotFound) {
+			return nil, "", ErrSiteNotFound
+		}
+
+		return nil, "", err
+	}
+	defer func() {
+		_ = body.Close()
+	}()
+
+	html, err := io.ReadAll(body)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return site, string(html), nil
 }
 
 func (s *Service) SetPublic(ctx context.Context, sub int64, path string, public bool) (*database.Site, error) {
@@ -243,4 +285,13 @@ func normalizePath(path string) (string, error) {
 	}
 
 	return path, nil
+}
+
+func newSiteHTMLPolicy() *bluemonday.Policy {
+	policy := bluemonday.UGCPolicy()
+	policy.RequireNoReferrerOnLinks(true)
+	policy.AllowAttrs("class").Matching(bluemonday.SpaceSeparatedTokens).Globally()
+	policy.AllowDataURIImages()
+
+	return policy
 }

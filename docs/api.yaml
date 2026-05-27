@@ -11,6 +11,23 @@ tags:
   - name: Account
   - name: Sites
 paths:
+  /{path}:
+    get:
+      tags:
+        - Sites
+      operationId: getSite
+      summary: Render a public site
+      parameters:
+        - $ref: '#/components/parameters/SitePath'
+      responses:
+        '200':
+          description: Public site HTML.
+          content:
+            text/html:
+              schema:
+                type: string
+        default:
+          $ref: '#/components/responses/Error'
   /auth/login:
     post:
       tags:
