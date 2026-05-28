@@ -312,19 +312,10 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 			_ = body.Close()
 		}()
 
-		html, err := io.ReadAll(body)
-		if err != nil {
-			return nil, err
-		}
-		if len(html) > SiteHTMLMaxBytes {
-			return nil, ErrSiteHTMLTooLarge
-		}
-
 		if _, err := destination.Put(
 			ctx,
-			bytes.NewReader(html),
+			body,
 			storage.WithKey(path),
-			storage.WithSizeLimit(int64(len(html))),
 			storage.WithContentType("text/html"),
 		); err != nil {
 			return nil, err
