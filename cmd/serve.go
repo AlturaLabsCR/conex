@@ -22,6 +22,7 @@ import (
 	"app/handlers"
 	locales "app/i18n"
 	"app/mailer"
+	"app/middleware"
 	"app/sites"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -185,7 +186,7 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 
 	srv := &http.Server{
 		Addr:    net.JoinHostPort(host, strconv.Itoa(port)),
-		Handler: h.Mux(),
+		Handler: middleware.CORS(h.Mux()),
 	}
 
 	listener, err := net.Listen("tcp", srv.Addr)
