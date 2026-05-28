@@ -297,6 +297,11 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 			source, destination = s.publicStorage, s.privateStorage
 		}
 
+		size, ok := source.List()[path]
+		if !ok {
+			return nil, ErrSiteNotFound
+		}
+
 		body, err := source.Get(ctx, &storage.ObjectHead{Key: path})
 		if err != nil {
 			if errors.Is(err, storage.ErrObjectNotFound) {
@@ -313,6 +318,7 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 			ctx,
 			body,
 			storage.WithKey(path),
+			storage.WithSizeLimit(size),
 			storage.WithContentType("text/html"),
 		); err != nil {
 			return nil, err
