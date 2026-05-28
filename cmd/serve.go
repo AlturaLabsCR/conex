@@ -50,7 +50,7 @@ func init() {
 	viper.SetDefault("auth.secret", "")
 	viper.SetDefault("auth.access-token-ttl", 15*time.Minute)
 	viper.SetDefault("auth.refresh-token-ttl", 30*24*time.Hour)
-	viper.SetDefault("mail.from", "noreply@conex.co.cr")
+	viper.SetDefault("mail.from", "Conex <noreply@conex.co.cr>")
 	viper.SetDefault("mail.mailgun.domain", "mg.conex.co.cr")
 	viper.SetDefault("mail.mailgun.api-key", "")
 	viper.SetDefault("mail.mailgun.api-base", "")

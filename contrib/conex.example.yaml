@@ -45,7 +45,7 @@ auth:
 #   CONEX_MAILGUN_API_BASE=https://api.eu.mailgun.net app serve
 #   app serve --mailgun-api-base https://api.eu.mailgun.net
 mail:
-  from: noreply@conex.co.cr
+  from: "Conex <noreply@conex.co.cr>"
   mailgun:
     domain: mg.conex.co.cr
     api-key: ""
