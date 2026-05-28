@@ -7,9 +7,6 @@ services:
     ports:
       - "${CONEX_PORT:-3080}:3080"
     environment:
-      CONEX_HOST: "0.0.0.0"
-      CONEX_PORT: "3080"
-      CONEX_STORAGE_BACKEND: "s3"
       CONEX_AUTH_SECRET: "${CONEX_AUTH_SECRET:?CONEX_AUTH_SECRET is required}"
       CONEX_MAIL_FROM: "${CONEX_MAIL_FROM:?CONEX_MAIL_FROM is required}"
       CONEX_MAIL_HOST: "${CONEX_MAIL_HOST:?CONEX_MAIL_HOST is required}"

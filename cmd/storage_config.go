@@ -72,7 +72,9 @@ func initStorageConfig() {
 
 func newStorageFromConfig(ctx context.Context) (*storage.Storage, *storage.Storage, error) {
 	switch backend := strings.ToLower(strings.TrimSpace(viper.GetString("storage.backend"))); backend {
-	case "fs", "":
+	case "":
+		return nil, nil, fmt.Errorf("storage backend is required")
+	case "fs":
 		privateStorage, err := fs.New(
 			ctx,
 			fs.WithRoot(filepath.Join(viper.GetString("storage.fs.root"), "private")),

@@ -12,6 +12,7 @@ import (
 )
 
 func Open(ctx context.Context, connStr string) (database.Database, error) {
+	connStr = strings.TrimSpace(connStr)
 	if connStr == "" {
 		return nil, fmt.Errorf("empty connection string")
 	}
@@ -25,5 +26,6 @@ func Open(ctx context.Context, connStr string) (database.Database, error) {
 }
 
 func isPostgresConnStr(connStr string) bool {
+	connStr = strings.ToLower(strings.TrimSpace(connStr))
 	return strings.HasPrefix(connStr, "postgres://") || strings.HasPrefix(connStr, "postgresql://")
 }
