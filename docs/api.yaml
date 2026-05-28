@@ -615,6 +615,7 @@ components:
           uniqueItems: true
         html:
           type: string
+          maxLength: 268435456
     UpdateSiteRequest:
       type: object
       additionalProperties: false
@@ -635,6 +636,7 @@ components:
           uniqueItems: true
         html:
           type: string
+          maxLength: 268435456
     Site:
       type: object
       additionalProperties: false

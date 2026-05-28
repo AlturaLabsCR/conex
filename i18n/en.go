@@ -63,6 +63,7 @@ var en = map[string]string{
 	"missing login request":                          "Login request not found.",
 	"missing refresh token":                          "Missing refresh token.",
 	"site not found":                                 "Site not found.",
+	"site html too large":                            "Site HTML must be 256 MB or smaller.",
 	"site path conflicts with registered route":      "Site path conflicts with a registered route.",
 	"site path unavailable":                          "Site path unavailable.",
 }
