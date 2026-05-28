@@ -10,7 +10,8 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/tavocg/go-auth v0.0.0-20260511075900-18c077548ac6
-	github.com/tavocg/go-email v0.0.0-20260523203456-e164c30a587d
+	github.com/tavocg/go-email v0.1.0
+	github.com/tavocg/go-email/mailer/backends/mailgun v0.1.0
 	github.com/tavocg/go-i18n v1.0.1
 	github.com/tavocg/go-secrets v0.0.0-20260523061925-d0121307ced6
 	github.com/tavocg/go-storage v1.2.1
@@ -63,12 +64,17 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/mailgun/mailgun-go/v5 v5.15.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/natefinch/atomic v1.0.1 // indirect
 	github.com/ncruces/go-sqlite3 v0.32.0 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
+	github.com/oapi-codegen/runtime v1.3.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.3.1 // indirect
 	github.com/pganalyze/pg_query_go/v6 v6.2.2 // indirect
 	github.com/pingcap/errors v0.11.5-0.20250523034308-74f78ae071ee // indirect

@@ -50,11 +50,10 @@ func init() {
 	viper.SetDefault("auth.secret", "")
 	viper.SetDefault("auth.access-token-ttl", 15*time.Minute)
 	viper.SetDefault("auth.refresh-token-ttl", 30*24*time.Hour)
-	viper.SetDefault("mail.from", "")
-	viper.SetDefault("mail.host", "")
-	viper.SetDefault("mail.user", "")
-	viper.SetDefault("mail.password", "")
-	viper.SetDefault("mail.starttls", false)
+	viper.SetDefault("mail.from", "noreply@conex.co.cr")
+	viper.SetDefault("mail.mailgun.domain", "mg.conex.co.cr")
+	viper.SetDefault("mail.mailgun.api-key", "")
+	viper.SetDefault("mail.mailgun.api-base", "")
 	viper.SetDefault("cors.origins", []string{"https://conex.co.cr", "http://localhost"})
 	viper.SetDefault("root", "")
 	viper.SetDefault("base-url", "https://conex.co.cr")
@@ -72,10 +71,9 @@ func init() {
 	flags.Duration("auth-access-ttl", 15*time.Minute, "access token TTL")
 	flags.Duration("auth-refresh-ttl", 30*24*time.Hour, "refresh token TTL")
 	flags.String("mail-from", "", "sender email address for OTP messages")
-	flags.String("mail-host", "", "SMTP server in host:port form")
-	flags.String("mail-user", "", "SMTP username")
-	flags.String("mail-password", "", "SMTP password")
-	flags.Bool("mail-starttls", false, "use STARTTLS instead of implicit TLS for SMTP")
+	flags.String("mailgun-domain", "", "Mailgun sending domain")
+	flags.String("mailgun-api-key", "", "Mailgun API key")
+	flags.String("mailgun-api-base", "", "Mailgun API base URL")
 	flags.StringSlice("cors-origin", []string{"https://conex.co.cr", "http://localhost"}, "allowed CORS origin; repeat or comma-separate for multiple origins")
 	flags.String("root", "", "route prefix to mount the app under")
 	flags.String("base-url", "", "public base URL for generated site URLs")
@@ -90,13 +88,15 @@ func init() {
 	mustBindPersistentFlag("auth.access-token-ttl", rootCmd, "auth-access-ttl")
 	mustBindPersistentFlag("auth.refresh-token-ttl", rootCmd, "auth-refresh-ttl")
 	mustBindPersistentFlag("mail.from", rootCmd, "mail-from")
-	mustBindPersistentFlag("mail.host", rootCmd, "mail-host")
-	mustBindPersistentFlag("mail.user", rootCmd, "mail-user")
-	mustBindPersistentFlag("mail.password", rootCmd, "mail-password")
-	mustBindPersistentFlag("mail.starttls", rootCmd, "mail-starttls")
+	mustBindPersistentFlag("mail.mailgun.domain", rootCmd, "mailgun-domain")
+	mustBindPersistentFlag("mail.mailgun.api-key", rootCmd, "mailgun-api-key")
+	mustBindPersistentFlag("mail.mailgun.api-base", rootCmd, "mailgun-api-base")
 	mustBindPersistentFlag("cors.origins", rootCmd, "cors-origin")
 	mustBindPersistentFlag("root", rootCmd, "root")
 	mustBindPersistentFlag("base-url", rootCmd, "base-url")
+	mustBindEnv("mail.mailgun.domain", "CONEX_MAILGUN_DOMAIN")
+	mustBindEnv("mail.mailgun.api-key", "CONEX_MAILGUN_API_KEY")
+	mustBindEnv("mail.mailgun.api-base", "CONEX_MAILGUN_API_BASE")
 	mustBindEnv("base-url", "CONEX_BASE_URL")
 }
 
@@ -121,11 +121,10 @@ func runServerFromConfig() error {
 		viper.GetDuration("auth.access-token-ttl"),
 		viper.GetDuration("auth.refresh-token-ttl"),
 		mailer.Options{
-			From:         viper.GetString("mail.from"),
-			SMTPAddress:  viper.GetString("mail.host"),
-			SMTPUser:     viper.GetString("mail.user"),
-			SMTPPassword: viper.GetString("mail.password"),
-			SMTPStartTLS: viper.GetBool("mail.starttls"),
+			From:           viper.GetString("mail.from"),
+			MailgunDomain:  viper.GetString("mail.mailgun.domain"),
+			MailgunAPIKey:  viper.GetString("mail.mailgun.api-key"),
+			MailgunAPIBase: viper.GetString("mail.mailgun.api-base"),
 		},
 		viper.GetStringSlice("cors.origins"),
 		viper.GetString("root"),
