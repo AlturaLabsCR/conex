@@ -16,6 +16,7 @@ func (h *Handler) registerAuthRoutes() {
 	h.Add(http.MethodPost, h.routePath("/api/auth/login"), h.LoginOrCreateAccount)
 	h.Add(http.MethodPost, h.routePath("/api/auth/verify"), h.VerifyAuthenticationCode)
 	h.Add(http.MethodPost, h.routePath("/api/auth/refresh"), h.RefreshSession)
+	h.Add(http.MethodPost, h.routePath("/api/auth/logout"), h.Logout)
 }
 
 func (h *Handler) LoginOrCreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -159,6 +160,36 @@ func (h *Handler) RefreshSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, newSessionResponse(tokens))
+}
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	type logoutRequest struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	var req logoutRequest
+	if err := decodeJSON(r.Body, &req); err != nil {
+		h.writeError(w, r, http.StatusBadRequest, err, "invalid logout request body")
+		return
+	}
+
+	req.RefreshToken = strings.TrimSpace(req.RefreshToken)
+	if req.RefreshToken == "" {
+		h.writeStatus(w, r, http.StatusBadRequest, "missing refresh token")
+		return
+	}
+
+	if err := h.authenticator.Revoke(r.Context(), req.RefreshToken); err != nil {
+		if errors.Is(err, auth.ErrInvalidToken) || errors.Is(err, auth.ErrExpiredToken) || errors.Is(err, auth.ErrRevokedToken) {
+			h.writeError(w, r, http.StatusUnauthorized, err, "failed to logout")
+			return
+		}
+
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to logout")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func newSessionResponse(tokens *auth.Tokens) sessionResponse {

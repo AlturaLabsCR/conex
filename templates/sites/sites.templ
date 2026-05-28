@@ -5,3 +5,9 @@ templ SiteMain(html string) {
 		@templ.Raw(html)
 	</article>
 }
+
+templ SiteNotFound(tr func(string, ...any) string) {
+	<section class="site-not-found">
+		<h1>{ tr("site not found") }</h1>
+	</section>
+}

@@ -136,6 +136,26 @@ paths:
                 refresh_token_expires_in: 5184000
         default:
           $ref: '#/components/responses/Error'
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      operationId: logout
+      summary: Logout
+      description: Revokes the provided refresh token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+            example:
+              refresh_token: X4fFxvY89ypw5f...
+      responses:
+        '204':
+          description: Logged out.
+        default:
+          $ref: '#/components/responses/Error'
   /api/account:
     get:
       tags:
@@ -460,6 +480,14 @@ components:
           minimum: 0
           maximum: 999999
     RefreshRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+    LogoutRequest:
       type: object
       additionalProperties: false
       required:

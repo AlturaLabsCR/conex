@@ -60,7 +60,7 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, r, http.StatusBadRequest, err, "invalid site path", "site_path", r.PathValue("path"))
 			return
 		case errors.Is(err, sites.ErrSiteNotFound):
-			h.writeError(w, r, http.StatusNotFound, err, "site not found", "site_path", r.PathValue("path"))
+			h.renderSiteNotFound(w, r, err)
 			return
 		default:
 			h.writeError(w, r, http.StatusInternalServerError, err, "failed to get site", "site_path", r.PathValue("path"))
@@ -85,6 +85,31 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 
 	if err := page.Render(r.Context(), w); err != nil {
 		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site", "site_path", site.Path)
+	}
+}
+
+func (h *Handler) renderSiteNotFound(w http.ResponseWriter, r *http.Request, err error) {
+	path := r.PathValue("path")
+	h.logger.Debug("site not found", "status", http.StatusNotFound, "method", r.Method, "path", r.URL.Path, "error", err, "site_path", path)
+
+	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusNotFound)
+
+	page := base.Page(L, base.PageParams{
+		Head: base.HeadParams{
+			Title:                 meta.AppTitle,
+			Subtitle:              L("site not found"),
+			RobotsGoogleTranslate: true,
+		},
+		Body: base.BodyParams{
+			Content: sitetemplates.SiteNotFound(L),
+			Active:  h.routePath("/" + path),
+		},
+	})
+
+	if renderErr := page.Render(r.Context(), w); renderErr != nil {
+		h.logger.Error("failed to render site not found page", "status", http.StatusInternalServerError, "method", r.Method, "path", r.URL.Path, "error", renderErr, "site_path", path)
 	}
 }
 
