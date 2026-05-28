@@ -137,6 +137,8 @@ paths:
                       unit: ''
                       count: 0
                     supports_renewal: false
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
     delete:
@@ -150,6 +152,8 @@ paths:
       responses:
         '204':
           description: Account deleted.
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
   /api/account/email/change:
@@ -171,6 +175,8 @@ paths:
       responses:
         '204':
           description: Email change request accepted.
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
   /api/account/email/change/confirm:
@@ -192,6 +198,8 @@ paths:
       responses:
         '204':
           description: Email change confirmed.
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
   /api/sites:
@@ -231,6 +239,8 @@ paths:
                   - wellness
                 url: https://conex.co.cr/go-fitness
                 sub: 1
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
     get:
@@ -265,6 +275,8 @@ paths:
                     - writing
                   url: https://conex.co.cr/personal-blog
                   sub: 1
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
   /api/sites/{path}:
@@ -308,6 +320,8 @@ paths:
                 url: https://conex.co.cr/go-fitness
                 sub: 1
                 html: <h1>Hello</h1>
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
     patch:
@@ -335,6 +349,8 @@ paths:
       responses:
         '204':
           description: Site updated.
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
     delete:
@@ -349,6 +365,8 @@ paths:
       responses:
         '204':
           description: Site deleted.
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
 components:
@@ -358,6 +376,17 @@ components:
       scheme: bearer
       bearerFormat: JWT
   responses:
+    ReauthenticationRequired:
+      description: The bearer access token is missing, invalid, or expired. The client should reauthenticate the user.
+      headers:
+        WWW-Authenticate:
+          description: Bearer authentication challenge.
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     Error:
       description: Error response.
       content:

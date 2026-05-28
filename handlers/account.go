@@ -222,7 +222,7 @@ func (h *Handler) ConfirmEmailChange(w http.ResponseWriter, r *http.Request) {
 	saved, err := h.db.Querier().SelectAccountEmailChangeRequestBySub(r.Context(), sub)
 	if err != nil {
 		if h.db.IsErrNotFound(err) {
-			h.writeError(w, r, http.StatusUnauthorized, err, "missing account email change request", "sub", sub)
+			h.writeError(w, r, http.StatusNotFound, err, "missing account email change request", "sub", sub)
 			return
 		}
 
@@ -235,7 +235,7 @@ func (h *Handler) ConfirmEmailChange(w http.ResponseWriter, r *http.Request) {
 			_ = h.db.Querier().DeleteAccountEmailChangeRequest(r.Context(), sub)
 		}
 
-		h.writeStatus(w, r, http.StatusUnauthorized, "invalid account email change verification code", "sub", sub)
+		h.writeStatus(w, r, http.StatusBadRequest, "invalid account email change verification code", "sub", sub)
 		return
 	}
 

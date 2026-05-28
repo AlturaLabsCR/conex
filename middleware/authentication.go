@@ -16,6 +16,8 @@ type authenticatedClaimsContextKey struct{}
 
 var AuthenticatedClaimsContextKey = authenticatedClaimsContextKey{}
 
+const StatusReauthenticationRequired = http.StatusUnauthorized
+
 type ErrorLocalizer func(*http.Request, string) string
 
 type errorResponse struct {
@@ -30,16 +32,16 @@ func AuthenticateBearer(logger Logger, authenticator goauth.Authenticator[*appau
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		parts := strings.Fields(strings.TrimSpace(r.Header.Get("Authorization")))
 		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || parts[1] == "" {
-			logger.Debug("missing bearer token", "status", http.StatusUnauthorized, "method", r.Method, "path", r.URL.Path)
-			writeError(w, r, http.StatusUnauthorized, "missing bearer token", localizeError)
+			logger.Debug("missing bearer token", "status", StatusReauthenticationRequired, "method", r.Method, "path", r.URL.Path)
+			writeReauthenticationRequired(w, r, "missing bearer token", localizeError)
 			return
 		}
 
 		identity, err := authenticator.Verify(r.Context(), parts[1])
 		if err != nil {
 			if errors.Is(err, goauth.ErrInvalidToken) || errors.Is(err, goauth.ErrExpiredToken) {
-				logger.Debug("failed to verify bearer token", "status", http.StatusUnauthorized, "method", r.Method, "path", r.URL.Path, "error", err)
-				writeError(w, r, http.StatusUnauthorized, "failed to verify bearer token", localizeError)
+				logger.Debug("failed to verify bearer token", "status", StatusReauthenticationRequired, "method", r.Method, "path", r.URL.Path, "error", err)
+				writeReauthenticationRequired(w, r, "failed to verify bearer token", localizeError)
 				return
 			}
 
@@ -51,6 +53,11 @@ func AuthenticateBearer(logger Logger, authenticator goauth.Authenticator[*appau
 		ctx := context.WithValue(r.Context(), AuthenticatedClaimsContextKey, identity)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func writeReauthenticationRequired(w http.ResponseWriter, r *http.Request, msg string, localize ErrorLocalizer) {
+	w.Header().Set("WWW-Authenticate", "Bearer")
+	writeError(w, r, StatusReauthenticationRequired, msg, localize)
 }
 
 func writeError(w http.ResponseWriter, r *http.Request, status int, msg string, localize ErrorLocalizer) {
