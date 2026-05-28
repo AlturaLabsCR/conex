@@ -1,0 +1,25 @@
+services:
+  conex:
+    build:
+      context: .
+    image: conex:latest
+    restart: unless-stopped
+    ports:
+      - "${CONEX_PORT:-3080}:3080"
+    environment:
+      CONEX_HOST: "0.0.0.0"
+      CONEX_PORT: "3080"
+      CONEX_STORAGE_BACKEND: "s3"
+      CONEX_AUTH_SECRET: "${CONEX_AUTH_SECRET:?CONEX_AUTH_SECRET is required}"
+      CONEX_MAIL_FROM: "${CONEX_MAIL_FROM:?CONEX_MAIL_FROM is required}"
+      CONEX_MAIL_HOST: "${CONEX_MAIL_HOST:?CONEX_MAIL_HOST is required}"
+      CONEX_MAIL_USER: "${CONEX_MAIL_USER:?CONEX_MAIL_USER is required}"
+      CONEX_MAIL_PASSWORD: "${CONEX_MAIL_PASSWORD:?CONEX_MAIL_PASSWORD is required}"
+      # CONEX_MAIL_STARTTLS: "${CONEX_MAIL_STARTTLS:-}" # Set to true if required by the mail server
+      CONEX_S3_PRIVATE_BUCKET: "${CONEX_S3_PRIVATE_BUCKET:?CONEX_S3_PRIVATE_BUCKET is required}"
+      CONEX_S3_PUBLIC_BUCKET: "${CONEX_S3_PUBLIC_BUCKET:?CONEX_S3_PUBLIC_BUCKET is required}"
+      CONEX_S3_ACCESS_KEY_ID: "${CONEX_S3_ACCESS_KEY_ID:?CONEX_S3_ACCESS_KEY_ID is required}"
+      CONEX_S3_SECRET_ACCESS_KEY: "${CONEX_S3_SECRET_ACCESS_KEY:?CONEX_S3_SECRET_ACCESS_KEY is required}"
+      CONEX_S3_ENDPOINT: "${CONEX_S3_ENDPOINT:?CONEX_S3_ENDPOINT is required}"
+      # CONEX_S3_PUBLIC_ENDPOINT_URL: "${CONEX_S3_PUBLIC_ENDPOINT_URL:-}" # Not required but recommended
+      CONEX_DB: "${CONEX_DB:?CONEX_DB is required}"
