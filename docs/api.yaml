@@ -6,10 +6,41 @@ info:
 servers:
   - url: https://conex.co.cr
 tags:
+  - name: Legal
   - name: Authentication
   - name: Account
   - name: Sites
 paths:
+  /tos:
+    get:
+      tags:
+        - Legal
+      operationId: getTermsOfService
+      summary: Render the Terms of Service
+      responses:
+        '200':
+          description: Terms of Service HTML.
+          content:
+            text/html:
+              schema:
+                type: string
+        default:
+          $ref: '#/components/responses/Error'
+  /privacy:
+    get:
+      tags:
+        - Legal
+      operationId: getPrivacyPolicy
+      summary: Render the Privacy Policy
+      responses:
+        '200':
+          description: Privacy Policy HTML.
+          content:
+            text/html:
+              schema:
+                type: string
+        default:
+          $ref: '#/components/responses/Error'
   /{path}:
     get:
       tags:

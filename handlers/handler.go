@@ -127,6 +127,7 @@ func (h *Handler) registerRoutes() {
 	h.registerAuthRoutes()
 	h.registerAccountRoutes()
 	h.registerSiteRoutes()
+	h.registerLegalRoutes()
 	h.registerRootRoutes()
 	h.registerStaticRoutes()
 }
