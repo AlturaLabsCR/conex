@@ -163,12 +163,7 @@ func (h *Handler) CreateSite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req createSiteRequest
-	if err := decodeJSON(http.MaxBytesReader(w, r.Body, sites.SiteHTMLMaxBytes), &req); err != nil {
-		var maxBytesErr *http.MaxBytesError
-		if errors.As(err, &maxBytesErr) {
-			h.writeError(w, r, http.StatusRequestEntityTooLarge, err, "site html too large", "sub", sub)
-			return
-		}
+	if err := decodeJSON(r.Body, &req); err != nil {
 		h.writeError(w, r, http.StatusBadRequest, err, "invalid site create request body", "sub", sub)
 		return
 	}
@@ -189,9 +184,6 @@ func (h *Handler) CreateSite(w http.ResponseWriter, r *http.Request) {
 			return
 		case errors.Is(err, sites.ErrInvalidTags):
 			h.writeError(w, r, http.StatusBadRequest, err, "invalid site tags", "sub", sub, "site_path", req.Path)
-			return
-		case errors.Is(err, sites.ErrSiteHTMLTooLarge):
-			h.writeError(w, r, http.StatusRequestEntityTooLarge, err, "site html too large", "sub", sub, "site_path", req.Path)
 			return
 		case errors.Is(err, sites.ErrPathUnavailable):
 			h.writeStatus(w, r, http.StatusConflict, "site path unavailable", "sub", sub, "site_path", req.Path)
@@ -220,12 +212,7 @@ func (h *Handler) UpdateSite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req updateSiteRequest
-	if err := decodeJSON(http.MaxBytesReader(w, r.Body, sites.SiteHTMLMaxBytes), &req); err != nil {
-		var maxBytesErr *http.MaxBytesError
-		if errors.As(err, &maxBytesErr) {
-			h.writeError(w, r, http.StatusRequestEntityTooLarge, err, "site html too large", "sub", sub, "site_path", r.PathValue("path"))
-			return
-		}
+	if err := decodeJSON(r.Body, &req); err != nil {
 		h.writeError(w, r, http.StatusBadRequest, err, "invalid site update request body", "sub", sub, "site_path", r.PathValue("path"))
 		return
 	}
@@ -246,9 +233,6 @@ func (h *Handler) UpdateSite(w http.ResponseWriter, r *http.Request) {
 			return
 		case errors.Is(err, sites.ErrInvalidTags):
 			h.writeError(w, r, http.StatusBadRequest, err, "invalid site tags", "sub", sub, "site_path", r.PathValue("path"))
-			return
-		case errors.Is(err, sites.ErrSiteHTMLTooLarge):
-			h.writeError(w, r, http.StatusRequestEntityTooLarge, err, "site html too large", "sub", sub, "site_path", r.PathValue("path"))
 			return
 		case errors.Is(err, sites.ErrSiteNotFound):
 			h.writeError(w, r, http.StatusNotFound, err, "site not found", "sub", sub, "site_path", r.PathValue("path"))

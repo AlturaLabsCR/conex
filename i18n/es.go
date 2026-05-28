@@ -63,7 +63,6 @@ var es = map[string]string{
 	"missing login request":                          "No se encontró la solicitud de inicio de sesión.",
 	"missing refresh token":                          "Falta el token de renovación.",
 	"site not found":                                 "Sitio no encontrado.",
-	"site html too large":                            "El HTML del sitio debe ser de 256 MB o menos.",
 	"site path conflicts with registered route":      "La ruta del sitio entra en conflicto con una ruta registrada.",
 	"site path unavailable":                          "La ruta del sitio no está disponible.",
 }

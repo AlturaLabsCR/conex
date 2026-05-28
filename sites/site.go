@@ -16,14 +16,13 @@ import (
 )
 
 var (
-	ErrInvalidPath      = errors.New("invalid site path")
-	ErrInvalidName      = errors.New("invalid site name")
-	ErrInvalidTags      = errors.New("invalid site tags")
-	ErrSiteHTMLTooLarge = errors.New("site html too large")
-	ErrPathUnavailable  = errors.New("site path unavailable")
-	ErrSiteNotFound     = errors.New("site not found")
-	sitePathPattern     = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$`)
-	siteHTMLPolicy      = newSiteHTMLPolicy()
+	ErrInvalidPath     = errors.New("invalid site path")
+	ErrInvalidName     = errors.New("invalid site name")
+	ErrInvalidTags     = errors.New("invalid site tags")
+	ErrPathUnavailable = errors.New("site path unavailable")
+	ErrSiteNotFound    = errors.New("site not found")
+	sitePathPattern    = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$`)
+	siteHTMLPolicy     = newSiteHTMLPolicy()
 )
 
 const (
@@ -32,8 +31,6 @@ const (
 	siteNameMaxLength = 255
 	siteTagMaxLength  = 64
 	siteTagsMaxCount  = 32
-	// SiteHTMLMaxBytes is the maximum accepted site HTML size in bytes.
-	SiteHTMLMaxBytes = 256 * 1024 * 1024
 )
 
 type Sites interface {
@@ -442,7 +439,7 @@ func (s *Service) IsPathAvailable(ctx context.Context, path string) (bool, error
 }
 
 func readSiteHTML(reader io.Reader) ([]byte, error) {
-	body, err := io.ReadAll(io.LimitReader(reader, SiteHTMLMaxBytes+1))
+	body, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
@@ -451,14 +448,7 @@ func readSiteHTML(reader io.Reader) ([]byte, error) {
 }
 
 func sanitizeSiteHTML(body []byte) ([]byte, error) {
-	if len(body) > SiteHTMLMaxBytes {
-		return nil, ErrSiteHTMLTooLarge
-	}
-
 	body = siteHTMLPolicy.SanitizeBytes(body)
-	if len(body) > SiteHTMLMaxBytes {
-		return nil, ErrSiteHTMLTooLarge
-	}
 
 	return body, nil
 }
