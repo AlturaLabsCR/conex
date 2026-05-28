@@ -55,6 +55,7 @@ func init() {
 	viper.SetDefault("mail.user", "")
 	viper.SetDefault("mail.password", "")
 	viper.SetDefault("mail.starttls", false)
+	viper.SetDefault("cors.origins", []string{"https://conex.co.cr", "http://localhost"})
 	viper.SetDefault("root", "")
 	viper.SetDefault("base-url", "https://conex.co.cr")
 	viper.SetDefault("db", "conex-data/conex.sqlite")
@@ -75,6 +76,7 @@ func init() {
 	flags.String("mail-user", "", "SMTP username")
 	flags.String("mail-password", "", "SMTP password")
 	flags.Bool("mail-starttls", false, "use STARTTLS instead of implicit TLS for SMTP")
+	flags.StringSlice("cors-origin", []string{"https://conex.co.cr", "http://localhost"}, "allowed CORS origin; repeat or comma-separate for multiple origins")
 	flags.String("root", "", "route prefix to mount the app under")
 	flags.String("base-url", "", "public base URL for generated site URLs")
 
@@ -92,6 +94,7 @@ func init() {
 	mustBindPersistentFlag("mail.user", rootCmd, "mail-user")
 	mustBindPersistentFlag("mail.password", rootCmd, "mail-password")
 	mustBindPersistentFlag("mail.starttls", rootCmd, "mail-starttls")
+	mustBindPersistentFlag("cors.origins", rootCmd, "cors-origin")
 	mustBindPersistentFlag("root", rootCmd, "root")
 	mustBindPersistentFlag("base-url", rootCmd, "base-url")
 	mustBindEnv("base-url", "CONEX_BASE_URL")
@@ -124,6 +127,7 @@ func runServerFromConfig() error {
 			SMTPPassword: viper.GetString("mail.password"),
 			SMTPStartTLS: viper.GetBool("mail.starttls"),
 		},
+		viper.GetStringSlice("cors.origins"),
 		viper.GetString("root"),
 		viper.GetString("base-url"),
 		viper.GetString("host"),
@@ -131,7 +135,7 @@ func runServerFromConfig() error {
 	)
 }
 
-func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts mailer.Options, rootPrefix string, baseURL string, host string, port int) error {
+func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts mailer.Options, corsOrigins []string, rootPrefix string, baseURL string, host string, port int) error {
 	logger, err := newLogger(dev, logLvl, logFmt)
 	if err != nil {
 		return err
@@ -186,7 +190,7 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 
 	srv := &http.Server{
 		Addr:    net.JoinHostPort(host, strconv.Itoa(port)),
-		Handler: middleware.CORS(h.Mux()),
+		Handler: middleware.CORS(middleware.CORSOptions{AllowedOrigins: corsOrigins}, h.Mux()),
 	}
 
 	listener, err := net.Listen("tcp", srv.Addr)
