@@ -130,6 +130,7 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, name strin
 			ctx,
 			bytes.NewReader(body),
 			storage.WithKey(path),
+			storage.WithSizeLimit(int64(len(body))),
 			storage.WithContentType("text/html"),
 		)
 		return err
@@ -283,6 +284,7 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 			ctx,
 			bytes.NewReader(html),
 			storage.WithKey(path),
+			storage.WithSizeLimit(int64(len(html))),
 			storage.WithContentType("text/html"),
 		); err != nil {
 			return nil, err
@@ -305,10 +307,16 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 			_ = body.Close()
 		}()
 
+		html, err := io.ReadAll(body)
+		if err != nil {
+			return nil, err
+		}
+
 		if _, err := destination.Put(
 			ctx,
-			body,
+			bytes.NewReader(html),
 			storage.WithKey(path),
+			storage.WithSizeLimit(int64(len(html))),
 			storage.WithContentType("text/html"),
 		); err != nil {
 			return nil, err
