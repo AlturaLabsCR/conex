@@ -15,7 +15,7 @@ require (
 	github.com/tavocg/go-secrets v0.0.0-20260523061925-d0121307ced6
 	github.com/tavocg/go-storage v1.2.1
 	github.com/tavocg/go-storage/backends/fs v0.2.1
-	github.com/tavocg/go-storage/backends/s3 v0.2.3
+	github.com/tavocg/go-storage/backends/s3 v0.2.4
 	modernc.org/sqlite v1.50.1
 )
 
