@@ -64,14 +64,24 @@ table {
 	border-collapse: separate;
 	border-radius: 8px;
 	border-spacing: 0;
+	max-width: 100%;
+	table-layout: fixed;
 	width: 100%;
 }
 
 th,
 td {
 	border-bottom: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	overflow-wrap: anywhere;
 	padding: .5rem;
 	text-align: left;
+	vertical-align: top;
+	word-break: break-word;
+}
+
+tr > :last-child {
+	border-right: 0;
 }
 
 tr:last-child > th,
