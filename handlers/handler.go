@@ -15,6 +15,7 @@ import (
 	"app/sites"
 	"github.com/tavocg/go-auth"
 	"github.com/tavocg/go-i18n"
+	"github.com/tavocg/go-paypal"
 )
 
 type Logger interface {
@@ -32,6 +33,7 @@ type Handler struct {
 	db            database.Database
 	mailer        *mailer.Mailer
 	sites         sites.Sites
+	paypal        *paypal.Client
 	authenticator auth.Authenticator[*appauth.Claims]
 	localizer     *i18n.Localizer
 	rootPrefix    string
@@ -47,6 +49,7 @@ type Options struct {
 	DB            database.Database
 	Mailer        *mailer.Mailer
 	Sites         sites.Sites
+	PayPal        *paypal.Client
 	Authenticator auth.Authenticator[*appauth.Claims]
 	Localizer     *i18n.Localizer
 	RootPrefix    string
@@ -89,6 +92,7 @@ func NewHandler(opts Options) *Handler {
 		db:            opts.DB,
 		mailer:        opts.Mailer,
 		sites:         opts.Sites,
+		paypal:        opts.PayPal,
 		authenticator: authenticator,
 		localizer:     localizer,
 		rootPrefix:    rootPrefix,
@@ -126,6 +130,7 @@ func (h *Handler) Mux() *http.ServeMux {
 func (h *Handler) registerRoutes() {
 	h.registerAuthRoutes()
 	h.registerAccountRoutes()
+	h.registerPlanRoutes()
 	h.registerSiteRoutes()
 	h.registerLegalRoutes()
 	h.registerRootRoutes()

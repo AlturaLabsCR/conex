@@ -50,24 +50,6 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 
 	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
 
-	type priceResponse struct {
-		Amount   int64  `json:"amount"`
-		Currency string `json:"currency"`
-	}
-
-	type billingPeriodResponse struct {
-		Unit  string `json:"unit"`
-		Count int64  `json:"count"`
-	}
-
-	type planResponse struct {
-		ID              string                `json:"id"`
-		Name            string                `json:"name"`
-		Price           priceResponse         `json:"price"`
-		BillingPeriod   billingPeriodResponse `json:"billing_period"`
-		SupportsRenewal bool                  `json:"supports_renewal"`
-	}
-
 	type subscriptionResponse struct {
 		Status  string       `json:"status"`
 		DueDate string       `json:"due_date"`
@@ -88,19 +70,16 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 		Subscription: subscriptionResponse{
 			Status:  subscription.Status,
 			DueDate: subscription.DueDate,
-			Plan: planResponse{
-				ID:   subscription.PlanID,
-				Name: L(subscription.PlanNameKey),
-				Price: priceResponse{
-					Amount:   subscription.PriceAmount,
-					Currency: subscription.PriceCurrency,
-				},
-				BillingPeriod: billingPeriodResponse{
-					Unit:  subscription.BillingUnit,
-					Count: subscription.BillingCount,
-				},
+			Plan: h.planResponse(L, database.Plan{
+				ID:              subscription.PlanID,
+				NameKey:         subscription.PlanNameKey,
+				PriceAmount:     subscription.PriceAmount,
+				PriceCurrency:   subscription.PriceCurrency,
+				BillingUnit:     subscription.BillingUnit,
+				BillingCount:    subscription.BillingCount,
 				SupportsRenewal: subscription.SupportsRenewal,
-			},
+				Policy:          subscription.Policy,
+			}),
 		},
 	})
 }

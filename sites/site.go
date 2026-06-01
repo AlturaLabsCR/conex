@@ -21,6 +21,9 @@ var (
 	ErrInvalidTags     = errors.New("invalid site tags")
 	ErrPathUnavailable = errors.New("site path unavailable")
 	ErrSiteNotFound    = errors.New("site not found")
+	ErrSiteSizeLimit   = errors.New("site size limit exceeded")
+	ErrSiteCountLimit  = errors.New("site count limit exceeded")
+	ErrSubpathLimit    = errors.New("site subpath limit exceeded")
 	sitePathPattern    = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$`)
 	siteHTMLPolicy     = newSiteHTMLPolicy()
 )
@@ -91,17 +94,35 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, name strin
 		return nil, err
 	}
 
+	body, err := readSiteHTML(html)
+	if err != nil {
+		return nil, err
+	}
+
+	policy, err := s.sitePolicy(ctx, sub)
+	if err != nil {
+		return nil, err
+	}
+	if err := enforceSiteSizeLimit(policy, body); err != nil {
+		return nil, err
+	}
+	if err := enforceSiteSubpathLimit(policy, path); err != nil {
+		return nil, err
+	}
+	ownedSites, err := s.db.Querier().SelectSitesBySub(ctx, sub)
+	if err != nil {
+		return nil, err
+	}
+	if policy.MaxSites > 0 && int64(len(ownedSites)) >= policy.MaxSites {
+		return nil, ErrSiteCountLimit
+	}
+
 	available, err := s.IsPathAvailable(ctx, path)
 	if err != nil {
 		return nil, err
 	}
 	if !available {
 		return nil, ErrPathUnavailable
-	}
-
-	body, err := readSiteHTML(html)
-	if err != nil {
-		return nil, err
 	}
 
 	site := &database.Site{
@@ -114,6 +135,12 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, name strin
 
 	err = s.db.WithTx(ctx, func(q database.Querier) error {
 		if err := q.CreateSite(ctx, sub, path, false); err != nil {
+			return err
+		}
+		if err := q.CreateSiteTimestamps(ctx, path); err != nil {
+			return err
+		}
+		if err := q.CreateSiteClicks(ctx, path); err != nil {
 			return err
 		}
 		if err := q.UpsertSiteName(ctx, path, name); err != nil {
@@ -139,6 +166,11 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, name strin
 			return nil, ErrPathUnavailable
 		}
 
+		return nil, err
+	}
+
+	site, err = s.db.Querier().SelectSiteByPath(ctx, path)
+	if err != nil {
 		return nil, err
 	}
 
@@ -177,6 +209,10 @@ func (s *Service) Get(ctx context.Context, path string) (*database.Site, string,
 
 	html, err := io.ReadAll(body)
 	if err != nil {
+		return nil, "", err
+	}
+
+	if err := s.db.Querier().IncrementSiteClicks(ctx, path); err != nil {
 		return nil, "", err
 	}
 
@@ -269,6 +305,16 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 		return nil, ErrSiteNotFound
 	}
 
+	if update.HTML != nil {
+		policy, err := s.sitePolicy(ctx, sub)
+		if err != nil {
+			return nil, err
+		}
+		if err := enforceSiteSizeLimit(policy, html); err != nil {
+			return nil, err
+		}
+	}
+
 	// TODO: Shouldn't this else if be a separate if, in case the request has both html AND public status?
 	if update.HTML != nil {
 		destination := s.privateStorage
@@ -344,6 +390,11 @@ func (s *Service) Update(ctx context.Context, sub int64, path string, update Sit
 				if err := q.CreateSiteTag(ctx, path, tag); err != nil {
 					return err
 				}
+			}
+		}
+		if siteUpdateTouchesSite(current, update) {
+			if err := q.UpdateSiteLastModified(ctx, path); err != nil {
+				return err
 			}
 		}
 		return nil
@@ -442,6 +493,47 @@ func (s *Service) IsPathAvailable(ctx context.Context, path string) (bool, error
 	}
 
 	return false, err
+}
+
+func siteUpdateTouchesSite(current *database.Site, update SiteUpdate) bool {
+	return update.HTML != nil ||
+		update.Name != nil ||
+		update.Tags != nil ||
+		(update.Public != nil && current.Public != *update.Public)
+}
+
+func (s *Service) sitePolicy(ctx context.Context, sub int64) (database.PlanPolicy, error) {
+	subscription, err := s.db.Querier().SelectAccountSubscriptionBySub(ctx, sub)
+	if err != nil {
+		return database.PlanPolicy{}, err
+	}
+
+	return subscription.Policy, nil
+}
+
+func enforceSiteSizeLimit(policy database.PlanPolicy, body []byte) error {
+	if policy.MaxBytesPerSite > 0 && int64(len(body)) > policy.MaxBytesPerSite {
+		return ErrSiteSizeLimit
+	}
+
+	return nil
+}
+
+func enforceSiteSubpathLimit(policy database.PlanPolicy, path string) error {
+	if policy.MaxSubpathsPerSite >= 0 && countSiteSubpaths(path) > policy.MaxSubpathsPerSite {
+		return ErrSubpathLimit
+	}
+
+	return nil
+}
+
+func countSiteSubpaths(path string) int64 {
+	path = strings.Trim(path, "/")
+	if path == "" || !strings.Contains(path, "/") {
+		return 0
+	}
+
+	return int64(strings.Count(path, "/"))
 }
 
 func readSiteHTML(reader io.Reader) ([]byte, error) {

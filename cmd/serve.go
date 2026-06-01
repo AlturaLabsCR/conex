@@ -28,6 +28,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tavocg/go-auth/authenticators"
 	"github.com/tavocg/go-i18n"
+	"github.com/tavocg/go-paypal"
 	"github.com/tavocg/go-secrets"
 )
 
@@ -54,6 +55,9 @@ func init() {
 	viper.SetDefault("mail.mailgun.domain", "mg.conex.co.cr")
 	viper.SetDefault("mail.mailgun.api-key", "")
 	viper.SetDefault("mail.mailgun.api-base", "")
+	viper.SetDefault("paypal.host", paypal.SandboxHost)
+	viper.SetDefault("paypal.client-id", "")
+	viper.SetDefault("paypal.client-secret", "")
 	viper.SetDefault("cors.origins", []string{"https://conex.co.cr", "http://localhost"})
 	viper.SetDefault("root", "")
 	viper.SetDefault("base-url", "https://conex.co.cr")
@@ -74,6 +78,9 @@ func init() {
 	flags.String("mailgun-domain", "", "Mailgun sending domain")
 	flags.String("mailgun-api-key", "", "Mailgun API key")
 	flags.String("mailgun-api-base", "", "Mailgun API base URL")
+	flags.String("paypal-host", paypal.SandboxHost, "PayPal API host URL")
+	flags.String("paypal-client-id", "", "PayPal REST app client ID")
+	flags.String("paypal-client-secret", "", "PayPal REST app client secret")
 	flags.StringSlice("cors-origin", []string{"https://conex.co.cr", "http://localhost"}, "allowed CORS origin; repeat or comma-separate for multiple origins")
 	flags.String("root", "", "route prefix to mount the app under")
 	flags.String("base-url", "", "public base URL for generated site URLs")
@@ -91,12 +98,18 @@ func init() {
 	mustBindPersistentFlag("mail.mailgun.domain", rootCmd, "mailgun-domain")
 	mustBindPersistentFlag("mail.mailgun.api-key", rootCmd, "mailgun-api-key")
 	mustBindPersistentFlag("mail.mailgun.api-base", rootCmd, "mailgun-api-base")
+	mustBindPersistentFlag("paypal.host", rootCmd, "paypal-host")
+	mustBindPersistentFlag("paypal.client-id", rootCmd, "paypal-client-id")
+	mustBindPersistentFlag("paypal.client-secret", rootCmd, "paypal-client-secret")
 	mustBindPersistentFlag("cors.origins", rootCmd, "cors-origin")
 	mustBindPersistentFlag("root", rootCmd, "root")
 	mustBindPersistentFlag("base-url", rootCmd, "base-url")
 	mustBindEnv("mail.mailgun.domain", "CONEX_MAILGUN_DOMAIN")
 	mustBindEnv("mail.mailgun.api-key", "CONEX_MAILGUN_API_KEY")
 	mustBindEnv("mail.mailgun.api-base", "CONEX_MAILGUN_API_BASE")
+	mustBindEnv("paypal.host", "CONEX_PAYPAL_HOST")
+	mustBindEnv("paypal.client-id", "CONEX_PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_ID")
+	mustBindEnv("paypal.client-secret", "CONEX_PAYPAL_CLIENT_SECRET", "PAYPAL_CLIENT_SECRET")
 	mustBindEnv("base-url", "CONEX_BASE_URL")
 }
 
@@ -126,6 +139,11 @@ func runServerFromConfig() error {
 			MailgunAPIKey:  viper.GetString("mail.mailgun.api-key"),
 			MailgunAPIBase: viper.GetString("mail.mailgun.api-base"),
 		},
+		paypalOptions{
+			Host:         viper.GetString("paypal.host"),
+			ClientID:     viper.GetString("paypal.client-id"),
+			ClientSecret: viper.GetString("paypal.client-secret"),
+		},
 		viper.GetStringSlice("cors.origins"),
 		viper.GetString("root"),
 		viper.GetString("base-url"),
@@ -134,7 +152,13 @@ func runServerFromConfig() error {
 	)
 }
 
-func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts mailer.Options, corsOrigins []string, rootPrefix string, baseURL string, host string, port int) error {
+type paypalOptions struct {
+	Host         string
+	ClientID     string
+	ClientSecret string
+}
+
+func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecret string, authAccessTTL time.Duration, authRefreshTTL time.Duration, mailOpts mailer.Options, paypalOpts paypalOptions, corsOrigins []string, rootPrefix string, baseURL string, host string, port int) error {
 	logger, err := newLogger(dev, logLvl, logFmt)
 	if err != nil {
 		return err
@@ -170,6 +194,18 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 		return err
 	}
 
+	var paypalClient *paypal.Client
+	if paypalOpts.ClientID != "" || paypalOpts.ClientSecret != "" {
+		paypalClient, err = paypal.NewClient(
+			paypalOpts.Host,
+			paypal.WithClientID(paypalOpts.ClientID),
+			paypal.WithClientSecret(paypalOpts.ClientSecret),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	privateStorage, publicStorage, err := newStorageFromConfig(context.Background())
 	if err != nil {
 		return err
@@ -181,6 +217,7 @@ func runServer(connStr string, dev bool, logLvl string, logFmt string, authSecre
 		DB:            db,
 		Mailer:        mailer,
 		Sites:         sites.New(db, privateStorage, publicStorage),
+		PayPal:        paypalClient,
 		Authenticator: authenticator,
 		Localizer:     localizer,
 		RootPrefix:    rootPrefix,

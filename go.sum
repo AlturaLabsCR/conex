@@ -204,6 +204,8 @@ github.com/tavocg/go-email/mailer/backends/mailgun v0.1.0 h1:jKrEcsAB44l5FlXh6WC
 github.com/tavocg/go-email/mailer/backends/mailgun v0.1.0/go.mod h1:pMNZd1sQfcEJQ8daMa5/j0pjqoL88RkABOiZMNcuNro=
 github.com/tavocg/go-i18n v1.0.1 h1:z6b52jwQf44HWXaeNfp0EbFOTnBDLofIDY48ff6XMnY=
 github.com/tavocg/go-i18n v1.0.1/go.mod h1:AUyOEg6y696AN7bI3kzGglSSfSh9yWwbzCAV2/hKw04=
+github.com/tavocg/go-paypal v0.0.0-20260601003539-395ddd903873 h1:qXD3jCZgHOA/pYPSfs8CRoS4kgbGLpW933znF2dbcWQ=
+github.com/tavocg/go-paypal v0.0.0-20260601003539-395ddd903873/go.mod h1:K2AF3+fck6e4XysIFcVZ3WV6xbU2eEDWggqCouShqPQ=
 github.com/tavocg/go-secrets v0.0.0-20260523061925-d0121307ced6 h1:diR+ZigiTRlob8xHa1wjmZqsVhsCkaWxrLuAg5AqdjE=
 github.com/tavocg/go-secrets v0.0.0-20260523061925-d0121307ced6/go.mod h1:Rff/pui68pd/yb2Awkivbi1pjMdMEjqUoQ3XCI/rafQ=
 github.com/tavocg/go-storage v1.2.2 h1:JtFSCow/AVq/igcX/tHw9s0UP2T6IkEviwkJOjFp2no=

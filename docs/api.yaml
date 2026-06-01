@@ -188,6 +188,10 @@ paths:
                       unit: ''
                       count: 0
                     supports_renewal: false
+                    policy:
+                      max_bytes_per_site: 1048576
+                      max_sites: 1
+                      max_subpaths_per_site: 0
         '401':
           $ref: '#/components/responses/ReauthenticationRequired'
         default:
@@ -253,6 +257,105 @@ paths:
           $ref: '#/components/responses/ReauthenticationRequired'
         default:
           $ref: '#/components/responses/Error'
+  /api/plans:
+    get:
+      tags:
+        - Plans
+      operationId: listPlans
+      summary: List available plans
+      responses:
+        '200':
+          description: Available plans and policies.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plan'
+              example:
+                - id: free
+                  name: Free
+                  price:
+                    amount: 0
+                    currency: USD
+                  billing_period:
+                    unit: ''
+                    count: 0
+                  supports_renewal: false
+                  policy:
+                    max_bytes_per_site: 1048576
+                    max_sites: 1
+                    max_subpaths_per_site: 0
+                - id: creator
+                  name: Creator
+                  price:
+                    amount: 2499
+                    currency: USD
+                  billing_period:
+                    unit: year
+                    count: 1
+                  supports_renewal: true
+                  policy:
+                    max_bytes_per_site: 10485760
+                    max_sites: 3
+                    max_subpaths_per_site: 2
+                - id: pro
+                  name: Pro
+                  price:
+                    amount: 7999
+                    currency: USD
+                  billing_period:
+                    unit: year
+                    count: 1
+                  supports_renewal: true
+                  policy:
+                    max_bytes_per_site: 104857600
+                    max_sites: 50
+                    max_subpaths_per_site: 10
+        default:
+          $ref: '#/components/responses/Error'
+  /api/plans/create/{planID}:
+    post:
+      tags:
+        - Plans
+      operationId: createPlanOrder
+      summary: Create a PayPal order for a plan
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PlanID'
+      responses:
+        '201':
+          description: PayPal order created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayPalOrder'
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/plans/capture/{orderID}:
+    post:
+      tags:
+        - Plans
+      operationId: capturePlanOrder
+      summary: Capture a PayPal order and activate the plan
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PayPalOrderID'
+      responses:
+        '200':
+          description: PayPal order captured and payment recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapturePaymentResponse'
+        '401':
+          $ref: '#/components/responses/ReauthenticationRequired'
+        default:
+          $ref: '#/components/responses/Error'
   /api/sites:
     post:
       tags:
@@ -289,6 +392,9 @@ paths:
                   - fitness
                   - wellness
                 url: https://conex.co.cr/go-fitness
+                created_at: 1780310400
+                last_modified: 1780310400
+                clicks: 0
                 sub: 1
         '401':
           $ref: '#/components/responses/ReauthenticationRequired'
@@ -318,6 +424,9 @@ paths:
                     - fitness
                     - wellness
                   url: https://conex.co.cr/go-fitness
+                  created_at: 1780310400
+                  last_modified: 1780310400
+                  clicks: 0
                   sub: 1
                 - path: personal-blog
                   public: true
@@ -325,6 +434,9 @@ paths:
                   tags:
                     - writing
                   url: https://conex.co.cr/personal-blog
+                  created_at: 1780310400
+                  last_modified: 1780310500
+                  clicks: 12
                   sub: 1
         '401':
           $ref: '#/components/responses/ReauthenticationRequired'
@@ -369,6 +481,9 @@ paths:
                   - fitness
                   - wellness
                 url: https://conex.co.cr/go-fitness
+                created_at: 1780310400
+                last_modified: 1780310500
+                clicks: 12
                 sub: 1
                 html: <h1>Hello</h1>
         '401':
@@ -454,6 +569,21 @@ components:
         minLength: 3
         maxLength: 255
         pattern: '^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
+    PlanID:
+      name: planID
+      in: path
+      required: true
+      schema:
+        type: string
+        enum:
+          - creator
+          - pro
+    PayPalOrderID:
+      name: orderID
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     LoginRequest:
       type: object
@@ -561,6 +691,7 @@ components:
         - price
         - billing_period
         - supports_renewal
+        - policy
       properties:
         id:
           type: string
@@ -573,6 +704,28 @@ components:
           $ref: '#/components/schemas/BillingPeriod'
         supports_renewal:
           type: boolean
+        policy:
+          $ref: '#/components/schemas/PlanPolicy'
+    PlanPolicy:
+      type: object
+      additionalProperties: false
+      required:
+        - max_bytes_per_site
+        - max_sites
+        - max_subpaths_per_site
+      properties:
+        max_bytes_per_site:
+          type: integer
+          format: int64
+          minimum: 0
+        max_sites:
+          type: integer
+          format: int64
+          minimum: 0
+        max_subpaths_per_site:
+          type: integer
+          format: int64
+          minimum: 0
     PlanPrice:
       type: object
       additionalProperties: false
@@ -595,6 +748,65 @@ components:
           type: string
         count:
           type: integer
+    PayPalOrder:
+      type: object
+      additionalProperties: true
+      required:
+        - id
+        - links
+      properties:
+        id:
+          type: string
+        links:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    Payment:
+      type: object
+      additionalProperties: false
+      required:
+        - order_id
+        - sub
+        - plan_id
+        - amount
+        - currency
+        - status
+        - created_at
+        - paid_at
+      properties:
+        order_id:
+          type: string
+        sub:
+          type: integer
+          format: int64
+        plan_id:
+          type: string
+        amount:
+          type: integer
+          format: int64
+        currency:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: integer
+          format: int64
+        paid_at:
+          type: integer
+          format: int64
+    CapturePaymentResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - payment
+        - paypal
+      properties:
+        payment:
+          $ref: '#/components/schemas/Payment'
+        paypal:
+          type: object
+          additionalProperties: true
     ChangeEmailRequest:
       type: object
       additionalProperties: false
@@ -675,6 +887,9 @@ components:
         - name
         - tags
         - url
+        - created_at
+        - last_modified
+        - clicks
       properties:
         sub:
           type: integer
@@ -691,6 +906,19 @@ components:
         url:
           type: string
           description: Public site URL built from the configured base URL and site path.
+        created_at:
+          type: integer
+          format: int64
+          description: Site creation timestamp.
+        last_modified:
+          type: integer
+          format: int64
+          description: Site last-modified timestamp.
+        clicks:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Number of public site visits.
     OwnedSite:
       allOf:
         - $ref: '#/components/schemas/Site'

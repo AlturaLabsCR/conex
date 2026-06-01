@@ -34,8 +34,29 @@ type Querier interface {
 	// SelectAccountSubscriptionBySub returns the account's subscription and plan.
 	SelectAccountSubscriptionBySub(ctx context.Context, sub int64) (*AccountSubscription, error)
 
+	// SelectPlans returns available plans.
+	SelectPlans(ctx context.Context) ([]Plan, error)
+
+	// CreatePayment records a pending payment order.
+	CreatePayment(ctx context.Context, orderID string, sub int64, planID string, amount int64, currency string, status string) error
+
+	// SelectPaymentByOrderID returns a payment by PayPal order ID.
+	SelectPaymentByOrderID(ctx context.Context, orderID string) (*Payment, error)
+
+	// CapturePayment marks a payment order captured for an account subject.
+	CapturePayment(ctx context.Context, orderID string, sub int64) (*Payment, error)
+
+	// UpdateSubscriptionPlan updates the account subscription after a captured payment.
+	UpdateSubscriptionPlan(ctx context.Context, sub int64, planID string, dueDate string) error
+
 	// CreateSite creates a site for an account subject.
 	CreateSite(ctx context.Context, sub int64, path string, public bool) error
+
+	// CreateSiteTimestamps creates the creation and last-modified timestamps for a site.
+	CreateSiteTimestamps(ctx context.Context, path string) error
+
+	// CreateSiteClicks creates the click counter for a site.
+	CreateSiteClicks(ctx context.Context, path string) error
 
 	// UpsertSiteName creates or updates the display name for a site.
 	UpsertSiteName(ctx context.Context, path string, name string) error
@@ -54,6 +75,12 @@ type Querier interface {
 
 	// UpdateSitePublic updates the public status for a site owned by the account subject.
 	UpdateSitePublic(ctx context.Context, sub int64, path string, public bool) error
+
+	// IncrementSiteClicks increments a site's click counter by one.
+	IncrementSiteClicks(ctx context.Context, path string) error
+
+	// UpdateSiteLastModified updates a site's last modified timestamp to the database current time.
+	UpdateSiteLastModified(ctx context.Context, path string) error
 
 	// DeleteSite deletes a site owned by the account subject.
 	DeleteSite(ctx context.Context, sub int64, path string) (*Site, error)

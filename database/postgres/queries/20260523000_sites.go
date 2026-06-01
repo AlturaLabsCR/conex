@@ -17,6 +17,14 @@ func (q *PostgresQuerier) CreateSite(ctx context.Context, sub int64, path string
 	})
 }
 
+func (q *PostgresQuerier) CreateSiteTimestamps(ctx context.Context, path string) error {
+	return q.queries.CreateSiteTimestamps(ctx, path)
+}
+
+func (q *PostgresQuerier) CreateSiteClicks(ctx context.Context, path string) error {
+	return q.queries.CreateSiteClicks(ctx, path)
+}
+
 func (q *PostgresQuerier) SelectSiteByPath(ctx context.Context, path string) (*database.Site, error) {
 	site, err := q.queries.SelectSiteByPath(ctx, path)
 	if err != nil {
@@ -24,11 +32,14 @@ func (q *PostgresQuerier) SelectSiteByPath(ctx context.Context, path string) (*d
 	}
 
 	return &database.Site{
-		Sub:    site.Sub,
-		Path:   site.Path,
-		Public: site.Public,
-		Name:   site.Name,
-		Tags:   databaseTags(site.Tags),
+		Sub:          site.Sub,
+		Path:         site.Path,
+		Public:       site.Public,
+		Name:         site.Name,
+		Tags:         databaseTags(site.Tags),
+		CreatedAt:    site.CreatedAt,
+		LastModified: site.LastModified,
+		Clicks:       site.Clicks,
 	}, nil
 }
 
@@ -41,11 +52,14 @@ func (q *PostgresQuerier) SelectSitesBySub(ctx context.Context, sub int64) ([]da
 	out := make([]database.Site, 0, len(sites))
 	for _, site := range sites {
 		out = append(out, database.Site{
-			Sub:    site.Sub,
-			Path:   site.Path,
-			Public: site.Public,
-			Name:   site.Name,
-			Tags:   databaseTags(site.Tags),
+			Sub:          site.Sub,
+			Path:         site.Path,
+			Public:       site.Public,
+			Name:         site.Name,
+			Tags:         databaseTags(site.Tags),
+			CreatedAt:    site.CreatedAt,
+			LastModified: site.LastModified,
+			Clicks:       site.Clicks,
 		})
 	}
 
@@ -78,6 +92,14 @@ func (q *PostgresQuerier) UpdateSitePublic(ctx context.Context, sub int64, path 
 	})
 }
 
+func (q *PostgresQuerier) IncrementSiteClicks(ctx context.Context, path string) error {
+	return q.queries.IncrementSiteClicks(ctx, path)
+}
+
+func (q *PostgresQuerier) UpdateSiteLastModified(ctx context.Context, path string) error {
+	return q.queries.UpdateSiteLastModified(ctx, path)
+}
+
 func (q *PostgresQuerier) DeleteSite(ctx context.Context, sub int64, path string) (*database.Site, error) {
 	site, err := q.queries.DeleteSite(ctx, db.DeleteSiteParams{
 		Sub:  sub,
@@ -88,11 +110,14 @@ func (q *PostgresQuerier) DeleteSite(ctx context.Context, sub int64, path string
 	}
 
 	return &database.Site{
-		Sub:    site.Sub,
-		Path:   site.Path,
-		Public: site.Public,
-		Name:   site.Name,
-		Tags:   databaseTags(site.Tags),
+		Sub:          site.Sub,
+		Path:         site.Path,
+		Public:       site.Public,
+		Name:         site.Name,
+		Tags:         databaseTags(site.Tags),
+		CreatedAt:    site.CreatedAt,
+		LastModified: site.LastModified,
+		Clicks:       site.Clicks,
 	}, nil
 }
 

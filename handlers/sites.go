@@ -152,24 +152,30 @@ func (h *Handler) GetOwnedSite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type ownedSiteResponse struct {
-		Sub    int64    `json:"sub"`
-		Path   string   `json:"path"`
-		Public bool     `json:"public"`
-		Name   string   `json:"name"`
-		Tags   []string `json:"tags"`
-		URL    string   `json:"url"`
-		HTML   string   `json:"html"`
+		Sub          int64    `json:"sub"`
+		Path         string   `json:"path"`
+		Public       bool     `json:"public"`
+		Name         string   `json:"name"`
+		Tags         []string `json:"tags"`
+		URL          string   `json:"url"`
+		CreatedAt    int64    `json:"created_at"`
+		LastModified int64    `json:"last_modified"`
+		Clicks       int64    `json:"clicks"`
+		HTML         string   `json:"html"`
 	}
 
 	base := h.siteResponse(*site)
 	writeJSON(w, http.StatusOK, ownedSiteResponse{
-		Sub:    base.Sub,
-		Path:   base.Path,
-		Public: base.Public,
-		Name:   base.Name,
-		Tags:   base.Tags,
-		URL:    base.URL,
-		HTML:   html,
+		Sub:          base.Sub,
+		Path:         base.Path,
+		Public:       base.Public,
+		Name:         base.Name,
+		Tags:         base.Tags,
+		URL:          base.URL,
+		CreatedAt:    base.CreatedAt,
+		LastModified: base.LastModified,
+		Clicks:       base.Clicks,
+		HTML:         html,
 	})
 }
 
@@ -212,6 +218,15 @@ func (h *Handler) CreateSite(w http.ResponseWriter, r *http.Request) {
 			return
 		case errors.Is(err, sites.ErrPathUnavailable):
 			h.writeStatus(w, r, http.StatusConflict, "site path unavailable", "sub", sub, "site_path", req.Path)
+			return
+		case errors.Is(err, sites.ErrSiteSizeLimit):
+			h.writeError(w, r, http.StatusRequestEntityTooLarge, err, "site size limit exceeded", "sub", sub, "site_path", req.Path)
+			return
+		case errors.Is(err, sites.ErrSiteCountLimit):
+			h.writeError(w, r, http.StatusForbidden, err, "site count limit exceeded", "sub", sub, "site_path", req.Path)
+			return
+		case errors.Is(err, sites.ErrSubpathLimit):
+			h.writeError(w, r, http.StatusForbidden, err, "site subpath limit exceeded", "sub", sub, "site_path", req.Path)
 			return
 		default:
 			h.writeError(w, r, http.StatusInternalServerError, err, "failed to create site", "sub", sub, "site_path", req.Path)
@@ -262,6 +277,9 @@ func (h *Handler) UpdateSite(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, sites.ErrSiteNotFound):
 			h.writeError(w, r, http.StatusNotFound, err, "site not found", "sub", sub, "site_path", r.PathValue("path"))
 			return
+		case errors.Is(err, sites.ErrSiteSizeLimit):
+			h.writeError(w, r, http.StatusRequestEntityTooLarge, err, "site size limit exceeded", "sub", sub, "site_path", r.PathValue("path"))
+			return
 		default:
 			h.writeError(w, r, http.StatusInternalServerError, err, "failed to update site", "sub", sub, "site_path", r.PathValue("path"))
 			return
@@ -272,22 +290,28 @@ func (h *Handler) UpdateSite(w http.ResponseWriter, r *http.Request) {
 }
 
 type siteResponse struct {
-	Sub    int64    `json:"sub"`
-	Path   string   `json:"path"`
-	Public bool     `json:"public"`
-	Name   string   `json:"name"`
-	Tags   []string `json:"tags"`
-	URL    string   `json:"url"`
+	Sub          int64    `json:"sub"`
+	Path         string   `json:"path"`
+	Public       bool     `json:"public"`
+	Name         string   `json:"name"`
+	Tags         []string `json:"tags"`
+	URL          string   `json:"url"`
+	CreatedAt    int64    `json:"created_at"`
+	LastModified int64    `json:"last_modified"`
+	Clicks       int64    `json:"clicks"`
 }
 
 func (h *Handler) siteResponse(site database.Site) siteResponse {
 	return siteResponse{
-		Sub:    site.Sub,
-		Path:   site.Path,
-		Public: site.Public,
-		Name:   site.Name,
-		Tags:   site.Tags,
-		URL:    h.siteURL(site.Path),
+		Sub:          site.Sub,
+		Path:         site.Path,
+		Public:       site.Public,
+		Name:         site.Name,
+		Tags:         site.Tags,
+		URL:          h.siteURL(site.Path),
+		CreatedAt:    site.CreatedAt,
+		LastModified: site.LastModified,
+		Clicks:       site.Clicks,
 	}
 }
 

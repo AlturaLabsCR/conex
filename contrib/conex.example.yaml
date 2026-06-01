@@ -51,6 +51,19 @@ mail:
     api-key: ""
     api-base: ""
 
+# PayPal checkout configuration.
+# Override with:
+#   CONEX_PAYPAL_HOST=https://api-m.sandbox.paypal.com app serve
+#   app serve --paypal-host https://api-m.sandbox.paypal.com
+#   CONEX_PAYPAL_CLIENT_ID=client-id app serve
+#   app serve --paypal-client-id client-id
+#   CONEX_PAYPAL_CLIENT_SECRET=client-secret app serve
+#   app serve --paypal-client-secret client-secret
+paypal:
+  host: https://api-m.sandbox.paypal.com
+  client-id: ""
+  client-secret: ""
+
 # CORS origins allowed to call the API from browser JavaScript.
 # The default http://localhost entry allows any localhost port.
 # Override with:
