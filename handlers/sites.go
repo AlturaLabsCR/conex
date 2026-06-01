@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"app/database"
@@ -13,12 +14,20 @@ import (
 	sitetemplates "app/templates/sites"
 )
 
+const maxSiteListPage = 107374183
+
 func (h *Handler) registerSiteRoutes() {
 	authenticated := func(fn http.HandlerFunc) http.Handler {
 		return middleware.AuthenticateBearer(h.logger, h.authenticator, h.localizeError, http.HandlerFunc(fn))
 	}
 
 	h.AddHandler(http.MethodGet, h.routePath("/{path}"), http.HandlerFunc(h.GetSite))
+	h.AddHandler(http.MethodGet, h.routePath("/api/public/sites/top"), http.HandlerFunc(h.ListTopSites))
+	h.AddHandler(http.MethodGet, h.routePath("/api/public/sites/top/{page}"), http.HandlerFunc(h.ListTopSites))
+	h.AddHandler(http.MethodGet, h.routePath("/api/public/sites/latest"), http.HandlerFunc(h.ListLatestSites))
+	h.AddHandler(http.MethodGet, h.routePath("/api/public/sites/latest/{page}"), http.HandlerFunc(h.ListLatestSites))
+	h.AddHandler(http.MethodGet, h.routePath("/api/public/sites/search/{query}"), http.HandlerFunc(h.SearchSites))
+	h.AddHandler(http.MethodGet, h.routePath("/api/public/sites/search/{query}/{page}"), http.HandlerFunc(h.SearchSites))
 	h.AddHandler(http.MethodHead, h.routePath("/api/sites/{path}"), http.HandlerFunc(h.SitePathAvailable))
 	h.AddHandler(http.MethodPost, h.routePath("/api/sites"), authenticated(h.CreateSite))
 	h.AddHandler(http.MethodGet, h.routePath("/api/sites"), authenticated(h.ListSites))
@@ -127,6 +136,73 @@ func (h *Handler) ListSites(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, h.siteResponses(ownedSites))
+}
+
+func (h *Handler) ListTopSites(w http.ResponseWriter, r *http.Request) {
+	page, ok := h.siteListPage(w, r)
+	if !ok {
+		return
+	}
+
+	publicSites, err := h.sites.ListTop(r.Context(), page)
+	if err != nil {
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to list top sites", "page", page)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, h.siteResponses(publicSites))
+}
+
+func (h *Handler) ListLatestSites(w http.ResponseWriter, r *http.Request) {
+	page, ok := h.siteListPage(w, r)
+	if !ok {
+		return
+	}
+
+	publicSites, err := h.sites.ListLatest(r.Context(), page)
+	if err != nil {
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to list latest sites", "page", page)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, h.siteResponses(publicSites))
+}
+
+func (h *Handler) SearchSites(w http.ResponseWriter, r *http.Request) {
+	page, ok := h.siteListPage(w, r)
+	if !ok {
+		return
+	}
+
+	query := strings.TrimSpace(r.PathValue("query"))
+	publicSites, err := h.sites.Search(r.Context(), query, page)
+	if err != nil {
+		switch {
+		case errors.Is(err, sites.ErrInvalidName):
+			h.writeError(w, r, http.StatusBadRequest, err, "invalid site search query", "query", query, "page", page)
+			return
+		default:
+			h.writeError(w, r, http.StatusInternalServerError, err, "failed to search sites", "query", query, "page", page)
+			return
+		}
+	}
+
+	writeJSON(w, http.StatusOK, h.siteResponses(publicSites))
+}
+
+func (h *Handler) siteListPage(w http.ResponseWriter, r *http.Request) (int64, bool) {
+	raw := strings.TrimSpace(r.PathValue("page"))
+	if raw == "" {
+		return 1, true
+	}
+
+	page, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || page < 1 || page > maxSiteListPage {
+		h.writeStatus(w, r, http.StatusBadRequest, "invalid site list page", "page", raw)
+		return 0, false
+	}
+
+	return page, true
 }
 
 func (h *Handler) GetOwnedSite(w http.ResponseWriter, r *http.Request) {

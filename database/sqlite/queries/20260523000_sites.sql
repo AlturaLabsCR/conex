@@ -35,6 +35,57 @@ FROM site_meta
 WHERE sub = ?
 ORDER BY path;
 
+-- name: SelectPublicSitesByClicks :many
+SELECT sub, path, public, name, CAST(tags AS TEXT) AS tags, created_at, last_modified, clicks
+FROM site_meta
+WHERE public = TRUE
+ORDER BY clicks DESC, path
+LIMIT ? OFFSET ?;
+
+-- name: SelectPublicSitesByCreatedAt :many
+SELECT sub, path, public, name, CAST(tags AS TEXT) AS tags, created_at, last_modified, clicks
+FROM site_meta
+WHERE public = TRUE
+ORDER BY created_at DESC, path
+LIMIT ? OFFSET ?;
+
+-- name: SearchPublicSites :many
+SELECT sub, path, public, name, CAST(tags AS TEXT) AS tags, created_at, last_modified, clicks
+FROM site_meta
+WHERE public = TRUE
+  AND (
+    lower(name) LIKE '%' || lower(trim(CAST(?1 AS TEXT))) || '%'
+    OR EXISTS (
+      SELECT 1
+      FROM site_tags
+      WHERE site_tags.path = site_meta.path
+        AND lower(site_tags.tag) LIKE '%' || lower(trim(CAST(?1 AS TEXT))) || '%'
+    )
+  )
+ORDER BY
+  CASE
+    WHEN lower(name) = lower(trim(CAST(?1 AS TEXT))) THEN 0
+    WHEN EXISTS (
+      SELECT 1
+      FROM site_tags
+      WHERE site_tags.path = site_meta.path
+        AND lower(site_tags.tag) = lower(trim(CAST(?1 AS TEXT)))
+    ) THEN 1
+    WHEN lower(name) LIKE lower(trim(CAST(?1 AS TEXT))) || '%' THEN 2
+    WHEN EXISTS (
+      SELECT 1
+      FROM site_tags
+      WHERE site_tags.path = site_meta.path
+        AND lower(site_tags.tag) LIKE lower(trim(CAST(?1 AS TEXT))) || '%'
+    ) THEN 3
+    WHEN lower(name) LIKE '%' || lower(trim(CAST(?1 AS TEXT))) || '%' THEN 4
+    ELSE 5
+  END,
+  clicks DESC,
+  created_at DESC,
+  path
+LIMIT CAST(?2 AS INTEGER) OFFSET CAST(?3 AS INTEGER);
+
 -- name: UpdateSitePublic :exec
 UPDATE sites
 SET public = ?

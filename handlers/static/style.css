@@ -1,0 +1,56 @@
+body {
+	margin: 0 auto;
+	max-width: 72rem;
+	padding: 1rem;
+	font: 16px/1.5 system-ui, sans-serif;
+	color: #111;
+}
+
+header,
+footer {
+	padding: 1rem 0;
+}
+
+.site-controls {
+	display: flex;
+	gap: .5rem;
+	margin: 1rem 0;
+}
+
+input,
+select {
+	font: inherit;
+	padding: .5rem;
+}
+
+input {
+	flex: 1;
+}
+
+.site-list {
+	display: grid;
+	gap: .75rem;
+}
+
+.site-card {
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: .75rem;
+}
+
+.site-card h2 {
+	font-size: 1rem;
+	margin: 0 0 .25rem;
+}
+
+.site-meta,
+.muted {
+	color: #666;
+	font-size: .875rem;
+}
+
+@media (max-width: 40rem) {
+	.site-controls {
+		flex-direction: column;
+	}
+}

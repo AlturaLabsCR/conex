@@ -35,6 +35,63 @@ FROM site_meta
 WHERE sub = $1
 ORDER BY path;
 
+-- name: SelectPublicSitesByClicks :many
+SELECT sub, path, public, name, to_json(tags)::text AS tags, created_at, last_modified, clicks
+FROM site_meta
+WHERE public = TRUE
+ORDER BY clicks DESC, path
+LIMIT $1 OFFSET $2;
+
+-- name: SelectPublicSitesByCreatedAt :many
+SELECT sub, path, public, name, to_json(tags)::text AS tags, created_at, last_modified, clicks
+FROM site_meta
+WHERE public = TRUE
+ORDER BY created_at DESC, path
+LIMIT $1 OFFSET $2;
+
+-- name: SearchPublicSites :many
+WITH search AS (
+  SELECT lower(btrim(sqlc.arg(query)::text)) AS query,
+    sqlc.arg(page_limit)::int AS limit_value,
+    sqlc.arg(page_offset)::int AS offset_value
+)
+SELECT sub, path, public, name, to_json(tags)::text AS tags, created_at, last_modified, clicks
+FROM site_meta, search
+WHERE public = TRUE
+  AND (
+    lower(name) LIKE '%' || search.query || '%'
+    OR EXISTS (
+      SELECT 1
+      FROM site_tags
+      WHERE site_tags.path = site_meta.path
+        AND lower(site_tags.tag) LIKE '%' || search.query || '%'
+    )
+  )
+ORDER BY
+  CASE
+    WHEN lower(name) = search.query THEN 0
+    WHEN EXISTS (
+      SELECT 1
+      FROM site_tags
+      WHERE site_tags.path = site_meta.path
+        AND lower(site_tags.tag) = search.query
+    ) THEN 1
+    WHEN lower(name) LIKE search.query || '%' THEN 2
+    WHEN EXISTS (
+      SELECT 1
+      FROM site_tags
+      WHERE site_tags.path = site_meta.path
+        AND lower(site_tags.tag) LIKE search.query || '%'
+    ) THEN 3
+    WHEN lower(name) LIKE '%' || search.query || '%' THEN 4
+    ELSE 5
+  END,
+  clicks DESC,
+  created_at DESC,
+  path
+LIMIT (SELECT limit_value FROM search)
+OFFSET (SELECT offset_value FROM search);
+
 -- name: UpdateSitePublic :exec
 UPDATE sites
 SET public = $3

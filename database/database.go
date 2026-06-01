@@ -73,6 +73,15 @@ type Querier interface {
 	// SelectSitesBySub returns the sites owned by the account subject.
 	SelectSitesBySub(ctx context.Context, sub int64) ([]Site, error)
 
+	// SelectPublicSitesByClicks returns public sites ordered by click count.
+	SelectPublicSitesByClicks(ctx context.Context, limit int64, offset int64) ([]Site, error)
+
+	// SelectPublicSitesByCreatedAt returns public sites ordered by creation time.
+	SelectPublicSitesByCreatedAt(ctx context.Context, limit int64, offset int64) ([]Site, error)
+
+	// SearchPublicSites returns public sites matching a name or tag query.
+	SearchPublicSites(ctx context.Context, query string, limit int64, offset int64) ([]Site, error)
+
 	// UpdateSitePublic updates the public status for a site owned by the account subject.
 	UpdateSitePublic(ctx context.Context, sub int64, path string, public bool) error
 

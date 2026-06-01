@@ -66,6 +66,85 @@ func (q *SqliteQuerier) SelectSitesBySub(ctx context.Context, sub int64) ([]data
 	return out, nil
 }
 
+func (q *SqliteQuerier) SelectPublicSitesByClicks(ctx context.Context, limit int64, offset int64) ([]database.Site, error) {
+	sites, err := q.queries.SelectPublicSitesByClicks(ctx, db.SelectPublicSitesByClicksParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]database.Site, 0, len(sites))
+	for _, site := range sites {
+		out = append(out, database.Site{
+			Sub:          site.Sub,
+			Path:         site.Path,
+			Public:       site.Public,
+			Name:         site.Name,
+			Tags:         databaseTags(site.Tags),
+			CreatedAt:    site.CreatedAt,
+			LastModified: site.LastModified,
+			Clicks:       site.Clicks,
+		})
+	}
+
+	return out, nil
+}
+
+func (q *SqliteQuerier) SelectPublicSitesByCreatedAt(ctx context.Context, limit int64, offset int64) ([]database.Site, error) {
+	sites, err := q.queries.SelectPublicSitesByCreatedAt(ctx, db.SelectPublicSitesByCreatedAtParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]database.Site, 0, len(sites))
+	for _, site := range sites {
+		out = append(out, database.Site{
+			Sub:          site.Sub,
+			Path:         site.Path,
+			Public:       site.Public,
+			Name:         site.Name,
+			Tags:         databaseTags(site.Tags),
+			CreatedAt:    site.CreatedAt,
+			LastModified: site.LastModified,
+			Clicks:       site.Clicks,
+		})
+	}
+
+	return out, nil
+}
+
+func (q *SqliteQuerier) SearchPublicSites(ctx context.Context, query string, limit int64, offset int64) ([]database.Site, error) {
+	sites, err := q.queries.SearchPublicSites(ctx, db.SearchPublicSitesParams{
+		Column1: query,
+		Column2: limit,
+		Column3: offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]database.Site, 0, len(sites))
+	for _, site := range sites {
+		out = append(out, database.Site{
+			Sub:          site.Sub,
+			Path:         site.Path,
+			Public:       site.Public,
+			Name:         site.Name,
+			Tags:         databaseTags(site.Tags),
+			CreatedAt:    site.CreatedAt,
+			LastModified: site.LastModified,
+			Clicks:       site.Clicks,
+		})
+	}
+
+	return out, nil
+}
+
 func (q *SqliteQuerier) UpsertSiteName(ctx context.Context, path string, name string) error {
 	return q.queries.UpsertSiteName(ctx, db.UpsertSiteNameParams{
 		Path: path,

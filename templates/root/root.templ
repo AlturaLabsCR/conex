@@ -1,7 +1,36 @@
 package root
 
-templ RootMain(tr func(string, ...any) string) {
-	<section>
+templ RootMain(tr func(string, ...any) string, rootPrefix string) {
+	<section
+		class="site-browser"
+		data-site-browser
+		data-api-prefix={ rootPrefix }
+		data-signals="{ query: '', sort: 'top' }"
+		data-on:load="ConexSites.init(el)"
+		data-on:scroll__window__throttle.250ms="ConexSites.loadIfNearEnd(el)"
+	>
 		<h1>{ tr("root.greeting") }</h1>
+		<form class="site-controls" data-on:submit__prevent="ConexSites.reset(el)">
+			<input
+				type="search"
+				name="query"
+				placeholder="Search sites"
+				autocomplete="off"
+				data-bind="query"
+				data-on:input__debounce.300ms="ConexSites.reset(el)"
+			/>
+			<select
+				name="sort"
+				aria-label="Site order"
+				data-bind="sort"
+				data-on:change="ConexSites.reset(el)"
+			>
+				<option value="top">Most visited</option>
+				<option value="latest">Recently created</option>
+			</select>
+		</form>
+		<p class="muted" data-text="$query ? 'Search results' : ($sort === 'latest' ? 'Recently created' : 'Most visited')">Most visited</p>
+		<div class="site-list" data-site-list></div>
+		<p class="muted" data-site-status>Loading...</p>
 	</section>
 }

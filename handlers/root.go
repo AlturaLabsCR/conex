@@ -26,7 +26,7 @@ func (h *Handler) Root(w http.ResponseWriter, r *http.Request) {
 				RobotsIndex: true,
 			},
 			Body: base.BodyParams{
-				Content: root.RootMain(L),
+				Content: root.RootMain(L, h.rootPrefix),
 				Active:  h.rootPrefix,
 			},
 		})

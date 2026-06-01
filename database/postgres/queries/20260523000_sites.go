@@ -66,6 +66,85 @@ func (q *PostgresQuerier) SelectSitesBySub(ctx context.Context, sub int64) ([]da
 	return out, nil
 }
 
+func (q *PostgresQuerier) SelectPublicSitesByClicks(ctx context.Context, limit int64, offset int64) ([]database.Site, error) {
+	sites, err := q.queries.SelectPublicSitesByClicks(ctx, db.SelectPublicSitesByClicksParams{
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]database.Site, 0, len(sites))
+	for _, site := range sites {
+		out = append(out, database.Site{
+			Sub:          site.Sub,
+			Path:         site.Path,
+			Public:       site.Public,
+			Name:         site.Name,
+			Tags:         databaseTags(site.Tags),
+			CreatedAt:    site.CreatedAt,
+			LastModified: site.LastModified,
+			Clicks:       site.Clicks,
+		})
+	}
+
+	return out, nil
+}
+
+func (q *PostgresQuerier) SelectPublicSitesByCreatedAt(ctx context.Context, limit int64, offset int64) ([]database.Site, error) {
+	sites, err := q.queries.SelectPublicSitesByCreatedAt(ctx, db.SelectPublicSitesByCreatedAtParams{
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]database.Site, 0, len(sites))
+	for _, site := range sites {
+		out = append(out, database.Site{
+			Sub:          site.Sub,
+			Path:         site.Path,
+			Public:       site.Public,
+			Name:         site.Name,
+			Tags:         databaseTags(site.Tags),
+			CreatedAt:    site.CreatedAt,
+			LastModified: site.LastModified,
+			Clicks:       site.Clicks,
+		})
+	}
+
+	return out, nil
+}
+
+func (q *PostgresQuerier) SearchPublicSites(ctx context.Context, query string, limit int64, offset int64) ([]database.Site, error) {
+	sites, err := q.queries.SearchPublicSites(ctx, db.SearchPublicSitesParams{
+		Query:      query,
+		PageLimit:  int32(limit),
+		PageOffset: int32(offset),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]database.Site, 0, len(sites))
+	for _, site := range sites {
+		out = append(out, database.Site{
+			Sub:          site.Sub,
+			Path:         site.Path,
+			Public:       site.Public,
+			Name:         site.Name,
+			Tags:         databaseTags(site.Tags),
+			CreatedAt:    site.CreatedAt,
+			LastModified: site.LastModified,
+			Clicks:       site.Clicks,
+		})
+	}
+
+	return out, nil
+}
+
 func (q *PostgresQuerier) UpsertSiteName(ctx context.Context, path string, name string) error {
 	return q.queries.UpsertSiteName(ctx, db.UpsertSiteNameParams{
 		Path: path,

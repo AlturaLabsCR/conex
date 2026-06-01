@@ -34,6 +34,7 @@ const (
 	siteNameMaxLength = 255
 	siteTagMaxLength  = 64
 	siteTagsMaxCount  = 32
+	siteListPageSize  = 20
 )
 
 type Sites interface {
@@ -41,6 +42,9 @@ type Sites interface {
 	Get(ctx context.Context, path string) (*database.Site, string, error)
 	GetOwned(ctx context.Context, sub int64, path string) (*database.Site, string, error)
 	List(ctx context.Context, sub int64) ([]database.Site, error)
+	ListTop(ctx context.Context, page int64) ([]database.Site, error)
+	ListLatest(ctx context.Context, page int64) ([]database.Site, error)
+	Search(ctx context.Context, query string, page int64) ([]database.Site, error)
 	Update(ctx context.Context, sub int64, path string, update SiteUpdate) (*database.Site, error)
 	Delete(ctx context.Context, sub int64, path string) error
 	DeleteAll(ctx context.Context, sub int64) error
@@ -221,6 +225,31 @@ func (s *Service) Get(ctx context.Context, path string) (*database.Site, string,
 
 func (s *Service) List(ctx context.Context, sub int64) ([]database.Site, error) {
 	return s.db.Querier().SelectSitesBySub(ctx, sub)
+}
+
+func (s *Service) ListTop(ctx context.Context, page int64) ([]database.Site, error) {
+	return s.db.Querier().SelectPublicSitesByClicks(ctx, siteListPageSize, siteListOffset(page))
+}
+
+func (s *Service) ListLatest(ctx context.Context, page int64) ([]database.Site, error) {
+	return s.db.Querier().SelectPublicSitesByCreatedAt(ctx, siteListPageSize, siteListOffset(page))
+}
+
+func (s *Service) Search(ctx context.Context, query string, page int64) ([]database.Site, error) {
+	query = strings.TrimSpace(query)
+	if query == "" || len(query) > siteNameMaxLength {
+		return nil, ErrInvalidName
+	}
+
+	return s.db.Querier().SearchPublicSites(ctx, query, siteListPageSize, siteListOffset(page))
+}
+
+func siteListOffset(page int64) int64 {
+	if page < 1 {
+		page = 1
+	}
+
+	return (page - 1) * siteListPageSize
 }
 
 func (s *Service) GetOwned(ctx context.Context, sub int64, path string) (*database.Site, string, error) {

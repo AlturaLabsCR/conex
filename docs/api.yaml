@@ -136,6 +136,146 @@ paths:
                 refresh_token_expires_in: 5184000
         default:
           $ref: '#/components/responses/Error'
+  /api/public/sites/top:
+    get:
+      tags:
+        - Sites
+      operationId: listTopPublicSites
+      summary: List top public sites
+      description: Returns the first page of public site metadata ordered by clicks descending.
+      responses:
+        '200':
+          description: Top public sites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteList'
+              example:
+                - path: go-fitness
+                  public: true
+                  name: Go Fitness
+                  tags:
+                    - fitness
+                    - wellness
+                  url: https://conex.co.cr/go-fitness
+                  created_at: 1780310400
+                  last_modified: 1780310500
+                  clicks: 42
+                  sub: 1
+        default:
+          $ref: '#/components/responses/Error'
+  /api/public/sites/top/{page}:
+    get:
+      tags:
+        - Sites
+      operationId: listTopPublicSitesPage
+      summary: List top public sites by page
+      description: Returns public site metadata ordered by clicks descending, 20 sites per page. Page numbers start at 1.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Top public sites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteList'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/public/sites/latest:
+    get:
+      tags:
+        - Sites
+      operationId: listLatestPublicSites
+      summary: List latest public sites
+      description: Returns the first page of public site metadata ordered by creation timestamp descending.
+      responses:
+        '200':
+          description: Latest public sites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteList'
+              example:
+                - path: personal-blog
+                  public: true
+                  name: Personal Blog
+                  tags:
+                    - writing
+                  url: https://conex.co.cr/personal-blog
+                  created_at: 1780310600
+                  last_modified: 1780310600
+                  clicks: 0
+                  sub: 2
+        default:
+          $ref: '#/components/responses/Error'
+  /api/public/sites/latest/{page}:
+    get:
+      tags:
+        - Sites
+      operationId: listLatestPublicSitesPage
+      summary: List latest public sites by page
+      description: Returns public site metadata ordered by creation timestamp descending, 20 sites per page. Page numbers start at 1.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Latest public sites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteList'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/public/sites/search/{query}:
+    get:
+      tags:
+        - Sites
+      operationId: searchPublicSites
+      summary: Search public sites
+      description: Returns the first page of public site metadata fuzzy-matched by site name and tags.
+      parameters:
+        - $ref: '#/components/parameters/SiteSearchQuery'
+      responses:
+        '200':
+          description: Matching public sites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteList'
+              example:
+                - path: go-fitness
+                  public: true
+                  name: Go Fitness
+                  tags:
+                    - fitness
+                    - wellness
+                  url: https://conex.co.cr/go-fitness
+                  created_at: 1780310400
+                  last_modified: 1780310500
+                  clicks: 42
+                  sub: 1
+        default:
+          $ref: '#/components/responses/Error'
+  /api/public/sites/search/{query}/{page}:
+    get:
+      tags:
+        - Sites
+      operationId: searchPublicSitesPage
+      summary: Search public sites by page
+      description: Returns public site metadata fuzzy-matched by site name and tags, 20 sites per page. Page numbers start at 1.
+      parameters:
+        - $ref: '#/components/parameters/SiteSearchQuery'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Matching public sites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteList'
+        default:
+          $ref: '#/components/responses/Error'
   /api/auth/logout:
     post:
       tags:
@@ -569,6 +709,15 @@ components:
         minLength: 3
         maxLength: 255
         pattern: '^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
+    SiteSearchQuery:
+      name: query
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+      description: Site name or tag search text.
     PlanID:
       name: planID
       in: path
@@ -584,6 +733,14 @@ components:
       required: true
       schema:
         type: string
+    Page:
+      name: page
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+      description: One-based page number. Each page returns up to 20 sites.
   schemas:
     LoginRequest:
       type: object
@@ -919,6 +1076,11 @@ components:
           format: int64
           minimum: 0
           description: Number of public site visits.
+    SiteList:
+      type: array
+      maxItems: 20
+      items:
+        $ref: '#/components/schemas/Site'
     OwnedSite:
       allOf:
         - $ref: '#/components/schemas/Site'
