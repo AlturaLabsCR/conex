@@ -18,23 +18,32 @@ body {
 	margin: 0 auto;
 	max-width: 72rem;
 	min-height: 100vh;
-	padding: 1rem;
+	padding: 0 1rem;
 	font-size: 16px;
 	line-height: 1.5;
 }
 
-header,
-footer {
+body > header,
+body > footer {
 	padding: 1rem 0;
 }
 
-footer {
+body > header {
+	background: inherit;
+	position: sticky;
+	top: 0;
+	z-index: 10;
+}
+
+body > footer {
 	color: #666;
 	font-size: .875rem;
+	padding-bottom: 2rem;
+	padding-top: 2rem;
 	text-align: center;
 }
 
-header h1 {
+body > header h1 {
 	font-size: clamp(2rem, 5vw, 3.25rem);
 	margin: 0;
 }
@@ -226,7 +235,7 @@ input {
 		border-color: #3a3f42;
 	}
 
-	footer,
+	body > footer,
 	.root-intro,
 	.site-clicks,
 	.site-meta,

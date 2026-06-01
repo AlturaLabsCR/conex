@@ -675,6 +675,7 @@ func normalizeTags(tags []string) ([]string, error) {
 	seen := make(map[string]struct{}, len(tags))
 	for _, tag := range tags {
 		tag = strings.TrimSpace(tag)
+		tag = strings.TrimPrefix(tag, "#")
 		if len(tag) == 0 || len(tag) > siteTagMaxLength {
 			return nil, ErrInvalidTags
 		}
