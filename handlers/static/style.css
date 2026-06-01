@@ -1,14 +1,33 @@
 body {
+	background: #fff;
+	color: #151718;
 	margin: 0 auto;
 	max-width: 72rem;
 	padding: 1rem;
 	font: 16px/1.5 system-ui, sans-serif;
-	color: #111;
 }
 
 header,
 footer {
 	padding: 1rem 0;
+}
+
+footer {
+	color: #666;
+	font-size: .875rem;
+	text-align: center;
+}
+
+a {
+	color: inherit;
+	text-decoration: underline;
+}
+
+img {
+	border-radius: 8px;
+	box-sizing: border-box;
+	height: auto;
+	max-width: 100%;
 }
 
 .site-controls {
@@ -19,6 +38,10 @@ footer {
 
 input,
 select {
+	background: transparent;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	color: inherit;
 	font: inherit;
 	padding: .5rem;
 }
@@ -35,6 +58,7 @@ input {
 .site-card {
 	border: 1px solid #ddd;
 	border-radius: 8px;
+	background: color-mix(in srgb, currentColor 3%, transparent);
 	padding: .75rem;
 }
 
@@ -47,6 +71,25 @@ input {
 .muted {
 	color: #666;
 	font-size: .875rem;
+}
+
+@media (prefers-color-scheme: dark) {
+	body {
+		background: #151718;
+		color: #fff;
+	}
+
+	input,
+	select,
+	.site-card {
+		border-color: #3a3f42;
+	}
+
+	footer,
+	.site-meta,
+	.muted {
+		color: #b8c0c4;
+	}
 }
 
 @media (max-width: 40rem) {

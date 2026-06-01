@@ -3,25 +3,31 @@ package base
 import "app/templates/meta"
 
 type BodyParams struct {
-	Content templ.Component
-	Aside   templ.Component
-	Active  string
+	Content       templ.Component
+	Aside         templ.Component
+	Active        string
+	HeaderTitle   string
+	PoweredFooter bool
 }
 
 templ body(tr func(string, ...any) string, params BodyParams) {
 	<body>
 		<div class="hidden" id={ RedirectID }></div>
-		@h(tr, params.Active)
+		@h(tr, params.Active, params.HeaderTitle)
 		@m(params.Content, params.Aside)
-		@f()
+		@f(params.PoweredFooter)
 	</body>
 }
 
-templ h(tr func(string, ...any) string, active string) {
+templ h(tr func(string, ...any) string, active string, title string) {
 	<header>
-		<nav>
-			<span>{ meta.AppTitle }</span>
-		</nav>
+		if title != "" {
+			<h1>{ title }</h1>
+		} else {
+			<nav>
+				<span>{ meta.AppTitle }</span>
+			</nav>
+		}
 	</header>
 }
 
@@ -38,8 +44,12 @@ templ m(content, aside templ.Component) {
 	</main>
 }
 
-templ f() {
+templ f(powered bool) {
 	<footer>
-		© { meta.Year } { meta.AppTitle }
+		if powered {
+			Powered by <a href="/">{ meta.AppTitle }</a>
+		} else {
+			© { meta.Year } { meta.AppTitle }
+		}
 	</footer>
 }

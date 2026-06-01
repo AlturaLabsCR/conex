@@ -87,8 +87,10 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 			RobotsGoogleTranslate: true,
 		},
 		Body: base.BodyParams{
-			Content: sitetemplates.SiteMain(html),
-			Active:  h.routePath("/" + site.Path),
+			Content:       sitetemplates.SiteMain(html),
+			Active:        h.routePath("/" + site.Path),
+			HeaderTitle:   site.Name,
+			PoweredFooter: true,
 		},
 	})
 
