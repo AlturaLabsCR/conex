@@ -21,6 +21,7 @@ var (
 	ErrInvalidPath     = errors.New("invalid site path")
 	ErrInvalidName     = errors.New("invalid site name")
 	ErrInvalidTags     = errors.New("invalid site tags")
+	ErrSiteTagLimit    = errors.New("site tag limit exceeded")
 	ErrPathUnavailable = errors.New("site path unavailable")
 	ErrSiteNotFound    = errors.New("site not found")
 	ErrSiteSizeLimit   = errors.New("site size limit exceeded")
@@ -35,7 +36,7 @@ const (
 	sitePathMaxLength = 255
 	siteNameMaxLength = 255
 	siteTagMaxLength  = 64
-	siteTagsMaxCount  = 32
+	siteTagsMaxCount  = 5
 	siteListPageSize  = 20
 	siteClickWindow   = time.Hour
 	siteClickMaxKeys  = 100000
@@ -667,10 +668,6 @@ func normalizeName(name string) (string, error) {
 }
 
 func normalizeTags(tags []string) ([]string, error) {
-	if len(tags) > siteTagsMaxCount {
-		return nil, ErrInvalidTags
-	}
-
 	out := make([]string, 0, len(tags))
 	seen := make(map[string]struct{}, len(tags))
 	for _, tag := range tags {
@@ -684,6 +681,9 @@ func normalizeTags(tags []string) ([]string, error) {
 		}
 		seen[tag] = struct{}{}
 		out = append(out, tag)
+	}
+	if len(out) > siteTagsMaxCount {
+		return nil, ErrSiteTagLimit
 	}
 	slices.Sort(out)
 

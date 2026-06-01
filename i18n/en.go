@@ -85,4 +85,5 @@ var en = map[string]string{
 	"site path unavailable":                          "Site path unavailable.",
 	"site size limit exceeded":                       "Site size limit exceeded for the current plan.",
 	"site subpath limit exceeded":                    "Site subpath limit exceeded for the current plan.",
+	"site tag limit exceeded":                        "A site can have at most 5 tags.",
 }

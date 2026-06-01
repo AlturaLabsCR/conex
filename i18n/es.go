@@ -85,4 +85,5 @@ var es = map[string]string{
 	"site path unavailable":                          "La ruta del sitio no está disponible.",
 	"site size limit exceeded":                       "Se excedió el límite de tamaño de sitio del plan actual.",
 	"site subpath limit exceeded":                    "Se excedió el límite de subrutas del plan actual.",
+	"site tag limit exceeded":                        "Un sitio puede tener como máximo 5 etiquetas.",
 }

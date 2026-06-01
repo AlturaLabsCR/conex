@@ -1004,7 +1004,7 @@ components:
           maxLength: 255
         tags:
           type: array
-          maxItems: 32
+          maxItems: 5
           items:
             type: string
             minLength: 1
@@ -1025,7 +1025,7 @@ components:
           maxLength: 255
         tags:
           type: array
-          maxItems: 32
+          maxItems: 5
           items:
             type: string
             minLength: 1

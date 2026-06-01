@@ -327,6 +327,9 @@ func (h *Handler) CreateSite(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, sites.ErrInvalidTags):
 			h.writeError(w, r, http.StatusBadRequest, err, "invalid site tags", "sub", sub, "site_path", req.Path)
 			return
+		case errors.Is(err, sites.ErrSiteTagLimit):
+			h.writeError(w, r, http.StatusBadRequest, err, "site tag limit exceeded", "sub", sub, "site_path", req.Path)
+			return
 		case errors.Is(err, sites.ErrPathUnavailable):
 			h.writeStatus(w, r, http.StatusConflict, "site path unavailable", "sub", sub, "site_path", req.Path)
 			return
@@ -384,6 +387,9 @@ func (h *Handler) UpdateSite(w http.ResponseWriter, r *http.Request) {
 			return
 		case errors.Is(err, sites.ErrInvalidTags):
 			h.writeError(w, r, http.StatusBadRequest, err, "invalid site tags", "sub", sub, "site_path", r.PathValue("path"))
+			return
+		case errors.Is(err, sites.ErrSiteTagLimit):
+			h.writeError(w, r, http.StatusBadRequest, err, "site tag limit exceeded", "sub", sub, "site_path", r.PathValue("path"))
 			return
 		case errors.Is(err, sites.ErrSiteNotFound):
 			h.writeError(w, r, http.StatusNotFound, err, "site not found", "sub", sub, "site_path", r.PathValue("path"))
