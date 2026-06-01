@@ -9,7 +9,7 @@
 	function stateFor(root) {
 		let state = states.get(root);
 		if (!state) {
-			state = { page: 1, loading: false, done: false };
+			state = { page: 1, loading: false, done: false, initialized: false };
 			states.set(root, state);
 		}
 		return state;
@@ -35,10 +35,11 @@
 		return `${prefix}/api/public/sites/${current.sort === "latest" ? "latest" : "top"}/${page}`;
 	}
 
-	function status(root, text) {
+	function status(root, text, kind = "") {
 		const target = root.querySelector("[data-site-status]");
 		if (target) {
 			target.textContent = text;
+			target.dataset.status = kind;
 		}
 	}
 
@@ -52,12 +53,46 @@
 		})[char]);
 	}
 
+	function normalizeTag(tag) {
+		return String(tag ?? "").replace(/\s+/g, "").toLowerCase();
+	}
+
+	function tagColorFor(tag) {
+		const normalizedTag = normalizeTag(tag);
+		let hash = 0;
+
+		for (let index = 0; index < normalizedTag.length; index += 1) {
+			hash = (hash * 31 + normalizedTag.charCodeAt(index)) >>> 0;
+		}
+
+		const hue = hash % 360;
+
+		return {
+			background: `hsl(${hue}, 62%, 38%)`,
+			text: `hsl(${hue}, 72%, 90%)`,
+		};
+	}
+
+	function renderTag(tag) {
+		const color = tagColorFor(tag);
+		return `<span class="site-tag" style="background:${color.background};color:${color.text}">#${escapeHTML(tag)}</span>`;
+	}
+
 	function renderSite(site) {
-		const tags = (site.tags || []).map((tag) => `#${escapeHTML(tag)}`).join(" ");
-		return `<article class="site-card">
-			<h2><a href="${escapeHTML(site.url)}">${escapeHTML(site.name)}</a></h2>
-			<div class="site-meta">${escapeHTML(site.clicks)} clicks · ${tags}</div>
-		</article>`;
+		const tags = (site.tags || []).map(renderTag).join("");
+		const tagMeta = tags ? `<div class="site-meta">${tags}</div>` : "";
+		return `<a class="site-card" href="${escapeHTML(site.url)}">
+			<div class="site-card-header">
+				<h2>${escapeHTML(site.name)}</h2>
+				<span class="site-clicks" aria-label="${escapeHTML(site.clicks)} clicks">
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672Zm-7.518-.267A8.25 8.25 0 1 1 20.25 10.5M8.288 14.212A5.25 5.25 0 1 1 17.25 10.5" />
+					</svg>
+					${escapeHTML(site.clicks)}
+				</span>
+			</div>
+			${tagMeta}
+		</a>`;
 	}
 
 	async function load(el) {
@@ -68,7 +103,7 @@
 		}
 
 		state.loading = true;
-		status(root, "Loading...");
+		status(root, "", "loading");
 		try {
 			const res = await fetch(endpoint(root, state.page), { headers: { Accept: "application/json" } });
 			if (!res.ok) {
@@ -81,9 +116,10 @@
 			}
 			state.page += 1;
 			state.done = sites.length < pageSize;
-			status(root, state.done ? "No more sites." : "");
+			const empty = state.done && state.page === 2 && sites.length === 0;
+			status(root, empty ? "No sites found." : "", empty ? "empty" : "");
 		} catch (err) {
-			status(root, "Could not load sites.");
+			status(root, "Could not load sites.", "empty");
 		} finally {
 			state.loading = false;
 		}
@@ -101,6 +137,17 @@
 		load(root);
 	}
 
+	function init(el) {
+		const root = rootFor(el);
+		const state = stateFor(root);
+		if (state.initialized) {
+			return;
+		}
+
+		state.initialized = true;
+		reset(root);
+	}
+
 	function loadIfNearEnd(el) {
 		const remaining = document.documentElement.scrollHeight - window.scrollY - window.innerHeight;
 		if (remaining < 400) {
@@ -108,5 +155,15 @@
 		}
 	}
 
-	window.ConexSites = { init: reset, reset, loadIfNearEnd };
+	function initAll() {
+		document.querySelectorAll("[data-site-browser]").forEach(init);
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initAll, { once: true });
+	} else {
+		initAll();
+	}
+
+	window.ConexSites = { init, reset, loadIfNearEnd };
 })();

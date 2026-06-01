@@ -22,7 +22,7 @@ func (h *Handler) Root(w http.ResponseWriter, r *http.Request) {
 		page := base.Page(L, base.PageParams{
 			Head: base.HeadParams{
 				Title:       meta.AppTitle,
-				Subtitle:    L("root.greeting"),
+				Subtitle:    L("root.subtitle"),
 				RobotsIndex: true,
 			},
 			Body: base.BodyParams{

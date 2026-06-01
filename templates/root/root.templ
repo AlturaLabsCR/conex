@@ -6,10 +6,9 @@ templ RootMain(tr func(string, ...any) string, rootPrefix string) {
 		data-site-browser
 		data-api-prefix={ rootPrefix }
 		data-signals="{ query: '', sort: 'top' }"
-		data-on:load="ConexSites.init(el)"
 		data-on:scroll__window__throttle.250ms="ConexSites.loadIfNearEnd(el)"
 	>
-		<h1>{ tr("root.greeting") }</h1>
+		<p class="root-intro">{ tr("root.greeting") }</p>
 		<form class="site-controls" data-on:submit__prevent="ConexSites.reset(el)">
 			<input
 				type="search"
@@ -29,8 +28,7 @@ templ RootMain(tr func(string, ...any) string, rootPrefix string) {
 				<option value="latest">Recently created</option>
 			</select>
 		</form>
-		<p class="muted" data-text="$query ? 'Search results' : ($sort === 'latest' ? 'Recently created' : 'Most visited')">Most visited</p>
 		<div class="site-list" data-site-list></div>
-		<p class="muted" data-site-status>Loading...</p>
+		<p class="muted" data-site-status data-status="loading"></p>
 	</section>
 }

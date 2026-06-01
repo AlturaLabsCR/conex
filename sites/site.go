@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
+	"time"
 
 	"app/database"
 	"github.com/microcosm-cc/bluemonday"
@@ -35,11 +37,13 @@ const (
 	siteTagMaxLength  = 64
 	siteTagsMaxCount  = 32
 	siteListPageSize  = 20
+	siteClickWindow   = time.Hour
+	siteClickMaxKeys  = 100000
 )
 
 type Sites interface {
 	Create(ctx context.Context, sub int64, path string, name string, tags []string, html io.Reader) (*database.Site, error)
-	Get(ctx context.Context, path string) (*database.Site, string, error)
+	Get(ctx context.Context, path string, clickClientHash string) (*database.Site, string, error)
 	GetOwned(ctx context.Context, sub int64, path string) (*database.Site, string, error)
 	List(ctx context.Context, sub int64) ([]database.Site, error)
 	ListTop(ctx context.Context, page int64) ([]database.Site, error)
@@ -59,9 +63,12 @@ type SiteUpdate struct {
 }
 
 type Service struct {
-	db             database.Database
-	privateStorage *storage.Storage
-	publicStorage  *storage.Storage
+	db               database.Database
+	privateStorage   *storage.Storage
+	publicStorage    *storage.Storage
+	siteClickMu      sync.Mutex
+	siteClickHistory map[string]time.Time
+	siteClickOrder   []string
 }
 
 var _ Sites = (*Service)(nil)
@@ -78,9 +85,10 @@ func New(db database.Database, privateStorage, publicStorage *storage.Storage) *
 	}
 
 	return &Service{
-		db:             db,
-		privateStorage: privateStorage,
-		publicStorage:  publicStorage,
+		db:               db,
+		privateStorage:   privateStorage,
+		publicStorage:    publicStorage,
+		siteClickHistory: make(map[string]time.Time),
 	}
 }
 
@@ -181,7 +189,7 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, name strin
 	return site, nil
 }
 
-func (s *Service) Get(ctx context.Context, path string) (*database.Site, string, error) {
+func (s *Service) Get(ctx context.Context, path string, clickClientHash string) (*database.Site, string, error) {
 	path, err := normalizePath(path)
 	if err != nil {
 		return nil, "", err
@@ -216,11 +224,68 @@ func (s *Service) Get(ctx context.Context, path string) (*database.Site, string,
 		return nil, "", err
 	}
 
-	if err := s.db.Querier().IncrementSiteClicks(ctx, path); err != nil {
+	if err := s.countClick(ctx, path, clickClientHash); err != nil {
 		return nil, "", err
 	}
 
 	return site, string(html), nil
+}
+
+func (s *Service) countClick(ctx context.Context, path string, clickClientHash string) error {
+	if clickClientHash != "" && !s.claimClick(path, clickClientHash, time.Now()) {
+		return nil
+	}
+
+	return s.db.Querier().IncrementSiteClicks(ctx, path)
+}
+
+func (s *Service) claimClick(path string, clickClientHash string, now time.Time) bool {
+	key := path + "\x00" + clickClientHash
+
+	s.siteClickMu.Lock()
+	defer s.siteClickMu.Unlock()
+
+	s.pruneSiteClickHistoryLocked(now)
+	if _, ok := s.siteClickHistory[key]; ok {
+		return false
+	}
+	if len(s.siteClickHistory) >= siteClickMaxKeys {
+		s.evictOldestSiteClickLocked()
+	}
+
+	s.siteClickHistory[key] = now
+	s.siteClickOrder = append(s.siteClickOrder, key)
+
+	return true
+}
+
+func (s *Service) pruneSiteClickHistoryLocked(now time.Time) {
+	kept := s.siteClickOrder[:0]
+	for _, key := range s.siteClickOrder {
+		lastClicked, ok := s.siteClickHistory[key]
+		if !ok {
+			continue
+		}
+		if now.Sub(lastClicked) >= siteClickWindow {
+			delete(s.siteClickHistory, key)
+			continue
+		}
+
+		kept = append(kept, key)
+	}
+
+	s.siteClickOrder = kept
+}
+
+func (s *Service) evictOldestSiteClickLocked() {
+	for len(s.siteClickOrder) > 0 {
+		key := s.siteClickOrder[0]
+		s.siteClickOrder = s.siteClickOrder[1:]
+		if _, ok := s.siteClickHistory[key]; ok {
+			delete(s.siteClickHistory, key)
+			return
+		}
+	}
 }
 
 func (s *Service) List(ctx context.Context, sub int64) ([]database.Site, error) {

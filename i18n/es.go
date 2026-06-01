@@ -5,7 +5,8 @@ func init() {
 }
 
 var es = map[string]string{
-	"root.greeting":      "Hola, mundo!",
+	"root.greeting":      "Descubre sitios creados por gente en Conex. Revisa lo que está recibiendo atención y abre lo que te llame la atención.",
+	"root.subtitle":      "Descubre sitios",
 	"mail.otp.subject":   "Tu código de verificación de Conex",
 	"mail.otp.body":      "Tu código de verificación de Conex es {{.Code}}.\n\nVence a las {{.ExpiresAt}}.\n",
 	"plans.free.name":    "Gratis",

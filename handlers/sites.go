@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -62,7 +65,7 @@ func (h *Handler) SitePathAvailable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
-	site, html, err := h.sites.Get(r.Context(), r.PathValue("path"))
+	site, html, err := h.sites.Get(r.Context(), r.PathValue("path"), siteClickClientHash(r))
 	if err != nil {
 		switch {
 		case errors.Is(err, sites.ErrInvalidPath):
@@ -97,6 +100,36 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 	if err := page.Render(r.Context(), w); err != nil {
 		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site", "site_path", site.Path)
 	}
+}
+
+func siteClickClientHash(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+
+	identity := strings.Join([]string{
+		clientAddress(r),
+		r.UserAgent(),
+		r.Header.Get("Accept-Language"),
+	}, "\n")
+	sum := sha256.Sum256([]byte(identity))
+
+	return hex.EncodeToString(sum[:])
+}
+
+func clientAddress(r *http.Request) string {
+	if forwardedFor := strings.TrimSpace(r.Header.Get("X-Forwarded-For")); forwardedFor != "" {
+		client, _, _ := strings.Cut(forwardedFor, ",")
+		return strings.TrimSpace(client)
+	}
+	if realIP := strings.TrimSpace(r.Header.Get("X-Real-IP")); realIP != "" {
+		return realIP
+	}
+	if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+		return host
+	}
+
+	return strings.TrimSpace(r.RemoteAddr)
 }
 
 func (h *Handler) renderSiteNotFound(w http.ResponseWriter, r *http.Request, err error) {
