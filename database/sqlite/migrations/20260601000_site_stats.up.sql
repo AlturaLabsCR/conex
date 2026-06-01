@@ -11,15 +11,13 @@ CREATE TABLE IF NOT EXISTS site_clicks (
   CONSTRAINT site_clicks_non_negative CHECK (clicks >= 0)
 );
 
-INSERT INTO site_timestamps (path, created_at, last_modified)
+INSERT OR IGNORE INTO site_timestamps (path, created_at, last_modified)
 SELECT path, unixepoch(), unixepoch()
-FROM sites
-ON CONFLICT (path) DO NOTHING;
+FROM sites;
 
-INSERT INTO site_clicks (path, clicks)
+INSERT OR IGNORE INTO site_clicks (path, clicks)
 SELECT path, 0
-FROM sites
-ON CONFLICT (path) DO NOTHING;
+FROM sites;
 
 DROP VIEW IF EXISTS site_meta;
 
