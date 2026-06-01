@@ -4,7 +4,7 @@ package meta
 import "time"
 
 const (
-	AppTitle = "Conex"
+	AppTitle = "conex.co.cr"
 )
 
 var Year int
