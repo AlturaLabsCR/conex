@@ -5,6 +5,7 @@ db/
 conex-data
 *.html
 *_templ.go
+handlers/assets/fonts/*.ttf
 
 .env
 .codex
