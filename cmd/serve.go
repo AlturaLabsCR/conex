@@ -58,7 +58,7 @@ func init() {
 	viper.SetDefault("paypal.host", paypal.SandboxHost)
 	viper.SetDefault("paypal.client-id", "")
 	viper.SetDefault("paypal.client-secret", "")
-	viper.SetDefault("cors.origins", []string{"https://conex.co.cr", "http://localhost"})
+	viper.SetDefault("cors.origins", []string{"https://conex.co.cr", "https://editor.conex.co.cr", "http://localhost"})
 	viper.SetDefault("root", "")
 	viper.SetDefault("base-url", "https://conex.co.cr")
 	viper.SetDefault("db", "conex-data/conex.sqlite")
@@ -81,7 +81,7 @@ func init() {
 	flags.String("paypal-host", paypal.SandboxHost, "PayPal API host URL")
 	flags.String("paypal-client-id", "", "PayPal REST app client ID")
 	flags.String("paypal-client-secret", "", "PayPal REST app client secret")
-	flags.StringSlice("cors-origin", []string{"https://conex.co.cr", "http://localhost"}, "allowed CORS origin; repeat or comma-separate for multiple origins")
+	flags.StringSlice("cors-origin", []string{"https://conex.co.cr", "https://editor.conex.co.cr", "http://localhost"}, "allowed CORS origin; repeat or comma-separate for multiple origins")
 	flags.String("root", "", "route prefix to mount the app under")
 	flags.String("base-url", "", "public base URL for generated site URLs")
 

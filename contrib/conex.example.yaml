@@ -72,6 +72,7 @@ paypal:
 cors:
   origins:
     - https://conex.co.cr
+    - https://editor.conex.co.cr
     - http://localhost
 
 # Route prefix to mount the app under.
