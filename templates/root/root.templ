@@ -8,7 +8,9 @@ templ RootMain(tr func(string, ...any) string, rootPrefix string) {
 		data-signals="{ query: '', sort: 'top' }"
 		data-on:scroll__window__throttle.250ms="ConexSites.loadIfNearEnd(el)"
 	>
-		<p class="root-intro">{ tr("root.greeting") }</p>
+		<p class="root-intro">
+			@templ.Raw(tr("root.greeting"))
+		</p>
 		<form class="site-controls" data-on:submit__prevent="ConexSites.reset(el)">
 			<input
 				type="search"

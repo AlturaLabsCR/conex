@@ -5,7 +5,7 @@ func init() {
 }
 
 var es = map[string]string{
-	"root.greeting":            "Descubre sitios creados por gente en Conex. Revisa lo que está recibiendo atención y abre lo que te llame la atención.",
+	"root.greeting":            "Descubre sitios creados por gente en Conex. Revisa lo que está recibiendo atención y abre lo que te llame la atención. Crea el tuyo <a href=\"https://editor.conex.co.cr/\">aquí</a>.",
 	"root.subtitle":            "Descubre sitios",
 	"card.powered_by":          "Creado con {{.Name}}",
 	"site.preview.description": "Ver {{.Name}} en {{.AppTitle}}.{{if .Tags}} {{.Tags}}{{end}}",
