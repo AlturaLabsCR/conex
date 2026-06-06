@@ -163,6 +163,43 @@ func (h *Handler) siteURL(path string) string {
 	return strings.TrimRight(h.baseURL, "/") + route
 }
 
+func (h *Handler) absoluteSiteURL(r *http.Request, path string) string {
+	return h.absoluteRouteURL(r, h.routePath("/"+path))
+}
+
+func (h *Handler) absoluteRouteURL(r *http.Request, route string) string {
+	if h.baseURL != "" {
+		return strings.TrimRight(h.baseURL, "/") + route
+	}
+	if r == nil {
+		return route
+	}
+
+	host := strings.TrimSpace(r.Header.Get("X-Forwarded-Host"))
+	if host == "" {
+		host = strings.TrimSpace(r.Host)
+	}
+	if host == "" {
+		return route
+	}
+
+	scheme := strings.TrimSpace(r.Header.Get("X-Forwarded-Proto"))
+	if scheme == "" {
+		scheme = "https"
+		if r.TLS == nil {
+			scheme = "http"
+		}
+	}
+	if forwardedScheme, _, ok := strings.Cut(scheme, ","); ok {
+		scheme = strings.TrimSpace(forwardedScheme)
+	}
+	if scheme != "http" && scheme != "https" {
+		scheme = "https"
+	}
+
+	return scheme + "://" + host + route
+}
+
 func normalizeRootPrefix(prefix string) string {
 	prefix = strings.TrimSpace(prefix)
 	if prefix == "" || prefix == "/" {

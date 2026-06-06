@@ -1,0 +1,39 @@
+package cards
+
+type TextLine struct {
+	Text string
+	X    string
+	Y    string
+}
+
+type Tag struct {
+	Label      string
+	X          string
+	Y          string
+	Width      string
+	Background string
+	TextColor  string
+}
+
+templ SiteCard(name string, nameLines []TextLine, tags []Tag) {
+	<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img">
+		<title>{ name }</title>
+		<rect width="1200" height="630" fill="#fff"></rect>
+		<rect x="0" y="0" width="1200" height="12" fill="#52b69a"></rect>
+		<text x="96" y="122" fill="#004952" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="700">conex.co.cr</text>
+		<g>
+			for _, line := range nameLines {
+				<text x={ line.X } y={ line.Y } fill="#111" font-family="Inter, Arial, sans-serif" font-size="74" font-weight="800">{ line.Text }</text>
+			}
+		</g>
+		if len(tags) > 0 {
+			<g>
+				for _, tag := range tags {
+					<rect x={ tag.X } y={ tag.Y } width={ tag.Width } height="56" rx="28" fill={ tag.Background }></rect>
+					<text x={ tag.X } y={ tag.Y } dx="28" dy="37" fill={ tag.TextColor } font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">#{ tag.Label }</text>
+				}
+			</g>
+		}
+		<text x="96" y="548" fill="#666" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="600">Published on conex.co.cr</text>
+	</svg>
+}

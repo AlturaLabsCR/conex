@@ -8,11 +8,14 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
+	"unicode/utf16"
 
 	"app/database"
 	"app/middleware"
 	"app/sites"
 	"app/templates/base"
+	cardtemplates "app/templates/cards"
 	"app/templates/meta"
 	sitetemplates "app/templates/sites"
 )
@@ -24,6 +27,7 @@ func (h *Handler) registerSiteRoutes() {
 		return middleware.AuthenticateBearer(h.logger, h.authenticator, h.localizeError, http.HandlerFunc(fn))
 	}
 
+	h.AddHandler(http.MethodGet, h.routePath("/card/{path}"), http.HandlerFunc(h.GetSiteCard))
 	h.AddHandler(http.MethodGet, h.routePath("/{path}"), http.HandlerFunc(h.GetSite))
 	h.AddHandler(http.MethodGet, h.routePath("/api/public/sites/top"), http.HandlerFunc(h.ListTopSites))
 	h.AddHandler(http.MethodGet, h.routePath("/api/public/sites/top/{page}"), http.HandlerFunc(h.ListTopSites))
@@ -81,11 +85,25 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
+	siteURL := h.absoluteSiteURL(r, site.Path)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	page := base.Page(L, base.PageParams{
 		Head: base.HeadParams{
 			Title:                 meta.AppTitle,
 			Subtitle:              site.Name,
+			Description:           sitePreviewDescription(site.Name, site.Tags),
+			CanonicalURL:          siteURL,
+			PreviewTitle:          site.Name,
+			PreviewURL:            siteURL,
+			PreviewType:           "website",
+			PreviewSiteName:       meta.AppTitle,
+			PreviewLocale:         "en_US",
+			PreviewUpdatedTime:    sitePreviewTime(site.LastModified),
+			PreviewTags:           site.Tags,
+			PreviewImageURL:       h.absoluteRouteURL(r, h.routePath("/card/"+site.Path)),
+			PreviewImageAlt:       site.Name,
+			PreviewImageWidth:     "1200",
+			PreviewImageHeight:    "630",
 			RobotsIndex:           true,
 			RobotsGoogleTranslate: true,
 		},
@@ -100,6 +118,215 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 	if err := page.Render(r.Context(), w); err != nil {
 		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site", "site_path", site.Path)
 	}
+}
+
+func (h *Handler) GetSiteCard(w http.ResponseWriter, r *http.Request) {
+	site, err := h.db.Querier().SelectSiteByPath(r.Context(), strings.TrimSpace(r.PathValue("path")))
+	if err != nil {
+		if h.db.IsErrNotFound(err) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to get site card", "site_path", r.PathValue("path"))
+		return
+	}
+	if !site.Public {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "image/svg+xml; charset=utf-8")
+	w.Header().Set("Cache-Control", "public, max-age=300")
+	card := cardtemplates.SiteCard(site.Name, siteCardNameLines(site.Name), siteCardTags(site.Tags))
+	if err := card.Render(r.Context(), w); err != nil {
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site card", "site_path", site.Path)
+	}
+}
+
+func siteCardNameLines(name string) []cardtemplates.TextLine {
+	lines := wrapCardText(strings.TrimSpace(name), 24, 2)
+	out := make([]cardtemplates.TextLine, 0, len(lines))
+	startY := 270
+	if len(lines) == 1 {
+		startY = 318
+	}
+	for i, line := range lines {
+		out = append(out, cardtemplates.TextLine{
+			Text: line,
+			X:    "96",
+			Y:    strconv.Itoa(startY + i*88),
+		})
+	}
+
+	return out
+}
+
+func wrapCardText(text string, maxRunes int, maxLines int) []string {
+	if text == "" {
+		text = meta.AppTitle
+	}
+
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return []string{text}
+	}
+
+	lines := make([]string, 0, maxLines)
+	current := ""
+	for _, word := range words {
+		if current == "" {
+			current = trimCardText(word, maxRunes)
+			continue
+		}
+		candidate := current + " " + word
+		if runeLen(candidate) <= maxRunes {
+			current = candidate
+			continue
+		}
+
+		lines = append(lines, current)
+		if len(lines) == maxLines {
+			lines[len(lines)-1] = appendCardEllipsis(lines[len(lines)-1], maxRunes)
+			return lines
+		}
+		current = trimCardText(word, maxRunes)
+	}
+	if current != "" && len(lines) < maxLines {
+		lines = append(lines, current)
+	}
+
+	return ellipsizeLastCardLine(lines, maxRunes)
+}
+
+func appendCardEllipsis(text string, maxRunes int) string {
+	if strings.HasSuffix(text, "...") {
+		return text
+	}
+
+	runes := []rune(text)
+	if maxRunes <= 3 {
+		if len(runes) <= maxRunes {
+			return text
+		}
+
+		return string(runes[:maxRunes])
+	}
+	if len(runes) <= maxRunes-3 {
+		return text + "..."
+	}
+
+	return string(runes[:maxRunes-3]) + "..."
+}
+
+func ellipsizeLastCardLine(lines []string, maxRunes int) []string {
+	if len(lines) == 0 {
+		return lines
+	}
+	last := len(lines) - 1
+	if runeLen(lines[last]) <= maxRunes {
+		return lines
+	}
+
+	lines[last] = trimCardText(lines[last], maxRunes)
+	return lines
+}
+
+func trimCardText(text string, maxRunes int) string {
+	runes := []rune(text)
+	if len(runes) <= maxRunes {
+		return text
+	}
+	if maxRunes <= 3 {
+		return string(runes[:maxRunes])
+	}
+
+	return string(runes[:maxRunes-3]) + "..."
+}
+
+func runeLen(text string) int {
+	return len([]rune(text))
+}
+
+func siteCardTags(tags []string) []cardtemplates.Tag {
+	const (
+		startX = 96
+		maxX   = 1104
+		gap    = 16
+		startY = 410
+		rowGap = 72
+	)
+
+	out := make([]cardtemplates.Tag, 0, len(tags))
+	x, y := startX, startY
+	for _, tag := range tags {
+		label := strings.TrimSpace(tag)
+		if label == "" {
+			continue
+		}
+
+		width := 64 + runeLen(label)*18
+		if x > startX && x+width > maxX {
+			x = startX
+			y += rowGap
+		}
+		if y > startY+rowGap {
+			break
+		}
+
+		color := siteTagColorFor(label)
+		out = append(out, cardtemplates.Tag{
+			Label:      label,
+			X:          strconv.Itoa(x),
+			Y:          strconv.Itoa(y),
+			Width:      strconv.Itoa(width),
+			Background: color.background,
+			TextColor:  color.text,
+		})
+		x += width + gap
+	}
+
+	return out
+}
+
+type siteTagColor struct {
+	background string
+	text       string
+}
+
+func siteTagColorFor(tag string) siteTagColor {
+	normalizedTag := strings.ToLower(strings.Join(strings.Fields(tag), ""))
+	var hash uint32
+	for _, char := range utf16.Encode([]rune(normalizedTag)) {
+		hash = hash*31 + uint32(char)
+	}
+
+	hue := strconv.FormatUint(uint64(hash%360), 10)
+	return siteTagColor{
+		background: "hsl(" + hue + ", 62%, 38%)",
+		text:       "hsl(" + hue + ", 72%, 90%)",
+	}
+}
+
+func sitePreviewDescription(name string, tags []string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		name = "this site"
+	}
+
+	if len(tags) == 0 {
+		return "View " + name + " on " + meta.AppTitle + "."
+	}
+
+	return "View " + name + " on " + meta.AppTitle + ". Tags: " + strings.Join(tags, ", ") + "."
+}
+
+func sitePreviewTime(unix int64) string {
+	if unix <= 0 {
+		return ""
+	}
+
+	return time.Unix(unix, 0).UTC().Format(time.RFC3339)
 }
 
 func siteClickClientHash(r *http.Request) string {
