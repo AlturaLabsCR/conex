@@ -65,6 +65,26 @@ func (h *Handler) CreatePlanOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	subscription, err := h.db.Querier().SelectAccountSubscriptionBySub(r.Context(), sub)
+	if err != nil {
+		if h.db.IsErrNotFound(err) {
+			h.writeError(w, r, http.StatusNotFound, err, "account subscription not found", "sub", sub)
+			return
+		}
+
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to select account subscription", "sub", sub)
+		return
+	}
+	if _, err := renewalDueDate(subscription, plan, time.Now().UTC()); err != nil {
+		if errors.Is(err, errPlanRenewalLimitExceeded) {
+			h.writeError(w, r, http.StatusConflict, err, "plan renewal limit exceeded", "sub", sub, "plan_id", plan.ID)
+			return
+		}
+
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to calculate plan renewal", "sub", sub, "plan_id", plan.ID)
+		return
+	}
+
 	order, err := h.paypal.CreateOrder(
 		r.Context(),
 		plan.PriceCurrency,
@@ -112,6 +132,39 @@ func (h *Handler) CapturePlanOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	plan, err := h.selectPlanByID(r.Context(), payment.PlanID)
+	if err != nil {
+		if errors.Is(err, errPlanNotFound) {
+			h.writeError(w, r, http.StatusNotFound, err, "plan not found", "sub", sub, "plan_id", payment.PlanID)
+			return
+		}
+
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to select plan", "sub", sub, "plan_id", payment.PlanID)
+		return
+	}
+
+	subscription, err := h.db.Querier().SelectAccountSubscriptionBySub(r.Context(), sub)
+	if err != nil {
+		if h.db.IsErrNotFound(err) {
+			h.writeError(w, r, http.StatusNotFound, err, "account subscription not found", "sub", sub)
+			return
+		}
+
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to select account subscription", "sub", sub)
+		return
+	}
+
+	dueDate, err := renewalDueDate(subscription, plan, time.Now().UTC())
+	if err != nil {
+		if errors.Is(err, errPlanRenewalLimitExceeded) {
+			h.writeError(w, r, http.StatusConflict, err, "plan renewal limit exceeded", "sub", sub, "plan_id", plan.ID)
+			return
+		}
+
+		h.writeError(w, r, http.StatusInternalServerError, err, "failed to calculate plan renewal", "sub", sub, "plan_id", plan.ID)
+		return
+	}
+
 	capture, err := h.paypal.CaptureOrderPayment(r.Context(), orderID)
 	if err != nil {
 		h.writeError(w, r, http.StatusBadGateway, err, "failed to capture paypal order", "sub", sub, "order_id", orderID)
@@ -123,7 +176,6 @@ func (h *Handler) CapturePlanOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var captured *database.Payment
-	dueDate := paymentDueDate(payment)
 	if err := h.db.WithTx(r.Context(), func(q database.Querier) error {
 		var err error
 		captured, err = q.CapturePayment(r.Context(), orderID, sub)
@@ -195,11 +247,15 @@ func (h *Handler) planResponse(L func(string, ...any) string, plan database.Plan
 }
 
 var (
-	errPlanNotFound            = errors.New("plan not found")
-	errPlanNotPayable          = errors.New("plan is not payable")
-	errPlanPaymentNotFound     = errors.New("payment not found")
-	errPaypalCaptureIncomplete = errors.New("paypal capture incomplete")
+	errPlanNotFound             = errors.New("plan not found")
+	errPlanNotPayable           = errors.New("plan is not payable")
+	errPlanPaymentNotFound      = errors.New("payment not found")
+	errPlanRenewalLimitExceeded = errors.New("plan renewal limit exceeded")
+	errPlanRenewalInvalid       = errors.New("invalid plan renewal")
+	errPaypalCaptureIncomplete  = errors.New("paypal capture incomplete")
 )
+
+const maxRenewalBillingPeriods = 2
 
 func (h *Handler) selectPlanByID(ctx context.Context, planID string) (database.Plan, error) {
 	plans, err := h.db.Querier().SelectPlans(ctx)
@@ -220,12 +276,63 @@ func paypalAmount(cents int64) string {
 	return fmt.Sprintf("%d.%02d", cents/100, cents%100)
 }
 
-func paymentDueDate(payment *database.Payment) string {
-	if payment == nil || payment.PlanID == "free" {
-		return ""
+func renewalDueDate(subscription *database.AccountSubscription, plan database.Plan, now time.Time) (string, error) {
+	if plan.ID == "free" || !plan.SupportsRenewal {
+		return "", nil
 	}
 
-	return time.Now().UTC().AddDate(1, 0, 0).Format(time.DateOnly)
+	if plan.BillingCount <= 0 || plan.BillingUnit == "" {
+		return "", fmt.Errorf("%w: invalid billing period", errPlanRenewalInvalid)
+	}
+
+	today := dateOnlyUTC(now)
+	base := today
+	if subscription != nil && subscription.DueDate != "" {
+		dueDate, err := time.Parse(time.DateOnly, subscription.DueDate)
+		if err != nil {
+			return "", fmt.Errorf("%w: parse due date %q: %v", errPlanRenewalInvalid, subscription.DueDate, err)
+		}
+		dueDate = dateOnlyUTC(dueDate)
+		if dueDate.After(base) {
+			base = dueDate
+		}
+	}
+
+	nextDueDate, err := addBillingPeriods(base, plan.BillingUnit, plan.BillingCount, 1)
+	if err != nil {
+		return "", err
+	}
+
+	latestDueDate, err := addBillingPeriods(today, plan.BillingUnit, plan.BillingCount, maxRenewalBillingPeriods)
+	if err != nil {
+		return "", err
+	}
+	if nextDueDate.After(latestDueDate) {
+		return "", errPlanRenewalLimitExceeded
+	}
+
+	return nextDueDate.Format(time.DateOnly), nil
+}
+
+func dateOnlyUTC(t time.Time) time.Time {
+	y, m, d := t.UTC().Date()
+	return time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+}
+
+func addBillingPeriods(t time.Time, unit string, count int64, periods int64) (time.Time, error) {
+	amount := count * periods
+	switch strings.ToLower(unit) {
+	case "day", "days":
+		return t.AddDate(0, 0, int(amount)), nil
+	case "week", "weeks":
+		return t.AddDate(0, 0, int(amount*7)), nil
+	case "month", "months":
+		return t.AddDate(0, int(amount), 0), nil
+	case "year", "years":
+		return t.AddDate(int(amount), 0, 0), nil
+	default:
+		return time.Time{}, fmt.Errorf("%w: unsupported billing unit %q", errPlanRenewalInvalid, unit)
+	}
 }
 
 func paypalCaptureCompleted(capture *paypal.CaptureOrderPaymentResponse) bool {
