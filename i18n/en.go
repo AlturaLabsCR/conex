@@ -7,6 +7,7 @@ func init() {
 var en = map[string]string{
 	"root.greeting":      "Discover sites made by people across Conex. Browse what is getting attention, and open anything that catches your eye.",
 	"root.subtitle":      "Discover sites",
+	"card.powered_by":    "Powered by {{.Name}}",
 	"mail.otp.subject":   "Your Conex verification code",
 	"mail.otp.body":      "Your Conex verification code is {{.Code}}.\n\nIt expires at {{.ExpiresAt}}.\n",
 	"plans.free.name":    "Free",

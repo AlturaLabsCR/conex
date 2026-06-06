@@ -138,24 +138,34 @@ func (h *Handler) GetSiteCard(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "image/svg+xml; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=300")
-	card := cardtemplates.SiteCard(site.Name, siteCardNameLines(site.Name), siteCardTags(site.Tags))
+	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
+	card := cardtemplates.SiteCard(site.Name, siteCardURL(site.Path), L("card.powered_by", map[string]string{"Name": meta.AppTitle}), siteCardNameLines(site.Name), siteCardTags(site.Tags))
 	if err := card.Render(r.Context(), w); err != nil {
 		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site card", "site_path", site.Path)
 	}
 }
 
+func siteCardURL(path string) string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return meta.AppTitle
+	}
+
+	return strings.TrimRight(meta.AppTitle, "/") + "/" + strings.TrimLeft(path, "/")
+}
+
 func siteCardNameLines(name string) []cardtemplates.TextLine {
-	lines := wrapCardText(strings.TrimSpace(name), 24, 2)
+	lines := wrapCardText(strings.TrimSpace(name), 15, 2)
 	out := make([]cardtemplates.TextLine, 0, len(lines))
-	startY := 270
+	startY := 256
 	if len(lines) == 1 {
-		startY = 318
+		startY = 334
 	}
 	for i, line := range lines {
 		out = append(out, cardtemplates.TextLine{
 			Text: line,
 			X:    "96",
-			Y:    strconv.Itoa(startY + i*88),
+			Y:    strconv.Itoa(startY + i*128),
 		})
 	}
 
@@ -253,8 +263,8 @@ func siteCardTags(tags []string) []cardtemplates.Tag {
 		startX = 96
 		maxX   = 1104
 		gap    = 16
-		startY = 410
-		rowGap = 72
+		startY = 408
+		rowGap = 90
 	)
 
 	out := make([]cardtemplates.Tag, 0, len(tags))
@@ -265,7 +275,7 @@ func siteCardTags(tags []string) []cardtemplates.Tag {
 			continue
 		}
 
-		width := 64 + runeLen(label)*18
+		width := 48 + (runeLen(label)+1)*21
 		if x > startX && x+width > maxX {
 			x = startX
 			y += rowGap
