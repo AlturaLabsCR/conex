@@ -19,6 +19,7 @@ require (
 	github.com/tavocg/go-storage/backends/fs v0.2.1
 	github.com/tavocg/go-storage/backends/s3 v0.2.4
 	github.com/tdewolff/minify/v2 v2.24.13
+	golang.org/x/image v0.41.0
 	modernc.org/sqlite v1.52.0
 )
 

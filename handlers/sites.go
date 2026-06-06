@@ -97,7 +97,7 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 		Head: base.HeadParams{
 			Title:                 meta.AppTitle,
 			Subtitle:              site.Name,
-			Description:           sitePreviewDescription(site.Name, site.Tags),
+			Description:           sitePreviewDescription(L, site.Name, site.Tags),
 			CanonicalURL:          siteURL,
 			PreviewTitle:          site.Name,
 			PreviewURL:            siteURL,
@@ -158,11 +158,10 @@ func (h *Handler) GetSiteCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "image/svg+xml; charset=utf-8")
+	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Cache-Control", "public, max-age=300")
 	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
-	card := cardtemplates.SiteCard(site.Name, siteCardURL(site.Path), L("card.powered_by", map[string]string{"Name": meta.AppTitle}), siteCardNameLines(site.Name), siteCardTags(site.Tags))
-	if err := card.Render(r.Context(), w); err != nil {
+	if err := renderSiteCardPNG(w, site.Name, siteCardURL(site.Path), L("card.powered_by", map[string]string{"Name": meta.AppTitle}), siteCardNameLines(site.Name), siteCardTags(site.Tags)); err != nil {
 		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site card", "site_path", site.Path)
 	}
 }
@@ -340,17 +339,30 @@ func siteTagColorFor(tag string) siteTagColor {
 	}
 }
 
-func sitePreviewDescription(name string, tags []string) string {
+func sitePreviewDescription(L func(string, ...any) string, name string, tags []string) string {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		name = "this site"
 	}
 
-	if len(tags) == 0 {
-		return "View " + name + " on " + meta.AppTitle + "."
+	return L("site.preview.description", map[string]string{
+		"Name":     name,
+		"AppTitle": meta.AppTitle,
+		"Tags":     sitePreviewHashtags(tags),
+	})
+}
+
+func sitePreviewHashtags(tags []string) string {
+	out := make([]string, 0, len(tags))
+	for _, tag := range tags {
+		tag = strings.Join(strings.Fields(strings.TrimSpace(tag)), "")
+		if tag == "" {
+			continue
+		}
+		out = append(out, "#"+tag)
 	}
 
-	return "View " + name + " on " + meta.AppTitle + ". Tags: " + strings.Join(tags, ", ") + "."
+	return strings.Join(out, " ")
 }
 
 func sitePreviewTime(unix int64) string {

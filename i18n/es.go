@@ -5,14 +5,15 @@ func init() {
 }
 
 var es = map[string]string{
-	"root.greeting":      "Descubre sitios creados por gente en Conex. Revisa lo que está recibiendo atención y abre lo que te llame la atención.",
-	"root.subtitle":      "Descubre sitios",
-	"card.powered_by":    "Creado con {{.Name}}",
-	"mail.otp.subject":   "Tu código de verificación de Conex",
-	"mail.otp.body":      "Tu código de verificación de Conex es {{.Code}}.\n\nVence a las {{.ExpiresAt}}.\n",
-	"plans.free.name":    "Gratis",
-	"plans.creator.name": "Creador",
-	"plans.pro.name":     "Pro",
+	"root.greeting":            "Descubre sitios creados por gente en Conex. Revisa lo que está recibiendo atención y abre lo que te llame la atención.",
+	"root.subtitle":            "Descubre sitios",
+	"card.powered_by":          "Creado con {{.Name}}",
+	"site.preview.description": "Ver {{.Name}} en {{.AppTitle}}.{{if .Tags}} {{.Tags}}{{end}}",
+	"mail.otp.subject":         "Tu código de verificación de Conex",
+	"mail.otp.body":            "Tu código de verificación de Conex es {{.Code}}.\n\nVence a las {{.ExpiresAt}}.\n",
+	"plans.free.name":          "Gratis",
+	"plans.creator.name":       "Creador",
+	"plans.pro.name":           "Pro",
 
 	"account email change target matches current email": "El nuevo correo es igual al correo actual.",
 	"account not found":                              "Cuenta no encontrada.",

@@ -5,14 +5,15 @@ func init() {
 }
 
 var en = map[string]string{
-	"root.greeting":      "Discover sites made by people across Conex. Browse what is getting attention, and open anything that catches your eye.",
-	"root.subtitle":      "Discover sites",
-	"card.powered_by":    "Powered by {{.Name}}",
-	"mail.otp.subject":   "Your Conex verification code",
-	"mail.otp.body":      "Your Conex verification code is {{.Code}}.\n\nIt expires at {{.ExpiresAt}}.\n",
-	"plans.free.name":    "Free",
-	"plans.creator.name": "Creator",
-	"plans.pro.name":     "Pro",
+	"root.greeting":            "Discover sites made by people across Conex. Browse what is getting attention, and open anything that catches your eye.",
+	"root.subtitle":            "Discover sites",
+	"card.powered_by":          "Powered by {{.Name}}",
+	"site.preview.description": "View {{.Name}} on {{.AppTitle}}.{{if .Tags}} {{.Tags}}{{end}}",
+	"mail.otp.subject":         "Your Conex verification code",
+	"mail.otp.body":            "Your Conex verification code is {{.Code}}.\n\nIt expires at {{.ExpiresAt}}.\n",
+	"plans.free.name":          "Free",
+	"plans.creator.name":       "Creator",
+	"plans.pro.name":           "Pro",
 
 	"account email change target matches current email": "The new email is the same as the current email.",
 	"account not found":                              "Account not found.",
