@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	_ "embed"
 	"fmt"
 	"image"
 	"image/color"
@@ -14,8 +15,6 @@ import (
 
 	cardtemplates "app/templates/cards"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/gofont/gobold"
-	"golang.org/x/image/font/gofont/goregular"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
@@ -30,7 +29,7 @@ func renderSiteCardPNG(w io.Writer, name string, url string, footer string, name
 	if err != nil {
 		return err
 	}
-	titleFace, err := siteCardBoldFace(128)
+	titleFace, err := siteCardDisplayFace(128)
 	if err != nil {
 		return err
 	}
@@ -172,6 +171,10 @@ func siteCardBoldFace(size float64) (font.Face, error) {
 	return siteCardFace(siteCardBoldFont, size)
 }
 
+func siteCardDisplayFace(size float64) (font.Face, error) {
+	return siteCardFace(siteCardDisplayFont, size)
+}
+
 func siteCardRegularFace(size float64) (font.Face, error) {
 	return siteCardFace(siteCardRegularFont, size)
 }
@@ -212,6 +215,16 @@ func (s *siteCardFontSource) font() (*opentype.Font, error) {
 }
 
 var (
-	siteCardBoldFont    = &siteCardFontSource{data: gobold.TTF}
-	siteCardRegularFont = &siteCardFontSource{data: goregular.TTF}
+	//go:embed assets/fonts/Inter-Bold.ttf
+	siteCardInterBold []byte
+
+	//go:embed assets/fonts/Inter-Regular.ttf
+	siteCardInterRegular []byte
+
+	//go:embed assets/fonts/InterDisplay-ExtraBold.ttf
+	siteCardInterDisplayExtraBold []byte
+
+	siteCardBoldFont    = &siteCardFontSource{data: siteCardInterBold}
+	siteCardDisplayFont = &siteCardFontSource{data: siteCardInterDisplayExtraBold}
+	siteCardRegularFont = &siteCardFontSource{data: siteCardInterRegular}
 )
