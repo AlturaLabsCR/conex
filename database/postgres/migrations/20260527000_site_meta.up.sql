@@ -7,10 +7,10 @@ CREATE TABLE IF NOT EXISTS site_names (
 
 CREATE TABLE IF NOT EXISTS site_tags (
   path VARCHAR(255) NOT NULL REFERENCES sites(path) ON DELETE CASCADE,
-  tag VARCHAR(64) NOT NULL,
+  tag VARCHAR(16) NOT NULL,
 
   PRIMARY KEY (path, tag),
-  CONSTRAINT site_tags_tag_len CHECK (length(btrim(tag)) BETWEEN 1 AND 64)
+  CONSTRAINT site_tags_tag_len CHECK (length(btrim(tag)) BETWEEN 1 AND 16)
 );
 
 CREATE OR REPLACE VIEW site_meta AS

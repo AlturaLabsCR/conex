@@ -35,7 +35,7 @@ const (
 	sitePathMinLength = 3
 	sitePathMaxLength = 255
 	siteNameMaxLength = 255
-	siteTagMaxLength  = 64
+	siteTagMaxLength  = 16
 	siteTagsMaxCount  = 5
 	siteListPageSize  = 20
 	siteClickWindow   = time.Hour
