@@ -18,6 +18,7 @@ require (
 	github.com/tavocg/go-storage v1.2.2
 	github.com/tavocg/go-storage/backends/fs v0.2.1
 	github.com/tavocg/go-storage/backends/s3 v0.2.4
+	github.com/tdewolff/minify/v2 v2.24.13
 	modernc.org/sqlite v1.52.0
 )
 
@@ -89,6 +90,7 @@ require (
 	github.com/sqlc-dev/doubleclick v1.0.0 // indirect
 	github.com/sqlc-dev/sqlc v1.31.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/tetratelabs/wazero v1.11.0 // indirect
 	github.com/wasilibs/go-pgquery v0.0.0-20250409022910-10ac41983c07 // indirect
 	github.com/wasilibs/wazero-helpers v0.0.0-20240620070341-3dff1577cd52 // indirect

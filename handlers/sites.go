@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -18,6 +20,7 @@ import (
 	cardtemplates "app/templates/cards"
 	"app/templates/meta"
 	sitetemplates "app/templates/sites"
+	"github.com/a-h/templ"
 )
 
 const maxSiteListPage = 107374183
@@ -69,7 +72,7 @@ func (h *Handler) SitePathAvailable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
-	site, html, err := h.sites.Get(r.Context(), r.PathValue("path"), siteClickClientHash(r))
+	site, html, err := h.sites.GetStream(r.Context(), r.PathValue("path"), siteClickClientHash(r))
 	if err != nil {
 		switch {
 		case errors.Is(err, sites.ErrInvalidPath):
@@ -83,6 +86,9 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	defer func() {
+		_ = html.Close()
+	}()
 
 	L := h.localizer.LocalizerFunc(h.localizer.PickLanguageFromRequest(r))
 	siteURL := h.absoluteSiteURL(r, site.Path)
@@ -108,7 +114,7 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 			RobotsGoogleTranslate: true,
 		},
 		Body: base.BodyParams{
-			Content:       sitetemplates.SiteMain(html),
+			Content:       streamingSiteMain(html),
 			Active:        h.routePath("/" + site.Path),
 			HeaderTitle:   site.Name,
 			PoweredFooter: true,
@@ -116,8 +122,24 @@ func (h *Handler) GetSite(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err := page.Render(r.Context(), w); err != nil {
-		h.writeError(w, r, http.StatusInternalServerError, err, "failed to render site", "site_path", site.Path)
+		h.logger.Error("failed to stream site", "err", err, "site_path", site.Path)
 	}
+}
+
+func streamingSiteMain(html io.Reader) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		if _, err := io.WriteString(w, `<article class="site-content"><div class="site-stream-loader" data-site-stream-loader></div>`); err != nil {
+			return err
+		}
+		if flusher, ok := w.(http.Flusher); ok {
+			flusher.Flush()
+		}
+		if _, err := io.Copy(w, html); err != nil {
+			return err
+		}
+		_, err := io.WriteString(w, `<script>document.querySelector("[data-site-stream-loader]")?.remove();</script></article>`)
+		return err
+	})
 }
 
 func (h *Handler) GetSiteCard(w http.ResponseWriter, r *http.Request) {

@@ -205,6 +205,11 @@ github.com/tavocg/go-storage/backends/fs v0.2.1 h1:PucZhEV3FqXyiuAkDUufOsufrhZTB
 github.com/tavocg/go-storage/backends/fs v0.2.1/go.mod h1:pOKwTI3OEAc7KXTqJMiZjhAGzXsmnF6Fza47XxilUGE=
 github.com/tavocg/go-storage/backends/s3 v0.2.4 h1:kzu/otOf6k8Uw1xFW+RspT5XXgRN+tyt/aUDcjvxJVI=
 github.com/tavocg/go-storage/backends/s3 v0.2.4/go.mod h1:XUS/KXK/PLXpiWMBSRRCNeo4bVvvNQROMqux2/ZDfNk=
+github.com/tdewolff/minify/v2 v2.24.13 h1:xrcF7gKDnUszseEY9WX9mUlZII2v2Go/QAcAwRASw58=
+github.com/tdewolff/minify/v2 v2.24.13/go.mod h1:emvwoYeIl8bfAKqRU5ww95LX9Gpggpqv/naal9a8Yq0=
+github.com/tdewolff/parse/v2 v2.8.12 h1:5BBjfaCv482v3nltlS0u6wH1xJaxjR6ofDrWttNvROg=
+github.com/tdewolff/parse/v2 v2.8.12/go.mod h1:Hwlni2tiVNKyzR1o6nUs4FOF07URA+JLBLd6dlIXYqo=
+github.com/tdewolff/test v1.0.11/go.mod h1:XPuWBzvdUzhCuxWO1ojpXsyzsA5bFoS3tO/Q3kFuTG8=
 github.com/tetratelabs/wazero v1.11.0 h1:+gKemEuKCTevU4d7ZTzlsvgd1uaToIDtlQlmNbwqYhA=
 github.com/tetratelabs/wazero v1.11.0/go.mod h1:eV28rsN8Q+xwjogd7f4/Pp4xFxO7uOGbLcD/LzB1wiU=
 github.com/wasilibs/go-pgquery v0.0.0-20250409022910-10ac41983c07 h1:mJdDDPblDfPe7z7go8Dvv1AJQDI3eQ/5xith3q2mFlo=

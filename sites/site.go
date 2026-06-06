@@ -15,6 +15,8 @@ import (
 	"app/database"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/tavocg/go-storage"
+	"github.com/tdewolff/minify/v2"
+	minifyhtml "github.com/tdewolff/minify/v2/html"
 )
 
 var (
@@ -29,6 +31,7 @@ var (
 	ErrSubpathLimit    = errors.New("site subpath limit exceeded")
 	sitePathPattern    = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$`)
 	siteHTMLPolicy     = newSiteHTMLPolicy()
+	siteHTMLMinifier   = newSiteHTMLMinifier()
 )
 
 const (
@@ -45,6 +48,7 @@ const (
 type Sites interface {
 	Create(ctx context.Context, sub int64, path string, name string, tags []string, html io.Reader) (*database.Site, error)
 	Get(ctx context.Context, path string, clickClientHash string) (*database.Site, string, error)
+	GetStream(ctx context.Context, path string, clickClientHash string) (*database.Site, io.ReadCloser, error)
 	GetOwned(ctx context.Context, sub int64, path string) (*database.Site, string, error)
 	List(ctx context.Context, sub int64) ([]database.Site, error)
 	ListTop(ctx context.Context, page int64) ([]database.Site, error)
@@ -191,29 +195,8 @@ func (s *Service) Create(ctx context.Context, sub int64, path string, name strin
 }
 
 func (s *Service) Get(ctx context.Context, path string, clickClientHash string) (*database.Site, string, error) {
-	path, err := normalizePath(path)
+	site, body, err := s.GetStream(ctx, path, clickClientHash)
 	if err != nil {
-		return nil, "", err
-	}
-
-	site, err := s.db.Querier().SelectSiteByPath(ctx, path)
-	if err != nil {
-		if s.db.IsErrNotFound(err) {
-			return nil, "", ErrSiteNotFound
-		}
-
-		return nil, "", err
-	}
-	if !site.Public {
-		return nil, "", ErrSiteNotFound
-	}
-
-	body, err := s.publicStorage.Get(ctx, &storage.ObjectHead{Key: path})
-	if err != nil {
-		if errors.Is(err, storage.ErrObjectNotFound) {
-			return nil, "", ErrSiteNotFound
-		}
-
 		return nil, "", err
 	}
 	defer func() {
@@ -225,11 +208,42 @@ func (s *Service) Get(ctx context.Context, path string, clickClientHash string) 
 		return nil, "", err
 	}
 
-	if err := s.countClick(ctx, path, clickClientHash); err != nil {
-		return nil, "", err
+	return site, string(html), nil
+}
+
+func (s *Service) GetStream(ctx context.Context, path string, clickClientHash string) (*database.Site, io.ReadCloser, error) {
+	path, err := normalizePath(path)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return site, string(html), nil
+	site, err := s.db.Querier().SelectSiteByPath(ctx, path)
+	if err != nil {
+		if s.db.IsErrNotFound(err) {
+			return nil, nil, ErrSiteNotFound
+		}
+
+		return nil, nil, err
+	}
+	if !site.Public {
+		return nil, nil, ErrSiteNotFound
+	}
+
+	body, err := s.publicStorage.Get(ctx, &storage.ObjectHead{Key: path})
+	if err != nil {
+		if errors.Is(err, storage.ErrObjectNotFound) {
+			return nil, nil, ErrSiteNotFound
+		}
+
+		return nil, nil, err
+	}
+
+	if err := s.countClick(ctx, path, clickClientHash); err != nil {
+		_ = body.Close()
+		return nil, nil, err
+	}
+
+	return site, body, nil
 }
 
 func (s *Service) countClick(ctx context.Context, path string, clickClientHash string) error {
@@ -643,7 +657,7 @@ func readSiteHTML(reader io.Reader) ([]byte, error) {
 func sanitizeSiteHTML(body []byte) ([]byte, error) {
 	body = siteHTMLPolicy.SanitizeBytes(body)
 
-	return body, nil
+	return siteHTMLMinifier.Bytes("text/html", body)
 }
 
 func normalizePath(path string) (string, error) {
@@ -697,4 +711,11 @@ func newSiteHTMLPolicy() *bluemonday.Policy {
 	policy.AllowDataURIImages()
 
 	return policy
+}
+
+func newSiteHTMLMinifier() *minify.M {
+	m := minify.New()
+	m.Add("text/html", &minifyhtml.Minifier{})
+
+	return m
 }

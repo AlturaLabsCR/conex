@@ -214,6 +214,24 @@ input {
 	width: 1.25rem;
 }
 
+.site-stream-loader {
+	color: #666;
+	display: flex;
+	justify-content: center;
+	padding: 1rem 0;
+}
+
+.site-stream-loader::before {
+	animation: spin .8s linear infinite;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	content: "";
+	display: block;
+	height: 1.25rem;
+	width: 1.25rem;
+}
+
 @keyframes spin {
 	to {
 		transform: rotate(360deg);
@@ -239,6 +257,7 @@ input {
 	.root-intro,
 	.site-clicks,
 	.site-meta,
+	.site-stream-loader,
 	[data-site-status],
 	.muted {
 		color: #b8c0c4;
