@@ -167,6 +167,15 @@ func drawText(img *image.RGBA, text string, x int, y int, face font.Face, c colo
 	d.DrawString(text)
 }
 
+func siteCardTagWidth(label string) int {
+	face, err := siteCardBoldFace(40)
+	if err != nil {
+		return 56 + (runeLen(label)+1)*22
+	}
+
+	return 56 + font.MeasureString(face, "#"+label).Ceil()
+}
+
 func siteCardBoldFace(size float64) (font.Face, error) {
 	return siteCardFace(siteCardBoldFont, size)
 }

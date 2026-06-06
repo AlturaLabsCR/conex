@@ -296,7 +296,7 @@ func siteCardTags(tags []string) []cardtemplates.Tag {
 			continue
 		}
 
-		width := 48 + (runeLen(label)+1)*21
+		width := siteCardTagWidth(label)
 		if x > startX && x+width > maxX {
 			x = startX
 			y += rowGap
